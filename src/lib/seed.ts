@@ -1,0 +1,141 @@
+import type { Project } from "./types";
+
+const now = new Date();
+const daysAgo = (n: number) => new Date(now.getTime() - n * 86400000).toISOString();
+const daysAhead = (n: number) => {
+  const d = new Date(now.getTime() + n * 86400000);
+  return d.toISOString().slice(0, 10);
+};
+
+export const SEED_PROJECTS: Project[] = [
+  {
+    id: "prj_xprimeray",
+    title: "xPRIMEray Rendering Engine",
+    short_summary: "Custom GPU-first physically based renderer with experimental spectral pipeline.",
+    full_description:
+      "A from-scratch rendering engine focused on real-time spectral light transport, importance-sampled BRDFs and a node-based material graph. Targets WebGPU first, with a Vulkan backend planned. Goal: ship a public alpha that can render the reference scenes within 16ms on a 4070-class GPU.",
+    category: "Engineering",
+    status: "Building",
+    priority: "Critical",
+    progress_percent: 42,
+    confidence_level: "High",
+    next_action: "Wire up multi-bounce GI accumulation and benchmark against Sponza scene.",
+    github_repo_url: "https://github.com/xprime/xprimeray",
+    evidence_links: [
+      { id: "e1", label: "Spectral pipeline design doc", url: "https://example.com/spec" },
+      { id: "e2", label: "First-light render", url: "https://example.com/render" },
+    ],
+    tags: ["wgpu", "rendering", "graphics", "rust"],
+    milestone_date: daysAhead(28),
+    notes: "Need to revisit BVH refit cost vs. rebuild. Current frame budget breaks above 1.2M tris.",
+    created_at: daysAgo(64),
+    updated_at: daysAgo(1),
+  },
+  {
+    id: "prj_wormhole",
+    title: "Wormhole Portal Validation",
+    short_summary: "Tabletop analog experiments probing traversable geometry assumptions.",
+    full_description:
+      "Series of analog gravity experiments using BEC condensates and acoustic horizons to probe boundary conditions of traversable wormhole geometries. Currently characterizing noise floor of the interferometer rig before second-pass measurements.",
+    category: "Physics Experiment",
+    status: "Validating",
+    priority: "High",
+    progress_percent: 28,
+    confidence_level: "Medium",
+    next_action: "Recalibrate interferometer arm; collect 24h baseline noise dataset.",
+    github_repo_url: "",
+    evidence_links: [
+      { id: "e1", label: "Run #14 dataset", url: "https://example.com/run14" },
+    ],
+    tags: ["physics", "analog-gravity", "experiment"],
+    milestone_date: daysAhead(42),
+    notes: "Vibration isolation is the dominant noise source. Consider Minus-K stage upgrade.",
+    created_at: daysAgo(120),
+    updated_at: daysAgo(3),
+  },
+  {
+    id: "prj_act_episode",
+    title: "ACT Episode 07 — Mythology Arc",
+    short_summary: "Long-form video on the founding myth and the lab's narrative thread.",
+    full_description:
+      "Episode 07 closes the first season's mythology arc. Outline locked, B-roll storyboard in progress, and three interview segments to capture. Targeting 22-minute runtime with the new color grade preset.",
+    category: "Content",
+    status: "Researching",
+    priority: "Medium",
+    progress_percent: 18,
+    confidence_level: "High",
+    next_action: "Lock final outline and ship interview brief to guest #2.",
+    github_repo_url: "",
+    evidence_links: [
+      { id: "e1", label: "Outline v3", url: "https://example.com/outline" },
+    ],
+    tags: ["video", "narrative", "season-1"],
+    milestone_date: daysAhead(21),
+    notes: "Need a stronger cold open. Current draft buries the lede.",
+    created_at: daysAgo(20),
+    updated_at: daysAgo(2),
+  },
+  {
+    id: "prj_bom_dashboard",
+    title: "Manufacturing BOM / ECO Dashboard",
+    short_summary: "Internal tool to track BOM revisions and engineering change orders.",
+    full_description:
+      "A focused internal dashboard for tracking BOM revisions, ECO state machine, supplier lead times, and revision deltas. Pulls from CSV exports today, Postgres later. Goal: cut the time from ECO-draft to ECO-released by half.",
+    category: "Internal Tool",
+    status: "Backlog",
+    priority: "Medium",
+    progress_percent: 5,
+    confidence_level: "Medium",
+    next_action: "Sketch ECO state machine and revision diff component.",
+    github_repo_url: "",
+    evidence_links: [],
+    tags: ["internal", "manufacturing", "ops"],
+    milestone_date: daysAhead(60),
+    notes: "Can probably reuse the diff viewer from xPRIMEray's shader graph branch.",
+    created_at: daysAgo(10),
+    updated_at: daysAgo(10),
+  },
+  {
+    id: "prj_portal_site",
+    title: "Solo Creator Public Research Portal",
+    short_summary: "Landing page + public notebook for the lab's research and releases.",
+    full_description:
+      "A clean, fast public portal for the lab. Hero, current research log, project index, episode archive, and a pared-down 'now' page. Should feel like a research site, not a marketing page.",
+    category: "Product Concept",
+    status: "Ready to Launch",
+    priority: "High",
+    progress_percent: 88,
+    confidence_level: "High",
+    next_action: "Final QA pass on mobile + push to production.",
+    github_repo_url: "https://github.com/xprime/portal",
+    evidence_links: [
+      { id: "e1", label: "Staging preview", url: "https://staging.example.com" },
+      { id: "e2", label: "Lighthouse report", url: "https://example.com/lh" },
+    ],
+    tags: ["web", "public", "portfolio"],
+    milestone_date: daysAhead(5),
+    notes: "Hold launch until Episode 07 is queued so the homepage has a fresh hero.",
+    created_at: daysAgo(45),
+    updated_at: daysAgo(0.2),
+  },
+  {
+    id: "prj_blocked_demo",
+    title: "Cryogenic Sensor Test Rig",
+    short_summary: "Low-temperature testbed for the next-gen sensor array.",
+    full_description:
+      "Blocked on cryostat lead time. Mechanical CAD complete, electronics design at rev B. Resume once supplier confirms January window.",
+    category: "Engineering",
+    status: "Blocked",
+    priority: "Low",
+    progress_percent: 35,
+    confidence_level: "Low",
+    next_action: "Follow up with supplier on cryostat ETA next week.",
+    github_repo_url: "",
+    evidence_links: [],
+    tags: ["hardware", "cryo"],
+    milestone_date: "",
+    notes: "",
+    created_at: daysAgo(80),
+    updated_at: daysAgo(14),
+  },
+];
