@@ -36,6 +36,11 @@ const ProjectDetail = () => {
     if (project) setDraft(project);
   }, [project?.id]); // reset when navigating between projects
 
+  const dirty = useMemo(
+    () => (draft && project ? JSON.stringify(draft) !== JSON.stringify(project) : false),
+    [draft, project],
+  );
+
   if (!project || !draft) {
     return (
       <div className="min-h-screen">
@@ -48,11 +53,6 @@ const ProjectDetail = () => {
       </div>
     );
   }
-
-  const dirty = useMemo(
-    () => JSON.stringify(draft) !== JSON.stringify(project),
-    [draft, project],
-  );
 
   function patch<K extends keyof Project>(key: K, value: Project[K]) {
     setDraft((d) => (d ? { ...d, [key]: value } : d));
