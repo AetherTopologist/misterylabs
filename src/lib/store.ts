@@ -2,7 +2,7 @@ import { useEffect, useSyncExternalStore } from "react";
 import type { NewProjectInput, Project } from "./types";
 import { SEED_PROJECTS } from "./seed";
 
-const STORAGE_KEY = "xprime-lab.projects.v2";
+const STORAGE_KEY = "xprime-lab.projects.v3";
 
 function load(): Project[] {
   if (typeof window === "undefined") return SEED_PROJECTS;
