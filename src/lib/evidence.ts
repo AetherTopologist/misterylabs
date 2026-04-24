@@ -1,5 +1,17 @@
 import { useSyncExternalStore } from "react";
 
+export interface GithubRepoSnapshot {
+  full_name: string;
+  description: string | null;
+  html_url: string;
+  pushed_at: string;
+  topics: string[];
+  language: string | null;
+  stargazers_count: number;
+  readme_summary: string | null;
+  imported_at: string;
+}
+
 export interface EvidenceItem {
   id: string;
   title: string;
@@ -11,13 +23,13 @@ export interface EvidenceItem {
   validation_claim: string;
   next_relevance: string;
   github_repo_url: string;
+  github_snapshot?: GithubRepoSnapshot | null;
   evidence_links: { id: string; label: string; url: string }[];
   artifact_links: { id: string; label: string; url: string }[];
   tags: string[];
   validated_at: string; // ISO
   created_at: string;
-  updated_at: string;
-}
+  upd
 
 const STORAGE_KEY = "xprime-lab.evidence.v1";
 
