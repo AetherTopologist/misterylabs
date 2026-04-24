@@ -1,4 +1,17 @@
 import { useSyncExternalStore } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+export interface GithubRepoSnapshot {
+  full_name: string;
+  description: string | null;
+  html_url: string;
+  pushed_at: string;
+  topics: string[];
+  language: string | null;
+  stargazers_count: number;
+  readme_summary: string | null;
+  imported_at: string;
+}
 
 export interface EvidenceItem {
   id: string;
@@ -11,6 +24,7 @@ export interface EvidenceItem {
   validation_claim: string;
   next_relevance: string;
   github_repo_url: string;
+  github_snapshot?: GithubRepoSnapshot | null;
   evidence_links: { id: string; label: string; url: string }[];
   artifact_links: { id: string; label: string; url: string }[];
   tags: string[];
@@ -91,6 +105,29 @@ export const evidenceStore = {
       state.map((e) =>
         e.id === id
           ? { ...e, github_repo_url: url, updated_at: new Date().toISOString() }
+          : e,
+      ),
+    );
+  },
+  attachGithubSnapshot: (id: string, snapshot: GithubRepoSnapshot) => {
+    setState(
+      state.map((e) =>
+        e.id === id
+          ? {
+              ...e,
+              github_repo_url: snapshot.html_url,
+              github_snapshot: snapshot,
+              updated_at: new Date().toISOString(),
+            }
+          : e,
+      ),
+    );
+  },
+  clearGithubSnapshot: (id: string) => {
+    setState(
+      state.map((e) =>
+        e.id === id
+          ? { ...e, github_snapshot: null, updated_at: new Date().toISOString() }
           : e,
       ),
     );
@@ -179,5 +216,101 @@ export async function fetchGithubRepoMeta(url: string): Promise<GithubRepoMeta |
     language: data.language ?? null,
     pushed_at: data.pushed_at,
     default_branch: data.default_branch ?? "main",
+  };
+}
+
+/* ---------------- Read-only GitHub scanner (server-side token) ---------------- */
+
+export interface ScannedRepo {
+  full_name: string;
+  name: string;
+  owner: string;
+  description: string | null;
+  html_url: string;
+  stargazers_count: number;
+  pushed_at: string;
+  updated_at: string;
+  language: string | null;
+  topics: string[];
+  private: boolean;
+  archived: boolean;
+  fork: boolean;
+  matched_keywords: string[];
+}
+
+export interface ScannedRepoDetail extends ScannedRepo {
+  default_branch: string;
+  readme_summary: string | null;
+}
+
+export type ScanError =
+  | { kind: "auth"; message: string }
+  | { kind: "missing_token"; message: string }
+  | { kind: "network"; message: string }
+  | { kind: "github"; message: string };
+
+export async function scanGithubRepos(opts: {
+  query?: string;
+  limit?: number;
+  matchedOnly?: boolean;
+}): Promise<{ repos: ScannedRepo[]; total_scanned: number } | { error: ScanError }> {
+  try {
+    const { data, error } = await supabase.functions.invoke("github-scan", {
+      body: { action: "list", ...opts },
+    });
+    if (error) {
+      return { error: { kind: "network", message: error.message } };
+    }
+    if (data?.error === "missing_token") {
+      return { error: { kind: "missing_token", message: data.message ?? "Token missing" } };
+    }
+    if (data?.error === "auth") {
+      return { error: { kind: "auth", message: "GitHub token rejected (401/403)" } };
+    }
+    if (data?.error) {
+      return { error: { kind: "github", message: data.message ?? data.error } };
+    }
+    return { repos: data.repos ?? [], total_scanned: data.total_scanned ?? 0 };
+  } catch (e) {
+    return {
+      error: { kind: "network", message: e instanceof Error ? e.message : "unknown" },
+    };
+  }
+}
+
+export async function fetchScannedRepoDetail(
+  owner: string,
+  repo: string,
+): Promise<{ repo: ScannedRepoDetail } | { error: ScanError }> {
+  try {
+    const { data, error } = await supabase.functions.invoke("github-scan", {
+      body: { action: "meta", owner, repo },
+    });
+    if (error) return { error: { kind: "network", message: error.message } };
+    if (data?.error === "auth")
+      return { error: { kind: "auth", message: "GitHub token rejected" } };
+    if (data?.error === "missing_token")
+      return { error: { kind: "missing_token", message: "Token missing" } };
+    if (data?.error)
+      return { error: { kind: "github", message: data.message ?? data.error } };
+    return { repo: data.repo as ScannedRepoDetail };
+  } catch (e) {
+    return {
+      error: { kind: "network", message: e instanceof Error ? e.message : "unknown" },
+    };
+  }
+}
+
+export function snapshotFromDetail(detail: ScannedRepoDetail): GithubRepoSnapshot {
+  return {
+    full_name: detail.full_name,
+    description: detail.description,
+    html_url: detail.html_url,
+    pushed_at: detail.pushed_at,
+    topics: detail.topics ?? [],
+    language: detail.language,
+    stargazers_count: detail.stargazers_count,
+    readme_summary: detail.readme_summary,
+    imported_at: new Date().toISOString(),
   };
 }

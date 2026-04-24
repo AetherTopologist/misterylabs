@@ -8,6 +8,9 @@ import {
   Loader2,
   Link as LinkIcon,
   Archive,
+  Search,
+  Star,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +35,7 @@ import {
 } from "@/lib/evidence";
 import { timeAgo } from "@/lib/format";
 import { toast } from "sonner";
+import { GithubScanDialog } from "./GithubScanDialog";
 
 export function EvidenceVault() {
   const items = useEvidence();
@@ -219,6 +223,9 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
   const [meta, setMeta] = useState<GithubRepoMeta | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [scanOpen, setScanOpen] = useState(false);
+
+  const snapshot = item.github_snapshot;
 
   useEffect(() => {
     setUrl(item.github_repo_url);
@@ -226,7 +233,8 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
 
   useEffect(() => {
     let cancelled = false;
-    if (!item.github_repo_url) {
+    // Skip public-API call if we already have an imported snapshot
+    if (!item.github_repo_url || snapshot) {
       setMeta(null);
       return;
     }
@@ -243,7 +251,7 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
     return () => {
       cancelled = true;
     };
-  }, [item.github_repo_url]);
+  }, [item.github_repo_url, snapshot]);
 
   const save = () => {
     const trimmed = url.trim();
@@ -262,52 +270,140 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
           <Github className="h-3 w-3" />
           GitHub repository
         </div>
-        {loading && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
-      </div>
-
-      <div className="flex gap-1.5">
-        <Input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://github.com/owner/repo"
-          className="h-8 text-xs"
-        />
-        <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={save}>
-          Save
-        </Button>
-      </div>
-
-      {error && !meta && (
-        <div className="mt-2 text-[11px] text-destructive">
-          {error}. The repo may be private or rate-limited.
+        <div className="flex items-center gap-1">
+          {loading && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 gap-1 px-1.5 text-[10px] font-mono uppercase tracking-wider text-primary-glow hover:bg-primary/10"
+            onClick={() => setScanOpen(true)}
+          >
+            <Search className="h-3 w-3" />
+            Scan
+          </Button>
         </div>
+      </div>
+
+      {/* Imported snapshot view */}
+      {snapshot ? (
+        <div className="space-y-2">
+          <a
+            href={snapshot.html_url}
+            target="_blank"
+            rel="noreferrer"
+            className="block rounded-md border border-primary/30 bg-primary/5 p-2 transition-colors hover:bg-primary/10"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="truncate font-mono text-xs text-foreground">
+                {snapshot.full_name}
+              </span>
+              <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+            </div>
+            {snapshot.description && (
+              <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">
+                {snapshot.description}
+              </p>
+            )}
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              {snapshot.language && <span>{snapshot.language}</span>}
+              <span className="inline-flex items-center gap-0.5">
+                <Star className="h-2.5 w-2.5" />
+                {snapshot.stargazers_count}
+              </span>
+              <span>updated {timeAgo(snapshot.pushed_at)}</span>
+            </div>
+            {snapshot.topics.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {snapshot.topics.slice(0, 6).map((t) => (
+                  <span
+                    key={t}
+                    className="rounded bg-secondary/60 px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground ring-1 ring-inset ring-border"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
+          </a>
+
+          {snapshot.readme_summary && (
+            <div className="rounded-md border border-border/60 bg-card/40 p-2">
+              <div className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
+                README summary
+              </div>
+              <p className="line-clamp-4 text-[11px] leading-relaxed text-foreground/80">
+                {snapshot.readme_summary}
+              </p>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+            <span>imported {timeAgo(snapshot.imported_at)}</span>
+            <button
+              className="inline-flex items-center gap-0.5 hover:text-destructive"
+              onClick={() => {
+                evidenceStore.clearGithubSnapshot(item.id);
+                toast.success("Snapshot cleared");
+              }}
+            >
+              <X className="h-2.5 w-2.5" />
+              Clear
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex gap-1.5">
+            <Input
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://github.com/owner/repo"
+              className="h-8 text-xs"
+            />
+            <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={save}>
+              Save
+            </Button>
+          </div>
+
+          {error && !meta && (
+            <div className="mt-2 text-[11px] text-destructive">
+              {error}. The repo may be private or rate-limited — use Scan to import via server.
+            </div>
+          )}
+
+          {meta && (
+            <a
+              href={meta.html_url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 block rounded-md border border-border/60 bg-secondary/30 p-2 transition-colors hover:bg-secondary/50"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate font-mono text-xs text-foreground">{meta.full_name}</span>
+                <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+              </div>
+              {meta.description && (
+                <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">
+                  {meta.description}
+                </p>
+              )}
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                {meta.language && <span>{meta.language}</span>}
+                <span className="text-border">·</span>
+                <span>★ {meta.stargazers_count}</span>
+                <span className="text-border">·</span>
+                <span>updated {timeAgo(meta.pushed_at)}</span>
+              </div>
+            </a>
+          )}
+        </>
       )}
 
-      {meta && (
-        <a
-          href={meta.html_url}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-2 block rounded-md border border-border/60 bg-secondary/30 p-2 transition-colors hover:bg-secondary/50"
-        >
-          <div className="flex items-center justify-between gap-2">
-            <span className="truncate font-mono text-xs text-foreground">{meta.full_name}</span>
-            <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
-          </div>
-          {meta.description && (
-            <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">
-              {meta.description}
-            </p>
-          )}
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            {meta.language && <span>{meta.language}</span>}
-            <span className="text-border">·</span>
-            <span>★ {meta.stargazers_count}</span>
-            <span className="text-border">·</span>
-            <span>updated {timeAgo(meta.pushed_at)}</span>
-          </div>
-        </a>
-      )}
+      <GithubScanDialog
+        evidenceId={item.id}
+        open={scanOpen}
+        onOpenChange={setScanOpen}
+      />
     </div>
   );
 }
