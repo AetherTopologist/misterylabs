@@ -108,6 +108,29 @@ export const evidenceStore = {
       ),
     );
   },
+  attachGithubSnapshot: (id: string, snapshot: GithubRepoSnapshot) => {
+    setState(
+      state.map((e) =>
+        e.id === id
+          ? {
+              ...e,
+              github_repo_url: snapshot.html_url,
+              github_snapshot: snapshot,
+              updated_at: new Date().toISOString(),
+            }
+          : e,
+      ),
+    );
+  },
+  clearGithubSnapshot: (id: string) => {
+    setState(
+      state.map((e) =>
+        e.id === id
+          ? { ...e, github_snapshot: null, updated_at: new Date().toISOString() }
+          : e,
+      ),
+    );
+  },
   update: (id: string, patch: Partial<EvidenceItem>) => {
     setState(
       state.map((e) =>
