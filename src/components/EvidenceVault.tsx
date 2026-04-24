@@ -8,6 +8,9 @@ import {
   Loader2,
   Link as LinkIcon,
   Archive,
+  Search,
+  Star,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +35,7 @@ import {
 } from "@/lib/evidence";
 import { timeAgo } from "@/lib/format";
 import { toast } from "sonner";
+import { GithubScanDialog } from "./GithubScanDialog";
 
 export function EvidenceVault() {
   const items = useEvidence();
