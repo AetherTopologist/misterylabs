@@ -6,6 +6,7 @@ import { ProjectCardCompact } from "@/components/ProjectCardCompact";
 import { KanbanBoard } from "@/components/KanbanBoard";
 import { MilestoneTimeline } from "@/components/MilestoneTimeline";
 import { OpsStatusBar } from "@/components/OpsStatusBar";
+import { EvidenceVault } from "@/components/EvidenceVault";
 import { QuickCreateDialog } from "@/components/QuickCreateDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -202,6 +203,20 @@ const Index = () => {
       <section className="container space-y-4 py-5">
         {/* Milestone timeline (hidden in kanban) */}
         {view !== "kanban" && <MilestoneTimeline projects={filtered} />}
+
+        {/* Evidence Vault — visually separated from active work */}
+        {view !== "kanban" && (
+          <>
+            <EvidenceVault />
+            <div
+              className="flex items-center gap-3 pt-1 font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground"
+              aria-hidden
+            >
+              <span>Active Work</span>
+              <span className="h-px flex-1 bg-gradient-to-r from-border via-border/40 to-transparent" />
+            </div>
+          </>
+        )}
 
         {/* Result counter */}
         <div className="flex items-center justify-between">
