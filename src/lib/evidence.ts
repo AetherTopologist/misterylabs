@@ -29,7 +29,8 @@ export interface EvidenceItem {
   tags: string[];
   validated_at: string; // ISO
   created_at: string;
-  upd
+  updated_at: string;
+}
 
 const STORAGE_KEY = "xprime-lab.evidence.v1";
 
