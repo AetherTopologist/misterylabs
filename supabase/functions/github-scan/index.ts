@@ -1,6 +1,10 @@
 // Read-only GitHub scanner for the Evidence Vault.
 // Strictly read-only: only GET requests to api.github.com. Token never leaves the server.
-import { corsHeaders } from "@supabase/supabase-js/cors";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
 
 const GITHUB_API = "https://api.github.com";
 const SEARCH_KEYWORDS = [
