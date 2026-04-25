@@ -13,6 +13,19 @@ export interface GithubRepoSnapshot {
   imported_at: string;
 }
 
+export interface AttachedImage {
+  id: string;
+  filename: string;
+  path: string;
+  folder: string;
+  raw_url: string;
+  blob_url: string;
+  repo_full_name: string;
+  source: "readme" | "folder" | "placeholder";
+  caption?: string;
+  imported_at: string;
+}
+
 export interface EvidenceItem {
   id: string;
   title: string;
@@ -25,6 +38,7 @@ export interface EvidenceItem {
   next_relevance: string;
   github_repo_url: string;
   github_snapshot?: GithubRepoSnapshot | null;
+  attached_images?: AttachedImage[];
   evidence_links: { id: string; label: string; url: string }[];
   artifact_links: { id: string; label: string; url: string }[];
   tags: string[];
@@ -128,6 +142,51 @@ export const evidenceStore = {
       state.map((e) =>
         e.id === id
           ? { ...e, github_snapshot: null, updated_at: new Date().toISOString() }
+          : e,
+      ),
+    );
+  },
+  attachImages: (id: string, images: AttachedImage[]) => {
+    setState(
+      state.map((e) => {
+        if (e.id !== id) return e;
+        // Drop placeholders + de-dupe by raw_url
+        const existing = (e.attached_images ?? []).filter((i) => i.source !== "placeholder");
+        const seen = new Set(existing.map((i) => i.raw_url));
+        const merged = [...existing];
+        for (const img of images) {
+          if (seen.has(img.raw_url)) continue;
+          seen.add(img.raw_url);
+          merged.push(img);
+        }
+        return { ...e, attached_images: merged, updated_at: new Date().toISOString() };
+      }),
+    );
+  },
+  removeImage: (id: string, imageId: string) => {
+    setState(
+      state.map((e) =>
+        e.id === id
+          ? {
+              ...e,
+              attached_images: (e.attached_images ?? []).filter((i) => i.id !== imageId),
+              updated_at: new Date().toISOString(),
+            }
+          : e,
+      ),
+    );
+  },
+  updateImageCaption: (id: string, imageId: string, caption: string) => {
+    setState(
+      state.map((e) =>
+        e.id === id
+          ? {
+              ...e,
+              attached_images: (e.attached_images ?? []).map((i) =>
+                i.id === imageId ? { ...i, caption } : i,
+              ),
+              updated_at: new Date().toISOString(),
+            }
           : e,
       ),
     );
@@ -314,3 +373,101 @@ export function snapshotFromDetail(detail: ScannedRepoDetail): GithubRepoSnapsho
     imported_at: new Date().toISOString(),
   };
 }
+
+/* ---------------- Image scanner ---------------- */
+
+export interface ScannedImage {
+  filename: string;
+  path: string;
+  folder: string;
+  raw_url: string;
+  blob_url: string;
+  source: "readme" | "folder";
+}
+
+export interface ImageScanResult {
+  images: ScannedImage[];
+  capped: boolean;
+  cap: number;
+  branch: string;
+  full_name: string;
+}
+
+export async function scanRepoImages(
+  owner: string,
+  repo: string,
+): Promise<ImageScanResult | { error: ScanError }> {
+  try {
+    const { data, error } = await supabase.functions.invoke("github-scan", {
+      body: { action: "scan_images", owner, repo },
+    });
+    if (error) return { error: { kind: "network", message: error.message } };
+    if (data?.error === "auth")
+      return { error: { kind: "auth", message: "GitHub token rejected" } };
+    if (data?.error === "missing_token")
+      return { error: { kind: "missing_token", message: "Token missing" } };
+    if (data?.error)
+      return { error: { kind: "github", message: data.message ?? data.error } };
+    return data as ImageScanResult;
+  } catch (e) {
+    return {
+      error: { kind: "network", message: e instanceof Error ? e.message : "unknown" },
+    };
+  }
+}
+
+export function makeAttachedImage(
+  scanned: ScannedImage,
+  repoFullName: string,
+): AttachedImage {
+  return {
+    id: `img_${Math.random().toString(36).slice(2, 10)}`,
+    filename: scanned.filename,
+    path: scanned.path,
+    folder: scanned.folder,
+    raw_url: scanned.raw_url,
+    blob_url: scanned.blob_url,
+    repo_full_name: repoFullName,
+    source: scanned.source,
+    imported_at: new Date().toISOString(),
+  };
+}
+
+/* Placeholder gallery used when no real images are attached yet */
+export const PLACEHOLDER_GALLERY: AttachedImage[] = [
+  {
+    id: "ph_1",
+    filename: "curved_ray_demo.png",
+    path: "output/wormhole_test/curved_ray_demo.png",
+    folder: "output/wormhole_test",
+    raw_url: "",
+    blob_url: "",
+    repo_full_name: "(example)",
+    source: "placeholder",
+    caption: "Example: import a repo to replace these placeholders",
+    imported_at: new Date().toISOString(),
+  },
+  {
+    id: "ph_2",
+    filename: "grin_lens_field.png",
+    path: "output/fixture_runs/grin_lens_field.png",
+    folder: "output/fixture_runs",
+    raw_url: "",
+    blob_url: "",
+    repo_full_name: "(example)",
+    source: "placeholder",
+    imported_at: new Date().toISOString(),
+  },
+  {
+    id: "ph_3",
+    filename: "characterization_ledger.png",
+    path: "output/characterization_ledger/sample.png",
+    folder: "output/characterization_ledger",
+    raw_url: "",
+    blob_url: "",
+    repo_full_name: "(example)",
+    source: "placeholder",
+    imported_at: new Date().toISOString(),
+  },
+];
+
