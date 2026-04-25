@@ -38,6 +38,7 @@ export interface EvidenceItem {
   next_relevance: string;
   github_repo_url: string;
   github_snapshot?: GithubRepoSnapshot | null;
+  attached_images?: AttachedImage[];
   evidence_links: { id: string; label: string; url: string }[];
   artifact_links: { id: string; label: string; url: string }[];
   tags: string[];
