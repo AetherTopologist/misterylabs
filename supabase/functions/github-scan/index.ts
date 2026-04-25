@@ -487,6 +487,9 @@ Deno.serve(async (req) => {
       if (!owner || !repo) {
         return jsonResponse({ error: "missing_owner_or_repo" }, 400);
       }
+      if (!SAFE_NAME.test(owner) || !SAFE_NAME.test(repo)) {
+        return jsonResponse({ error: "invalid_owner_or_repo" }, 400);
+      }
       const result = await getRepoMeta(owner, repo, token);
       if ("error" in result) {
         return jsonResponse(result, result.status ?? 500);
@@ -499,6 +502,9 @@ Deno.serve(async (req) => {
       const repo = String(body.repo ?? "").trim();
       if (!owner || !repo) {
         return jsonResponse({ error: "missing_owner_or_repo" }, 400);
+      }
+      if (!SAFE_NAME.test(owner) || !SAFE_NAME.test(repo)) {
+        return jsonResponse({ error: "invalid_owner_or_repo" }, 400);
       }
       const result = await scanRepoImages(owner, repo, token);
       if ("error" in result) {
