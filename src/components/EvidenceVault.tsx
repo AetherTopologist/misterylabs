@@ -36,6 +36,7 @@ import {
 import { timeAgo } from "@/lib/format";
 import { toast } from "sonner";
 import { GithubScanDialog } from "./GithubScanDialog";
+import { EvidenceGallery } from "./EvidenceGallery";
 
 export function EvidenceVault() {
   const items = useEvidence();
@@ -136,6 +137,8 @@ function FeaturedEvidenceCard({ item }: { item: EvidenceItem }) {
               ))}
             </div>
           )}
+
+          <EvidenceGallery item={item} />
         </div>
 
         {/* Right: GitHub + links */}
