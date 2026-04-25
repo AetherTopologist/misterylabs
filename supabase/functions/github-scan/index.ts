@@ -464,6 +464,19 @@ Deno.serve(async (req) => {
       return jsonResponse(result);
     }
 
+    if (action === "scan_images") {
+      const owner = String(body.owner ?? "").trim();
+      const repo = String(body.repo ?? "").trim();
+      if (!owner || !repo) {
+        return jsonResponse({ error: "missing_owner_or_repo" }, 400);
+      }
+      const result = await scanRepoImages(owner, repo, token);
+      if ("error" in result) {
+        return jsonResponse(result, (result as any).status ?? 500);
+      }
+      return jsonResponse(result);
+    }
+
     return jsonResponse({ error: "unknown_action" }, 400);
   } catch (e) {
     console.error("github-scan error", e);
