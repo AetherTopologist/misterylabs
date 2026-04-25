@@ -146,6 +146,51 @@ export const evidenceStore = {
       ),
     );
   },
+  attachImages: (id: string, images: AttachedImage[]) => {
+    setState(
+      state.map((e) => {
+        if (e.id !== id) return e;
+        // Drop placeholders + de-dupe by raw_url
+        const existing = (e.attached_images ?? []).filter((i) => i.source !== "placeholder");
+        const seen = new Set(existing.map((i) => i.raw_url));
+        const merged = [...existing];
+        for (const img of images) {
+          if (seen.has(img.raw_url)) continue;
+          seen.add(img.raw_url);
+          merged.push(img);
+        }
+        return { ...e, attached_images: merged, updated_at: new Date().toISOString() };
+      }),
+    );
+  },
+  removeImage: (id: string, imageId: string) => {
+    setState(
+      state.map((e) =>
+        e.id === id
+          ? {
+              ...e,
+              attached_images: (e.attached_images ?? []).filter((i) => i.id !== imageId),
+              updated_at: new Date().toISOString(),
+            }
+          : e,
+      ),
+    );
+  },
+  updateImageCaption: (id: string, imageId: string, caption: string) => {
+    setState(
+      state.map((e) =>
+        e.id === id
+          ? {
+              ...e,
+              attached_images: (e.attached_images ?? []).map((i) =>
+                i.id === imageId ? { ...i, caption } : i,
+              ),
+              updated_at: new Date().toISOString(),
+            }
+          : e,
+      ),
+    );
+  },
   update: (id: string, patch: Partial<EvidenceItem>) => {
     setState(
       state.map((e) =>
