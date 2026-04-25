@@ -423,6 +423,31 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "method_not_allowed" }, 405);
   }
 
+  // Require an authenticated Supabase user. Prevents anonymous abuse of the
+  // server-side GitHub token (which could otherwise list private repos and
+  // exhaust rate limits).
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const jwt = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (!jwt) {
+    return jsonResponse({ error: "unauthorized" }, 401);
+  }
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supabaseUrl || !anonKey) {
+      return jsonResponse({ error: "server_misconfigured" }, 500);
+    }
+    const sb = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: `Bearer ${jwt}` } },
+    });
+    const { data, error } = await sb.auth.getUser(jwt);
+    if (error || !data?.user) {
+      return jsonResponse({ error: "unauthorized" }, 401);
+    }
+  } catch {
+    return jsonResponse({ error: "unauthorized" }, 401);
+  }
+
   const token = Deno.env.get("GITHUB_TOKEN");
   if (!token) {
     return jsonResponse(
