@@ -173,6 +173,222 @@ async function fetchReadmeSummary(
   }
 }
 
+const IMAGE_EXTS = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
+const IMAGE_FOLDERS = [
+  "docs",
+  "Docs",
+  "images",
+  "assets",
+  "screenshots",
+  "output",
+  "output/fixture_runs",
+  "output/wormhole_test",
+  "output/wormhole_dual_reality_analysis",
+  "output/characterization_ledger",
+];
+const MAX_IMAGES = 24;
+const MAX_PER_FOLDER = 12;
+
+interface ScannedImage {
+  filename: string;
+  path: string;
+  folder: string;
+  raw_url: string;
+  blob_url: string;
+  source: "readme" | "folder";
+}
+
+function isImagePath(p: string) {
+  const lower = p.toLowerCase();
+  return IMAGE_EXTS.some((ext) => lower.endsWith(ext));
+}
+
+function rawUrl(owner: string, repo: string, branch: string, path: string) {
+  return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path.replace(/^\//, "")}`;
+}
+
+function blobUrl(owner: string, repo: string, branch: string, path: string) {
+  return `https://github.com/${owner}/${repo}/blob/${branch}/${path.replace(/^\//, "")}`;
+}
+
+async function fetchReadmeRaw(owner: string, repo: string, token: string): Promise<{ text: string; path: string } | null> {
+  const res = await ghFetch(`/repos/${owner}/${repo}/readme`, token);
+  if (!res.ok) return null;
+  const data = (await res.json()) as { content?: string; path?: string };
+  if (!data.content) return null;
+  try {
+    const decoded = atob(data.content.replace(/\n/g, ""));
+    return { text: decoded, path: data.path ?? "README.md" };
+  } catch {
+    return null;
+  }
+}
+
+function extractReadmeImages(
+  readme: string,
+  readmePath: string,
+  owner: string,
+  repo: string,
+  branch: string,
+): ScannedImage[] {
+  const images: ScannedImage[] = [];
+  const seen = new Set<string>();
+  const readmeDir = readmePath.includes("/") ? readmePath.replace(/\/[^/]+$/, "") : "";
+
+  // Markdown ![alt](url) and HTML <img src="">
+  const patterns = [
+    /!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g,
+    /<img[^>]+src=["']([^"']+)["']/gi,
+  ];
+
+  for (const re of patterns) {
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(readme)) !== null) {
+      let url = m[1].trim();
+      if (!url || url.startsWith("data:")) continue;
+      if (!isImagePath(url.split("?")[0].split("#")[0])) continue;
+
+      let absoluteRaw: string;
+      let absoluteBlob: string;
+      let path: string;
+
+      if (/^https?:\/\//i.test(url)) {
+        // Normalize github blob URLs to raw
+        const ghBlob = url.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+)$/i);
+        const ghRaw = url.match(/^https?:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/i);
+        if (ghBlob) {
+          path = ghBlob[4];
+          absoluteRaw = rawUrl(ghBlob[1], ghBlob[2], ghBlob[3], path);
+          absoluteBlob = url;
+        } else if (ghRaw) {
+          path = ghRaw[4];
+          absoluteRaw = url;
+          absoluteBlob = blobUrl(ghRaw[1], ghRaw[2], ghRaw[3], path);
+        } else {
+          // External — keep as raw, no blob link
+          path = url;
+          absoluteRaw = url;
+          absoluteBlob = url;
+        }
+      } else {
+        // Relative to readme
+        const cleaned = url.replace(/^\.\//, "");
+        path = readmeDir ? `${readmeDir}/${cleaned}` : cleaned;
+        // Collapse ../
+        const parts: string[] = [];
+        for (const seg of path.split("/")) {
+          if (seg === "..") parts.pop();
+          else if (seg && seg !== ".") parts.push(seg);
+        }
+        path = parts.join("/");
+        absoluteRaw = rawUrl(owner, repo, branch, path);
+        absoluteBlob = blobUrl(owner, repo, branch, path);
+      }
+
+      if (seen.has(absoluteRaw)) continue;
+      seen.add(absoluteRaw);
+
+      const filename = path.split("/").pop() || path;
+      const folder = path.includes("/") ? path.replace(/\/[^/]+$/, "") : "";
+      images.push({
+        filename,
+        path,
+        folder: folder || "(repo root)",
+        raw_url: absoluteRaw,
+        blob_url: absoluteBlob,
+        source: "readme",
+      });
+      if (images.length >= MAX_IMAGES) return images;
+    }
+  }
+  return images;
+}
+
+async function listFolderImages(
+  owner: string,
+  repo: string,
+  branch: string,
+  folder: string,
+  token: string,
+): Promise<ScannedImage[]> {
+  const res = await ghFetch(
+    `/repos/${owner}/${repo}/contents/${encodeURI(folder)}?ref=${encodeURIComponent(branch)}`,
+    token,
+  );
+  if (!res.ok) return [];
+  const data = await res.json();
+  if (!Array.isArray(data)) return [];
+  const out: ScannedImage[] = [];
+  for (const entry of data) {
+    if (entry.type !== "file") continue;
+    if (!isImagePath(entry.name)) continue;
+    out.push({
+      filename: entry.name,
+      path: entry.path,
+      folder,
+      raw_url: entry.download_url ?? rawUrl(owner, repo, branch, entry.path),
+      blob_url: blobUrl(owner, repo, branch, entry.path),
+      source: "folder",
+    });
+    if (out.length >= MAX_PER_FOLDER) break;
+  }
+  return out;
+}
+
+async function scanRepoImages(owner: string, repo: string, token: string) {
+  // Get default branch
+  const repoRes = await ghFetch(`/repos/${owner}/${repo}`, token);
+  if (repoRes.status === 404) return { error: "not_found", status: 404 };
+  if (repoRes.status === 401 || repoRes.status === 403) {
+    return { error: "auth", status: repoRes.status, message: await repoRes.text() };
+  }
+  if (!repoRes.ok) return { error: "github", status: repoRes.status, message: await repoRes.text() };
+  const repoData = await repoRes.json();
+  const branch = repoData.default_branch ?? "main";
+
+  const all: ScannedImage[] = [];
+  const seen = new Set<string>();
+  const push = (img: ScannedImage) => {
+    if (seen.has(img.raw_url)) return;
+    seen.add(img.raw_url);
+    all.push(img);
+  };
+
+  // 1. README images first
+  const readme = await fetchReadmeRaw(owner, repo, token);
+  if (readme) {
+    for (const img of extractReadmeImages(readme.text, readme.path, owner, repo, branch)) {
+      push(img);
+      if (all.length >= MAX_IMAGES) break;
+    }
+  }
+
+  // 2. Known folders
+  let capped = false;
+  for (const folder of IMAGE_FOLDERS) {
+    if (all.length >= MAX_IMAGES) {
+      capped = true;
+      break;
+    }
+    const folderImgs = await listFolderImages(owner, repo, branch, folder, token);
+    for (const img of folderImgs) {
+      if (all.length >= MAX_IMAGES) {
+        capped = true;
+        break;
+      }
+      push(img);
+    }
+  }
+
+  return {
+    images: all,
+    capped: capped || all.length >= MAX_IMAGES,
+    cap: MAX_IMAGES,
+    branch,
+    full_name: repoData.full_name,
+  };
+}
+
 async function getRepoMeta(owner: string, repo: string, token: string) {
   const res = await ghFetch(`/repos/${owner}/${repo}`, token);
   if (res.status === 404) return { error: "not_found", status: 404 };
