@@ -1,10 +1,15 @@
 // Read-only GitHub scanner for the Evidence Vault.
 // Strictly read-only: only GET requests to api.github.com. Token never leaves the server.
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+// Allowlist for GitHub owner/repo names to prevent path injection.
+const SAFE_NAME = /^[a-zA-Z0-9._-]{1,100}$/;
 
 const GITHUB_API = "https://api.github.com";
 const SEARCH_KEYWORDS = [
@@ -418,6 +423,31 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "method_not_allowed" }, 405);
   }
 
+  // Require an authenticated Supabase user. Prevents anonymous abuse of the
+  // server-side GitHub token (which could otherwise list private repos and
+  // exhaust rate limits).
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const jwt = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (!jwt) {
+    return jsonResponse({ error: "unauthorized" }, 401);
+  }
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supabaseUrl || !anonKey) {
+      return jsonResponse({ error: "server_misconfigured" }, 500);
+    }
+    const sb = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: `Bearer ${jwt}` } },
+    });
+    const { data, error } = await sb.auth.getUser(jwt);
+    if (error || !data?.user) {
+      return jsonResponse({ error: "unauthorized" }, 401);
+    }
+  } catch {
+    return jsonResponse({ error: "unauthorized" }, 401);
+  }
+
   const token = Deno.env.get("GITHUB_TOKEN");
   if (!token) {
     return jsonResponse(
@@ -457,6 +487,9 @@ Deno.serve(async (req) => {
       if (!owner || !repo) {
         return jsonResponse({ error: "missing_owner_or_repo" }, 400);
       }
+      if (!SAFE_NAME.test(owner) || !SAFE_NAME.test(repo)) {
+        return jsonResponse({ error: "invalid_owner_or_repo" }, 400);
+      }
       const result = await getRepoMeta(owner, repo, token);
       if ("error" in result) {
         return jsonResponse(result, result.status ?? 500);
@@ -469,6 +502,9 @@ Deno.serve(async (req) => {
       const repo = String(body.repo ?? "").trim();
       if (!owner || !repo) {
         return jsonResponse({ error: "missing_owner_or_repo" }, 400);
+      }
+      if (!SAFE_NAME.test(owner) || !SAFE_NAME.test(repo)) {
+        return jsonResponse({ error: "invalid_owner_or_repo" }, 400);
       }
       const result = await scanRepoImages(owner, repo, token);
       if ("error" in result) {
