@@ -13,6 +13,19 @@ export interface GithubRepoSnapshot {
   imported_at: string;
 }
 
+export interface AttachedImage {
+  id: string;
+  filename: string;
+  path: string;
+  folder: string;
+  raw_url: string;
+  blob_url: string;
+  repo_full_name: string;
+  source: "readme" | "folder" | "placeholder";
+  caption?: string;
+  imported_at: string;
+}
+
 export interface EvidenceItem {
   id: string;
   title: string;
