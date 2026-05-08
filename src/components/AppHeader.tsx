@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Beaker, LogOut } from "lucide-react";
+import { Orbit, LogOut, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuickCreateDialog } from "./QuickCreateDialog";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,22 +20,35 @@ export function AppHeader() {
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between gap-4">
         <Link to="/" className="group flex items-center gap-2.5">
-          <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary-glow shadow-glow">
-            <Beaker className="h-4.5 w-4.5 text-primary-foreground" strokeWidth={2.5} />
+          <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-glow">
+            <Orbit className="h-4.5 w-4.5 text-primary-foreground" strokeWidth={2.5} />
             <span className="absolute inset-0 rounded-xl ring-1 ring-inset ring-primary-foreground/20" />
           </span>
           <div className="leading-none">
             <div className="text-sm font-bold tracking-tight">
-              xPRIME <span className="text-gradient">Lab</span>
+              MisterY <span className="text-gradient">Labs</span>
             </div>
             <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              Mission control
+              Curved Transport Research
             </div>
           </div>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
-          <HeaderLink to="/" current={pathname === "/"}>Dashboard</HeaderLink>
+          <HeaderLink to="/" current={pathname === "/"}>Home</HeaderLink>
+          <HeaderLink to="/#xprimeray" current={false}>xPRIMEray</HeaderLink>
+          <HeaderLink to="/#evidence-vault" current={false}>Evidence Vault</HeaderLink>
+          <HeaderLink to="/#research-notes" current={false}>Research Notes</HeaderLink>
+          <HeaderLink to="/#media-lab" current={false}>Media Lab</HeaderLink>
+          <HeaderLink to="/dashboard" current={pathname === "/dashboard"}>Mission Control</HeaderLink>
+          <a
+            href="https://github.com/"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-base hover:bg-secondary/60 hover:text-foreground"
+          >
+            GitHub <ExternalLink className="h-3 w-3" />
+          </a>
         </nav>
 
         <div className="flex items-center gap-2">

@@ -1,403 +1,334 @@
-import { useEffect, useMemo, useState } from "react";
-import { Search, Filter, X, LayoutGrid, Rows3, Columns3, ArrowUpDown } from "lucide-react";
-import { AppHeader } from "@/components/AppHeader";
-import { ProjectCard } from "@/components/ProjectCard";
-import { ProjectCardCompact } from "@/components/ProjectCardCompact";
-import { KanbanBoard } from "@/components/KanbanBoard";
-import { MilestoneTimeline } from "@/components/MilestoneTimeline";
-import { OpsStatusBar } from "@/components/OpsStatusBar";
-import { EvidenceVault } from "@/components/EvidenceVault";
-import { QuickCreateDialog } from "@/components/QuickCreateDialog";
-import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
+import {
+  ArrowRight,
+  Github,
+  FolderOpen,
+  Sparkles,
+  Waves,
+  Orbit,
+  Activity,
+  Eye,
+  Film,
+  Telescope,
+  GitBranch,
+  Microscope,
+  Compass,
+  CircleDot,
+  ExternalLink,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+import { AppHeader } from "@/components/AppHeader";
+import { EvidenceVault } from "@/components/EvidenceVault";
 import { useProjects } from "@/lib/store";
-import {
-  CATEGORIES,
-  PRIORITIES,
-  STATUSES,
-  type Category,
-  type Priority,
-  type Status,
-} from "@/lib/types";
-import { timeAgo } from "@/lib/format";
+import heroImg from "@/assets/hero-curved-transport.jpg";
 
-type ViewMode = "grid" | "compact" | "kanban";
-type Density = "comfortable" | "compact";
-type SortKey = "updated" | "milestone" | "priority" | "progress";
+const FLAGSHIP_CARDS = [
+  {
+    title: "Godot xPRIMEray Engine",
+    desc: "Real-time curved transport engine and tools.",
+    icon: Orbit,
+  },
+  {
+    title: "LuxCoreGRIN Prototype",
+    desc: "Production-grade curved-ray rendering research.",
+    icon: Sparkles,
+  },
+  {
+    title: "Validation Cockpit",
+    desc: "Instrumentation, probes, metrics, visual tests.",
+    icon: Activity,
+  },
+  {
+    title: "Transport Island Research",
+    desc: "Detecting and classifying bounded optical transport anomalies.",
+    icon: CircleDot,
+  },
+];
 
-const VIEW_KEY = "xprime:view";
-const DENSITY_KEY = "xprime:density";
-const SORT_KEY = "xprime:sort";
-
-const PRIORITY_ORDER: Record<Priority, number> = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+const RESEARCH_LANES = [
+  { title: "Curved Transport", desc: "Core field of study", icon: Waves },
+  { title: "GRIN Optics", desc: "Gradient index research", icon: Compass },
+  { title: "Rendering Diagnostics", desc: "Instrumentation & metrics", icon: Microscope },
+  { title: "Pareidolia Lab", desc: "Perception & pattern", icon: Eye },
+  { title: "ACT Media Experiments", desc: "Animation & storytelling", icon: Film },
+  { title: "Myth → Measurement", desc: "Philosophy & method", icon: Telescope },
+];
 
 const Index = () => {
   const projects = useProjects();
-  const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<Status | "All">("All");
-  const [categoryFilter, setCategoryFilter] = useState<Category | "All">("All");
-  const [priorityFilter, setPriorityFilter] = useState<Priority | "All">("All");
-
-  const [view, setView] = useState<ViewMode>(() => {
-    if (typeof window === "undefined") return "grid";
-    return ((localStorage.getItem(VIEW_KEY) as ViewMode) || "grid");
-  });
-  const [density, setDensity] = useState<Density>(() => {
-    if (typeof window === "undefined") return "comfortable";
-    return ((localStorage.getItem(DENSITY_KEY) as Density) || "comfortable");
-  });
-  const [sort, setSort] = useState<SortKey>(() => {
-    if (typeof window === "undefined") return "updated";
-    return ((localStorage.getItem(SORT_KEY) as SortKey) || "updated");
-  });
-
-  useEffect(() => { localStorage.setItem(VIEW_KEY, view); }, [view]);
-  useEffect(() => { localStorage.setItem(DENSITY_KEY, density); }, [density]);
-  useEffect(() => { localStorage.setItem(SORT_KEY, sort); }, [sort]);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const list = projects
-      .filter((p) => statusFilter === "All" || p.status === statusFilter)
-      .filter((p) => categoryFilter === "All" || p.category === categoryFilter)
-      .filter((p) => priorityFilter === "All" || p.priority === priorityFilter)
-      .filter((p) => {
-        if (!q) return true;
-        const hay = [
-          p.title, p.short_summary, p.full_description, p.notes, p.next_action, p.tags.join(" "),
-        ].join(" ").toLowerCase();
-        return hay.includes(q);
-      });
-
-    const sorted = [...list].sort((a, b) => {
-      switch (sort) {
-        case "milestone": {
-          const aD = a.milestone_date ? +new Date(a.milestone_date) : Number.POSITIVE_INFINITY;
-          const bD = b.milestone_date ? +new Date(b.milestone_date) : Number.POSITIVE_INFINITY;
-          return aD - bD;
-        }
-        case "priority":
-          return PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
-        case "progress":
-          return b.progress_percent - a.progress_percent;
-        case "updated":
-        default:
-          return +new Date(b.updated_at) - +new Date(a.updated_at);
-      }
-    });
-    return sorted;
-  }, [projects, query, statusFilter, categoryFilter, priorityFilter, sort]);
-
-  const hasFilters =
-    !!query || statusFilter !== "All" || categoryFilter !== "All" || priorityFilter !== "All";
-
-  const lastSync = projects.length
-    ? projects.reduce((max, p) => (p.updated_at > max ? p.updated_at : max), projects[0].updated_at)
-    : new Date().toISOString();
-
-  const clear = () => {
-    setQuery(""); setStatusFilter("All"); setCategoryFilter("All"); setPriorityFilter("All");
-  };
+  const evidenceCount = projects.reduce((n, p) => n + (p.evidence_links?.length ?? 0), 0);
+  const validatedCount = projects.filter((p) => p.status === "Validating" || p.status === "Ready to Launch").length;
+  const inProgress = projects.filter((p) => p.status === "Building" || p.status === "Researching").length;
 
   return (
     <div className="min-h-screen">
       <AppHeader />
-
-      {/* System bar */}
       <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent" aria-hidden />
 
-      {/* Compressed Ops Status Bar */}
-      <OpsStatusBar projects={projects} />
+      {/* HERO */}
+      <section className="relative overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 opacity-70"
+          style={{ backgroundImage: `url(${heroImg})`, backgroundSize: "cover", backgroundPosition: "center right" }}
+          aria-hidden
+        />
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-background via-background/85 to-background/30" aria-hidden />
+        <div className="container grid gap-10 py-16 lg:grid-cols-[1fr_360px] lg:py-24">
+          {/* Left: stats + nav rail */}
+          <aside className="hidden flex-col gap-4 lg:flex lg:order-first lg:col-start-1 lg:row-span-2">
+            <StatusPanel validated={validatedCount} evidence={evidenceCount} inProgress={inProgress} total={projects.length} />
+            <NavRail />
+          </aside>
 
-      {/* Sticky toolbar */}
-      <section className="sticky top-16 z-30 border-b border-border/60 bg-background/85 backdrop-blur-xl">
-        <div className="container py-2.5">
-          <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-3">
-            {/* Search */}
-            <div className="relative w-full lg:max-w-xs">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search projects, tags, notes…"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="h-8 pl-8 text-xs"
-              />
+          {/* Center hero */}
+          <div className="lg:col-start-2">
+            <h1 className="bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-5xl font-extrabold tracking-tight text-transparent md:text-6xl lg:text-7xl">
+              MisterY Labs
+            </h1>
+            <p className="mt-3 text-2xl font-light text-foreground/90 md:text-3xl">
+              Home of <span className="text-primary-glow">Curved Transport Research</span>
+            </p>
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
+              MisterY Labs builds experimental tools for rendering, probing, and explaining curved
+              photon paths through gradient fields, optical anomalies, and simulated space.
+            </p>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button size="lg" asChild className="bg-gradient-to-r from-primary to-primary-glow shadow-glow">
+                <a href="#xprimeray">
+                  <Orbit className="mr-2 h-4 w-4" /> Explore xPRIMEray <ArrowRight className="ml-2 h-4 w-4" />
+                </a>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <a href="https://github.com/" target="_blank" rel="noreferrer">
+                  <Github className="mr-2 h-4 w-4" /> View GitHub
+                </a>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <a href="#evidence-vault">
+                  <FolderOpen className="mr-2 h-4 w-4" /> Evidence Vault
+                </a>
+              </Button>
             </div>
+          </div>
 
-            {/* Filters (scrollable on overflow) */}
-            <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
-              <ChipGroup
-                label="Status"
-                value={statusFilter}
-                onChange={(v) => setStatusFilter(v as Status | "All")}
-                options={["All", ...STATUSES]}
-              />
-              <ChipGroup
-                label="Cat"
-                value={categoryFilter}
-                onChange={(v) => setCategoryFilter(v as Category | "All")}
-                options={["All", ...CATEGORIES]}
-              />
-              <ChipGroup
-                label="Pri"
-                value={priorityFilter}
-                onChange={(v) => setPriorityFilter(v as Priority | "All")}
-                options={["All", ...PRIORITIES]}
-              />
+          {/* Right: curved-transport callout */}
+          <aside className="rounded-2xl border border-primary/30 bg-card/60 p-5 backdrop-blur-md lg:col-start-3 lg:row-span-2">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary-glow">Curved Transport</div>
+            <p className="mt-3 text-sm leading-relaxed text-foreground/90">
+              The study of how rays, signals, and images behave when their paths bend through
+              fields, media, gradients, or simulated space.
+            </p>
+            <div className="mt-5 space-y-3">
+              <CalloutItem icon={Waves} title="Curved Photon Paths" desc="Visualize light in motion" />
+              <CalloutItem icon={CircleDot} title="Bounded Anomalies" desc="Transport islands & distortions" />
+              <CalloutItem icon={Microscope} title="Measurable Models" desc="Testable, reproducible, open" />
             </div>
+          </aside>
+        </div>
+      </section>
 
-            {/* Right cluster */}
-            <div className="flex shrink-0 items-center gap-1.5">
-              <ViewSwitcher value={view} onChange={setView} />
+      {/* FLAGSHIP */}
+      <section id="xprimeray" className="border-t border-border/60 bg-gradient-to-b from-background to-card/30">
+        <div className="container py-16">
+          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary-glow">Flagship Project</div>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
+            <span className="text-gradient">xPRIMEray</span> Rendering Engine
+          </h2>
+          <p className="mt-4 max-w-3xl text-base text-muted-foreground">
+            A Godot-based experimental rendering engine for studying curved ray transport, GRIN-style
+            fields, bounded optical transport anomalies, wormhole fixtures, ownership maps, cathedral
+            probing, and renderer validation.
+          </p>
 
-              {view === "grid" && (
-                <DensityToggle value={density} onChange={setDensity} />
-              )}
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 gap-1.5 px-2 text-xs">
-                    <ArrowUpDown className="h-3 w-3" />
-                    <span className="font-mono text-[10px] uppercase tracking-wider">{sort}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
-                  <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-wider">
-                    Sort by
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuRadioGroup value={sort} onValueChange={(v) => setSort(v as SortKey)}>
-                    <DropdownMenuRadioItem value="updated">Updated</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="milestone">Milestone</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="priority">Priority</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="progress">Progress</DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {hasFilters && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
-                  onClick={clear}
-                >
-                  <X className="h-3 w-3" /> Clear
-                </Button>
-              )}
-            </div>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {FLAGSHIP_CARDS.map((c) => (
+              <div
+                key={c.title}
+                className="group relative overflow-hidden rounded-xl border border-border/60 bg-card/60 p-5 transition-base hover:border-primary/50 hover:shadow-glow"
+              >
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                <div className="grid h-11 w-11 place-items-center rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 ring-1 ring-inset ring-primary/30">
+                  <c.icon className="h-5 w-5 text-primary-glow" />
+                </div>
+                <h3 className="mt-4 text-base font-semibold">{c.title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{c.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Main */}
-      <section className="container space-y-4 py-5">
-        {/* Milestone timeline (hidden in kanban) */}
-        {view !== "kanban" && <MilestoneTimeline projects={filtered} />}
-
-        {/* Evidence Vault — visually separated from active work */}
-        {view !== "kanban" && (
-          <>
+      {/* EVIDENCE VAULT */}
+      <section id="evidence-vault" className="border-t border-border/60">
+        <div className="container py-16">
+          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary-glow">Evidence Vault</div>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">Validated prior work and milestone timeline</h2>
+          <p className="mt-3 max-w-3xl text-sm text-muted-foreground">
+            Imported GitHub repository snapshots, scanned visual artifacts, captions, and repository
+            links — kept lightweight, with metadata and links only.
+          </p>
+          <div className="mt-8">
             <EvidenceVault />
-            <div
-              className="flex items-center gap-3 pt-1 font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground"
-              aria-hidden
-            >
-              <span>Active Work</span>
-              <span className="h-px flex-1 bg-gradient-to-r from-border via-border/40 to-transparent" />
-            </div>
-          </>
-        )}
-
-        {/* Result counter */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-            <Filter className="h-3 w-3" />
-            Showing {filtered.length} / {projects.length}
-            <span className="text-border">·</span>
-            <span>view: {view}</span>
-            {view === "grid" && (
-              <>
-                <span className="text-border">·</span>
-                <span>density: {density}</span>
-              </>
-            )}
           </div>
         </div>
-
-        {filtered.length === 0 ? (
-          <EmptyState onClear={clear} hasFilters={!!hasFilters} />
-        ) : view === "kanban" ? (
-          <KanbanBoard projects={filtered} />
-        ) : view === "compact" ? (
-          <div className="animate-fade-in overflow-hidden rounded-xl border border-border/60 bg-card/30">
-            <div
-              className="grid items-center gap-3 border-b border-border/60 bg-secondary/30 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground"
-              style={{
-                gridTemplateColumns:
-                  "4px minmax(0,2.2fr) 130px 130px 60px 60px minmax(140px,1fr) minmax(0,1.6fr) 70px 16px",
-              }}
-            >
-              <span />
-              <span>Project</span>
-              <span>Category</span>
-              <span>Status</span>
-              <span>Pri</span>
-              <span>Conf</span>
-              <span>Progress</span>
-              <span>Next action</span>
-              <span className="text-right">Updated</span>
-              <span />
-            </div>
-            {filtered.map((p) => (
-              <ProjectCardCompact key={p.id} project={p} />
-            ))}
-          </div>
-        ) : (
-          <div
-            className={`grid animate-fade-in gap-4 ${
-              density === "compact"
-                ? "md:grid-cols-2 xl:grid-cols-4"
-                : "md:grid-cols-2 xl:grid-cols-3"
-            }`}
-          >
-            {filtered.map((p) => (
-              <ProjectCard key={p.id} project={p} density={density} />
-            ))}
-          </div>
-        )}
       </section>
 
-      <footer className="container border-t border-border/60 py-4 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>
-            xPRIME Lab v0.1
-            <span className="mx-2 text-border">·</span>
-            local log
-            <span className="mx-2 text-border">·</span>
-            {projects.length} entries
-          </span>
-          <span>last sync {timeAgo(lastSync)}</span>
+      {/* RESEARCH LANES */}
+      <section id="research-notes" className="border-t border-border/60 bg-gradient-to-b from-card/30 to-background">
+        <div className="container py-16">
+          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary-glow">Research Lanes</div>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">Explore key research domains</h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {RESEARCH_LANES.map((l) => (
+              <div
+                key={l.title}
+                className="flex items-start gap-3 rounded-xl border border-border/60 bg-card/50 p-4 transition-base hover:border-primary/40"
+              >
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary ring-1 ring-inset ring-border/60">
+                  <l.icon className="h-4.5 w-4.5 text-primary-glow" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold">{l.title}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">{l.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PHILOSOPHY */}
+      <section className="border-t border-border/60">
+        <div className="container py-16">
+          <div className="grid gap-8 lg:grid-cols-2">
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary-glow">Operating Principle</div>
+              <blockquote className="mt-4 text-2xl font-light leading-snug text-foreground md:text-3xl">
+                “Science updates when tests fail. Pseudoscience doubles down after repeated failure.”
+              </blockquote>
+              <p className="mt-4 text-sm text-muted-foreground">— MisterY Labs</p>
+            </div>
+            <div className="rounded-2xl border border-border/60 bg-card/40 p-6">
+              <h3 className="text-lg font-semibold">Speculative ideas, measurable tests</h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                We explore speculative ideas only through measurable tests and reproducible visual
+                evidence. No claims. No conclusions. Just better tools for seeing more clearly. We
+                do not claim proof of UAPs, missing aircraft, teleportation, or hidden technology —
+                we treat such topics only as cultural reasons why optical-anomaly simulation tools
+                matter.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* COMMUNITY */}
+      <section id="media-lab" className="border-t border-border/60 bg-gradient-to-b from-background to-card/30">
+        <div className="container py-16">
+          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary-glow">Community</div>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">An open observatory for the curious</h2>
+          <p className="mt-4 max-w-3xl text-base text-muted-foreground">
+            MisterY Labs welcomes artists, engineers, researchers, skeptics, rendering developers,
+            optical-phenomena researchers, and curious observers. Bring your tests, your renders,
+            your doubts, and your code.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button asChild>
+              <a href="https://github.com/" target="_blank" rel="noreferrer">
+                <Github className="mr-2 h-4 w-4" /> Join on GitHub
+              </a>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/dashboard">
+                <GitBranch className="mr-2 h-4 w-4" /> Open Mission Control
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-border/60">
+        <div className="container py-6 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span>MisterY Labs · Curved Transport Research</span>
+            <span>Open research · reproducible · community-driven</span>
+          </div>
         </div>
       </footer>
     </div>
   );
 };
 
-/* ---------- toolbar pieces ---------- */
-
-function ChipGroup({
-  label, value, options, onChange,
-}: { label: string; value: string; options: readonly string[]; onChange: (v: string) => void }) {
+function CalloutItem({ icon: Icon, title, desc }: { icon: typeof Waves; title: string; desc: string }) {
   return (
-    <div className="flex shrink-0 items-center gap-1 rounded-md border border-border/70 bg-card/50 px-1 py-0.5">
-      <span className="px-1.5 font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
-        {label}
-      </span>
-      <div className="flex items-center gap-0.5">
-        {options.map((opt) => {
-          const active = value === opt;
-          return (
-            <button
-              key={opt}
-              onClick={() => onChange(opt)}
-              className={
-                "rounded px-1.5 py-0.5 text-[11px] font-medium transition-base whitespace-nowrap " +
-                (active
-                  ? "bg-primary/15 text-primary-glow ring-1 ring-inset ring-primary/40"
-                  : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground")
-              }
-            >
-              {opt}
-            </button>
-          );
-        })}
+    <div className="flex items-start gap-3">
+      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 ring-1 ring-inset ring-primary/30">
+        <Icon className="h-4 w-4 text-primary-glow" />
+      </div>
+      <div>
+        <div className="text-sm font-medium">{title}</div>
+        <div className="text-xs text-muted-foreground">{desc}</div>
       </div>
     </div>
   );
 }
 
-function ViewSwitcher({ value, onChange }: { value: ViewMode; onChange: (v: ViewMode) => void }) {
-  const items: Array<{ key: ViewMode; icon: React.ComponentType<{ className?: string }>; label: string }> = [
-    { key: "grid", icon: LayoutGrid, label: "Grid" },
-    { key: "compact", icon: Rows3, label: "Compact" },
-    { key: "kanban", icon: Columns3, label: "Kanban" },
+function StatusPanel({ validated, evidence, inProgress, total }: { validated: number; evidence: number; inProgress: number; total: number }) {
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card/60 p-5 backdrop-blur-md">
+      <div className="flex items-center justify-between">
+        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Mission Status</div>
+        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-success">Systems Nominal</div>
+      </div>
+      <div className="mt-4 grid grid-cols-4 gap-2 text-center">
+        <Stat label="Projects" value={total} />
+        <Stat label="Evidence" value={evidence} />
+        <Stat label="Validated" value={validated} />
+        <Stat label="In Progress" value={inProgress} />
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div>
+      <div className="text-xl font-bold text-foreground">{value}</div>
+      <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground">{label}</div>
+    </div>
+  );
+}
+
+function NavRail() {
+  const items = [
+    { label: "Curved Transport", desc: "The field of study", icon: Waves },
+    { label: "GRIN Optics", desc: "Gradient index fields", icon: Compass },
+    { label: "Transport Islands", desc: "Bounded anomalies", icon: CircleDot },
+    { label: "Diagnostics", desc: "Renderer instrumentation", icon: Microscope },
+    { label: "Pareidolia Lab", desc: "Perception & pattern", icon: Eye },
+    { label: "ACT Media", desc: "Creative experiments", icon: Film },
+    { label: "Myth → Measurement", desc: "Philosophy & method", icon: Telescope },
   ];
   return (
-    <div role="tablist" className="flex items-center gap-0.5 rounded-md border border-border/70 bg-card/50 p-0.5">
-      {items.map(({ key, icon: Icon, label }) => {
-        const active = value === key;
-        return (
-          <button
-            key={key}
-            role="tab"
-            aria-pressed={active}
-            aria-label={label}
-            title={label}
-            onClick={() => onChange(key)}
-            className={
-              "inline-flex h-7 items-center gap-1 rounded px-1.5 text-[11px] font-medium transition-base " +
-              (active
-                ? "bg-primary/15 text-primary-glow ring-1 ring-inset ring-primary/40"
-                : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground")
-            }
+    <div className="rounded-2xl border border-border/60 bg-card/60 p-3 backdrop-blur-md">
+      <div className="px-2 py-1 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Navigation</div>
+      <div className="mt-1 space-y-0.5">
+        {items.map((it) => (
+          <a
+            key={it.label}
+            href="#research-notes"
+            className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm transition-base hover:bg-secondary/60"
           >
-            <Icon className="h-3.5 w-3.5" />
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function DensityToggle({ value, onChange }: { value: Density; onChange: (v: Density) => void }) {
-  return (
-    <div className="flex items-center gap-0.5 rounded-md border border-border/70 bg-card/50 p-0.5">
-      {(["comfortable", "compact"] as const).map((d) => {
-        const active = value === d;
-        return (
-          <button
-            key={d}
-            aria-pressed={active}
-            onClick={() => onChange(d)}
-            className={
-              "h-7 rounded px-2 font-mono text-[10px] uppercase tracking-wider transition-base " +
-              (active
-                ? "bg-primary/15 text-primary-glow ring-1 ring-inset ring-primary/40"
-                : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground")
-            }
-            title={d === "comfortable" ? "Comfortable" : "Compact"}
-          >
-            {d === "comfortable" ? "Cozy" : "Dense"}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function EmptyState({ onClear, hasFilters }: { onClear: () => void; hasFilters: boolean }) {
-  return (
-    <div className="grid place-items-center rounded-xl border border-dashed border-border bg-card/40 p-12 text-center">
-      <div className="grid h-12 w-12 place-items-center rounded-xl bg-secondary text-muted-foreground">
-        <Search className="h-5 w-5" />
-      </div>
-      <h3 className="mt-3 text-base font-semibold">No projects match</h3>
-      <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-        {hasFilters ? "Try clearing filters or searching for something else." : "Spin up your first lab entry to get started."}
-      </p>
-      <div className="mt-4 flex gap-2">
-        {hasFilters && <Button variant="secondary" size="sm" onClick={onClear}>Clear filters</Button>}
-        <QuickCreateDialog />
+            <span className="grid h-7 w-7 place-items-center rounded-md bg-secondary ring-1 ring-inset ring-border/60">
+              <it.icon className="h-3.5 w-3.5 text-primary-glow" />
+            </span>
+            <span className="flex-1">
+              <span className="block text-[13px] font-medium leading-tight">{it.label}</span>
+              <span className="block text-[11px] text-muted-foreground">{it.desc}</span>
+            </span>
+          </a>
+        ))}
       </div>
     </div>
   );
