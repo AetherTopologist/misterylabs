@@ -343,18 +343,27 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
             </div>
           )}
 
-          <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+          <div className="flex items-center justify-between gap-2 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
             <span>imported {timeAgo(snapshot.imported_at)}</span>
-            <button
-              className="inline-flex items-center gap-0.5 hover:text-destructive"
-              onClick={() => {
-                evidenceStore.clearGithubSnapshot(item.id);
-                toast.success("Snapshot cleared");
-              }}
-            >
-              <X className="h-2.5 w-2.5" />
-              Clear
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                className="inline-flex items-center gap-1 text-primary-glow hover:underline"
+                onClick={() => setImageScanOpen(true)}
+              >
+                <Images className="h-2.5 w-2.5" />
+                Scan Repo Images
+              </button>
+              <button
+                className="inline-flex items-center gap-0.5 hover:text-destructive"
+                onClick={() => {
+                  evidenceStore.clearGithubSnapshot(item.id);
+                  toast.success("Snapshot cleared");
+                }}
+              >
+                <X className="h-2.5 w-2.5" />
+                Clear
+              </button>
+            </div>
           </div>
         </div>
       ) : (
