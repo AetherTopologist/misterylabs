@@ -36,7 +36,9 @@ import {
 import { timeAgo } from "@/lib/format";
 import { toast } from "sonner";
 import { GithubScanDialog } from "./GithubScanDialog";
+import { GithubImageScanDialog } from "./GithubImageScanDialog";
 import { EvidenceGallery } from "./EvidenceGallery";
+import { Images } from "lucide-react";
 
 export function EvidenceVault() {
   const items = useEvidence();
