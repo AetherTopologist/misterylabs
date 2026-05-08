@@ -36,7 +36,9 @@ import {
 import { timeAgo } from "@/lib/format";
 import { toast } from "sonner";
 import { GithubScanDialog } from "./GithubScanDialog";
+import { GithubImageScanDialog } from "./GithubImageScanDialog";
 import { EvidenceGallery } from "./EvidenceGallery";
+import { Images } from "lucide-react";
 
 export function EvidenceVault() {
   const items = useEvidence();
@@ -227,6 +229,7 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scanOpen, setScanOpen] = useState(false);
+  const [imageScanOpen, setImageScanOpen] = useState(false);
 
   const snapshot = item.github_snapshot;
 
@@ -340,18 +343,27 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
             </div>
           )}
 
-          <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+          <div className="flex items-center justify-between gap-2 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
             <span>imported {timeAgo(snapshot.imported_at)}</span>
-            <button
-              className="inline-flex items-center gap-0.5 hover:text-destructive"
-              onClick={() => {
-                evidenceStore.clearGithubSnapshot(item.id);
-                toast.success("Snapshot cleared");
-              }}
-            >
-              <X className="h-2.5 w-2.5" />
-              Clear
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                className="inline-flex items-center gap-1 text-primary-glow hover:underline"
+                onClick={() => setImageScanOpen(true)}
+              >
+                <Images className="h-2.5 w-2.5" />
+                Scan Repo Images
+              </button>
+              <button
+                className="inline-flex items-center gap-0.5 hover:text-destructive"
+                onClick={() => {
+                  evidenceStore.clearGithubSnapshot(item.id);
+                  toast.success("Snapshot cleared");
+                }}
+              >
+                <X className="h-2.5 w-2.5" />
+                Clear
+              </button>
+            </div>
           </div>
         </div>
       ) : (
@@ -407,6 +419,15 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
         open={scanOpen}
         onOpenChange={setScanOpen}
       />
+
+      {snapshot && (
+        <GithubImageScanDialog
+          evidenceId={item.id}
+          repoFullName={snapshot.full_name}
+          open={imageScanOpen}
+          onOpenChange={setImageScanOpen}
+        />
+      )}
     </div>
   );
 }
