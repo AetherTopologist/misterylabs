@@ -229,6 +229,7 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scanOpen, setScanOpen] = useState(false);
+  const [imageScanOpen, setImageScanOpen] = useState(false);
 
   const snapshot = item.github_snapshot;
 
