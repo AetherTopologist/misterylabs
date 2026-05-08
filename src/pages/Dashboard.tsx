@@ -280,7 +280,7 @@ const Index = () => {
       <footer className="container border-t border-border/60 py-4 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span>
-            xPRIME Lab v0.1
+            MisterY Labs · Mission Control
             <span className="mx-2 text-border">·</span>
             local log
             <span className="mx-2 text-border">·</span>
