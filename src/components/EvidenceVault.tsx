@@ -419,6 +419,15 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
         open={scanOpen}
         onOpenChange={setScanOpen}
       />
+
+      {snapshot && (
+        <GithubImageScanDialog
+          evidenceId={item.id}
+          repoFullName={snapshot.full_name}
+          open={imageScanOpen}
+          onOpenChange={setImageScanOpen}
+        />
+      )}
     </div>
   );
 }
