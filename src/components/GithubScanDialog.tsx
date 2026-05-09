@@ -23,7 +23,6 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import {
-  evidenceStore,
   fetchScannedRepoDetail,
   parseGithubRepo,
   scanGithubRepos,
@@ -31,16 +30,18 @@ import {
   type ScannedRepo,
   type ScanError,
 } from "@/lib/evidence";
+import { projectStore } from "@/lib/store";
 import { timeAgo } from "@/lib/format";
 import { toast } from "sonner";
 
 interface Props {
-  evidenceId: string;
+  /** Project (Research Object) the snapshot will be attached to. */
+  projectId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function GithubScanDialog({ evidenceId, open, onOpenChange }: Props) {
+export function GithubScanDialog({ projectId, open, onOpenChange }: Props) {
   const [query, setQuery] = useState("");
   const [matchedOnly, setMatchedOnly] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -78,7 +79,7 @@ export function GithubScanDialog({ evidenceId, open, onOpenChange }: Props) {
       toast.error(`Couldn't import: ${res.error.message}`);
       return;
     }
-    evidenceStore.attachGithubSnapshot(evidenceId, snapshotFromDetail(res.repo));
+    projectStore.attachGithubSnapshot(projectId, snapshotFromDetail(res.repo));
     toast.success(`Attached ${res.repo.full_name}`);
     onOpenChange(false);
   };
@@ -94,12 +95,12 @@ export function GithubScanDialog({ evidenceId, open, onOpenChange }: Props) {
     setImportingFor(null);
     if ("error" in res) {
       // Fallback: at least save the URL
-      evidenceStore.upsertGithub(evidenceId, manualUrl.trim());
+      projectStore.upsertGithubUrl(projectId, manualUrl.trim());
       toast.warning(`Saved URL only — metadata fetch failed: ${res.error.message}`);
       onOpenChange(false);
       return;
     }
-    evidenceStore.attachGithubSnapshot(evidenceId, snapshotFromDetail(res.repo));
+    projectStore.attachGithubSnapshot(projectId, snapshotFromDetail(res.repo));
     toast.success(`Attached ${res.repo.full_name}`);
     onOpenChange(false);
   };

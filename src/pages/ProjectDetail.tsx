@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft, Calendar, ExternalLink, Github, Plus, Save, Trash2, X,
+  ArrowLeft, Calendar, ExternalLink, Github, Plus, Save, Trash2, X, ShieldCheck, Search,
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -17,6 +18,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { CategoryBadge, ConfidenceBadge, PriorityBadge, StatusBadge } from "@/components/Badges";
+import { EvidenceGallery } from "@/components/EvidenceGallery";
+import { GithubScanDialog } from "@/components/GithubScanDialog";
 import { projectStore, useProject } from "@/lib/store";
 import {
   CATEGORIES, CONFIDENCE, PRIORITIES, STATUSES,
@@ -31,6 +34,7 @@ const ProjectDetail = () => {
   const project = useProject(id);
 
   const [draft, setDraft] = useState<Project | null>(project ?? null);
+  const [scanOpen, setScanOpen] = useState(false);
 
   useEffect(() => {
     if (project) setDraft(project);
@@ -252,6 +256,132 @@ const ProjectDetail = () => {
               </div>
             )}
           </Section>
+
+          {/* Validation & Evidence — promotes a project into the Evidence Vault */}
+          <Section
+            title="Validation & Evidence"
+            hint="Toggle Validated to promote this Research Object into the Evidence Vault."
+            action={
+              <div className="flex items-center gap-2">
+                <ShieldCheck className={`h-4 w-4 ${draft.is_validated ? "text-primary-glow" : "text-muted-foreground"}`} />
+                <Switch
+                  checked={!!draft.is_validated}
+                  onCheckedChange={(v) => {
+                    patch("is_validated", v);
+                    if (v && !draft.validated_at) patch("validated_at", new Date().toISOString());
+                  }}
+                />
+              </div>
+            }
+          >
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Validation claim
+                </Label>
+                <Input
+                  value={draft.validation_claim ?? ""}
+                  onChange={(e) => patch("validation_claim", e.target.value)}
+                  placeholder="What was demonstrated, in one sentence."
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Technical category
+                </Label>
+                <Input
+                  value={draft.technical_category ?? ""}
+                  onChange={(e) => patch("technical_category", e.target.value)}
+                  placeholder="e.g. Rendering Engine / GRIN Optics"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Hardware note
+                </Label>
+                <Input
+                  value={draft.hardware_note ?? ""}
+                  onChange={(e) => patch("hardware_note", e.target.value)}
+                  placeholder="e.g. 12-core / 24-thread workstation"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Validated at
+                </Label>
+                <Input
+                  type="date"
+                  value={(draft.validated_at ?? "").slice(0, 10)}
+                  onChange={(e) =>
+                    patch(
+                      "validated_at",
+                      e.target.value ? new Date(e.target.value).toISOString() : undefined,
+                    )
+                  }
+                  className="font-mono"
+                />
+              </div>
+            </div>
+            <div className="mt-3 space-y-1">
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                Narrative
+              </Label>
+              <Textarea
+                value={draft.narrative ?? ""}
+                onChange={(e) => patch("narrative", e.target.value)}
+                rows={4}
+                placeholder="Long-form story of what was validated and why it matters."
+              />
+            </div>
+            <div className="mt-3 space-y-1">
+              <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                Next relevance
+              </Label>
+              <Textarea
+                value={draft.next_relevance ?? ""}
+                onChange={(e) => patch("next_relevance", e.target.value)}
+                rows={2}
+                placeholder="How this validated work informs ongoing research."
+              />
+            </div>
+          </Section>
+
+          {/* Repository ingestion + Visual Evidence (shared with Evidence Vault) */}
+          <Section
+            title="Linked repository & visual evidence"
+            hint="Read-only GitHub scan via the server token. Imported snapshots and images are shared between Mission Control and the Evidence Vault."
+            action={
+              <Button size="sm" variant="secondary" className="gap-1.5" onClick={() => setScanOpen(true)}>
+                <Search className="h-3.5 w-3.5" /> Scan GitHub
+              </Button>
+            }
+          >
+            {project.github_snapshot ? (
+              <a
+                href={project.github_snapshot.html_url}
+                target="_blank"
+                rel="noreferrer"
+                className="block rounded-md border border-primary/30 bg-primary/5 p-2.5 transition-colors hover:bg-primary/10"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate font-mono text-xs">{project.github_snapshot.full_name}</span>
+                  <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                </div>
+                {project.github_snapshot.description && (
+                  <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">
+                    {project.github_snapshot.description}
+                  </p>
+                )}
+              </a>
+            ) : (
+              <p className="rounded-md border border-dashed border-border/60 p-3 text-center text-xs text-muted-foreground">
+                No repo snapshot attached. Click <span className="font-mono uppercase tracking-wider text-foreground">Scan GitHub</span> to import one.
+              </p>
+            )}
+            <div className="mt-3">
+              <EvidenceGallery project={project} />
+            </div>
+          </Section>
         </div>
 
         {/* Sidebar */}
@@ -338,6 +468,8 @@ const ProjectDetail = () => {
           </div>
         </aside>
       </div>
+
+      <GithubScanDialog projectId={project.id} open={scanOpen} onOpenChange={setScanOpen} />
     </div>
   );
 };

@@ -11,6 +11,7 @@ import {
   Search,
   Star,
   X,
+  Images,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,48 +27,56 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  evidenceStore,
   fetchGithubRepoMeta,
   parseGithubRepo,
-  useEvidence,
-  type EvidenceItem,
   type GithubRepoMeta,
 } from "@/lib/evidence";
+import { projectStore, useValidatedProjects } from "@/lib/store";
+import type { Project } from "@/lib/types";
 import { timeAgo } from "@/lib/format";
 import { toast } from "sonner";
 import { GithubScanDialog } from "./GithubScanDialog";
 import { GithubImageScanDialog } from "./GithubImageScanDialog";
 import { EvidenceGallery } from "./EvidenceGallery";
-import { Images } from "lucide-react";
 
+/**
+ * The Evidence Vault is a *filtered view* over the unified Project (Research
+ * Object) store — it shows projects flagged `is_validated`. The same
+ * underlying objects power Mission Control's active-work view.
+ */
 export function EvidenceVault() {
-  const items = useEvidence();
+  const items = useValidatedProjects();
   const featured = items[0];
   const rest = items.slice(1);
 
   return (
     <section className="animate-fade-in space-y-3">
-      {/* Section header */}
       <div className="flex items-end justify-between gap-3">
         <div className="space-y-1">
           <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
             <ShieldCheck className="h-3 w-3 text-primary-glow" />
             Evidence Vault
             <span className="text-border">·</span>
-            <span>Validated Prior Work</span>
+            <span>Validated archaeology &amp; milestone history</span>
           </div>
           <p className="max-w-xl text-xs text-muted-foreground">
-            Completed or partially validated technical projects that prove key capabilities behind
-            the current research roadmap.
+            Projects flagged as validated. Same Research Objects as Mission Control —
+            promoted here once they ship measurable evidence.
           </p>
         </div>
         <AddEvidenceDialog />
       </div>
 
-      {/* Featured */}
+      {!featured && (
+        <div className="rounded-xl border border-dashed border-border/60 bg-card/30 p-6 text-center text-xs text-muted-foreground">
+          No validated projects yet. Open a project in Mission Control and toggle
+          <span className="mx-1 font-mono uppercase tracking-wider text-foreground">Validated</span>
+          to surface it here.
+        </div>
+      )}
+
       {featured && <FeaturedEvidenceCard item={featured} />}
 
-      {/* Additional vault items */}
       {rest.length > 0 && (
         <div className="grid gap-3 md:grid-cols-2">
           {rest.map((it) => (
@@ -81,18 +90,15 @@ export function EvidenceVault() {
 
 /* ---------------- Featured card ---------------- */
 
-function FeaturedEvidenceCard({ item }: { item: EvidenceItem }) {
+function FeaturedEvidenceCard({ item }: { item: Project }) {
+  const validatedAt = item.validated_at ?? item.updated_at;
   return (
-    <article
-      className="relative overflow-hidden rounded-xl border border-primary/25 bg-gradient-to-br from-card via-card to-primary/5 shadow-[var(--shadow-card)]"
-    >
-      {/* corner accent */}
+    <article className="relative overflow-hidden rounded-xl border border-primary/25 bg-gradient-to-br from-card via-card to-primary/5 shadow-[var(--shadow-card)]">
       <div
         aria-hidden
         className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary/15 blur-3xl"
       />
       <div className="relative grid gap-4 p-4 lg:grid-cols-[1.6fr_1fr] lg:p-5">
-        {/* Left: narrative */}
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="inline-flex items-center gap-1 rounded-md bg-primary/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-primary-glow ring-1 ring-inset ring-primary/40">
@@ -102,29 +108,34 @@ function FeaturedEvidenceCard({ item }: { item: EvidenceItem }) {
             <span className="inline-flex items-center rounded-md bg-success/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-success ring-1 ring-inset ring-success/30">
               {item.status}
             </span>
-            <span className="inline-flex items-center rounded-md bg-secondary/60 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-secondary-foreground ring-1 ring-inset ring-border">
-              {item.technical_category}
-            </span>
+            {item.technical_category && (
+              <span className="inline-flex items-center rounded-md bg-secondary/60 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-secondary-foreground ring-1 ring-inset ring-border">
+                {item.technical_category}
+              </span>
+            )}
           </div>
 
           <div className="space-y-1.5">
             <h3 className="text-lg font-semibold tracking-tight md:text-xl">{item.title}</h3>
-            <p className="text-sm text-muted-foreground">{item.summary}</p>
+            <p className="text-sm text-muted-foreground">
+              {item.short_summary || item.validation_claim}
+            </p>
           </div>
 
-          <p className="rounded-md border border-border/60 bg-card/60 p-3 text-xs leading-relaxed text-foreground/90">
-            {item.narrative}
-          </p>
+          {(item.narrative || item.full_description) && (
+            <p className="rounded-md border border-border/60 bg-card/60 p-3 text-xs leading-relaxed text-foreground/90">
+              {item.narrative || item.full_description}
+            </p>
+          )}
 
           <dl className="grid gap-2 text-xs sm:grid-cols-2">
             <MetaRow icon={Cpu} label="Hardware" value={item.hardware_note} />
-            <MetaRow icon={ShieldCheck} label="Validation claim" value={item.validation_claim} />
             <MetaRow
-              icon={LinkIcon}
-              label="Next relevance"
-              value={item.next_relevance}
-              full
+              icon={ShieldCheck}
+              label="Validation claim"
+              value={item.validation_claim}
             />
+            <MetaRow icon={LinkIcon} label="Next relevance" value={item.next_relevance} full />
           </dl>
 
           {item.tags.length > 0 && (
@@ -140,22 +151,21 @@ function FeaturedEvidenceCard({ item }: { item: EvidenceItem }) {
             </div>
           )}
 
-          <EvidenceGallery item={item} />
+          <EvidenceGallery project={item} />
         </div>
 
-        {/* Right: GitHub + links */}
         <div className="space-y-2">
           <GithubPanel item={item} />
 
           {item.evidence_links.length > 0 && (
             <LinkList title="Evidence links" links={item.evidence_links} />
           )}
-          {item.artifact_links.length > 0 && (
-            <LinkList title="Artifacts / screenshots" links={item.artifact_links} />
+          {(item.artifact_links?.length ?? 0) > 0 && (
+            <LinkList title="Artifacts / screenshots" links={item.artifact_links!} />
           )}
 
           <div className="rounded-md border border-border/60 bg-card/60 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-            Validated {timeAgo(item.validated_at)}
+            Validated {timeAgo(validatedAt)}
           </div>
         </div>
       </div>
@@ -171,7 +181,7 @@ function MetaRow({
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
-  value: string;
+  value?: string;
   full?: boolean;
 }) {
   if (!value) return null;
@@ -223,7 +233,7 @@ function LinkList({
 
 /* ---------------- Github metadata panel ---------------- */
 
-function GithubPanel({ item }: { item: EvidenceItem }) {
+function GithubPanel({ item }: { item: Project }) {
   const [url, setUrl] = useState(item.github_repo_url);
   const [meta, setMeta] = useState<GithubRepoMeta | null>(null);
   const [loading, setLoading] = useState(false);
@@ -239,7 +249,6 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
 
   useEffect(() => {
     let cancelled = false;
-    // Skip public-API call if we already have an imported snapshot
     if (!item.github_repo_url || snapshot) {
       setMeta(null);
       return;
@@ -265,7 +274,7 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
       toast.error("That doesn't look like a github.com repo URL");
       return;
     }
-    evidenceStore.upsertGithub(item.id, trimmed);
+    projectStore.upsertGithubUrl(item.id, trimmed);
     toast.success(trimmed ? "Repo linked" : "Repo cleared");
   };
 
@@ -290,7 +299,6 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
         </div>
       </div>
 
-      {/* Imported snapshot view */}
       {snapshot ? (
         <div className="space-y-2">
           <a
@@ -356,7 +364,7 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
               <button
                 className="inline-flex items-center gap-0.5 hover:text-destructive"
                 onClick={() => {
-                  evidenceStore.clearGithubSnapshot(item.id);
+                  projectStore.clearGithubSnapshot(item.id);
                   toast.success("Snapshot cleared");
                 }}
               >
@@ -414,15 +422,11 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
         </>
       )}
 
-      <GithubScanDialog
-        evidenceId={item.id}
-        open={scanOpen}
-        onOpenChange={setScanOpen}
-      />
+      <GithubScanDialog projectId={item.id} open={scanOpen} onOpenChange={setScanOpen} />
 
       {snapshot && (
         <GithubImageScanDialog
-          evidenceId={item.id}
+          projectId={item.id}
           repoFullName={snapshot.full_name}
           open={imageScanOpen}
           onOpenChange={setImageScanOpen}
@@ -434,7 +438,7 @@ function GithubPanel({ item }: { item: EvidenceItem }) {
 
 /* ---------------- Compact card (additional items) ---------------- */
 
-function CompactEvidenceCard({ item }: { item: EvidenceItem }) {
+function CompactEvidenceCard({ item }: { item: Project }) {
   return (
     <article className="rounded-xl border border-border/60 bg-card/60 p-3 shadow-[var(--shadow-card)]">
       <div className="flex items-center gap-1.5">
@@ -447,7 +451,9 @@ function CompactEvidenceCard({ item }: { item: EvidenceItem }) {
         </span>
       </div>
       <h4 className="mt-1.5 text-sm font-semibold leading-snug">{item.title}</h4>
-      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.summary}</p>
+      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+        {item.short_summary || item.validation_claim}
+      </p>
       {item.github_repo_url && (
         <a
           href={item.github_repo_url}
@@ -472,7 +478,6 @@ function AddEvidenceDialog() {
     title: "",
     summary: "",
     narrative: "",
-    status: "Validated Prototype",
     technical_category: "",
     hardware_note: "",
     validation_claim: "",
@@ -490,28 +495,34 @@ function AddEvidenceDialog() {
       toast.error("GitHub URL must be a valid github.com repo");
       return;
     }
-    evidenceStore.create({
+    projectStore.create({
       title: form.title.trim(),
-      summary: form.summary.trim(),
+      short_summary: form.summary.trim(),
+      full_description: form.narrative.trim(),
       narrative: form.narrative.trim(),
-      status: form.status.trim() || "Validated Prototype",
+      category: "Engineering",
+      status: "Launched",
+      priority: "Medium",
+      progress_percent: 100,
+      confidence_level: "High",
       technical_category: form.technical_category.trim(),
       hardware_note: form.hardware_note.trim(),
       validation_claim: form.validation_claim.trim(),
       next_relevance: form.next_relevance.trim(),
       github_repo_url: form.github_repo_url.trim(),
+      is_validated: true,
+      validated_at: new Date().toISOString(),
       tags: form.tags
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
     });
-    toast.success("Evidence item added");
+    toast.success("Added to Evidence Vault");
     setOpen(false);
     setForm({
       title: "",
       summary: "",
       narrative: "",
-      status: "Validated Prototype",
       technical_category: "",
       hardware_note: "",
       validation_claim: "",
@@ -533,10 +544,11 @@ function AddEvidenceDialog() {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-primary-glow" />
-            New validated prior work
+            New validated Research Object
           </DialogTitle>
           <DialogDescription>
-            Phrase claims as validated prototype evidence — not finished production work.
+            Creates a project flagged as validated. Phrase claims as validated prototype evidence —
+            not finished production work.
           </DialogDescription>
         </DialogHeader>
 
@@ -563,18 +575,10 @@ function AddEvidenceDialog() {
             />
           </Field>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Status">
-              <Input
-                value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value })}
-              />
-            </Field>
             <Field label="Technical category">
               <Input
                 value={form.technical_category}
-                onChange={(e) =>
-                  setForm({ ...form, technical_category: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, technical_category: e.target.value })}
                 placeholder="e.g. Rendering Engine / GRIN Optics"
               />
             </Field>
@@ -590,19 +594,19 @@ function AddEvidenceDialog() {
                 onChange={(e) => setForm({ ...form, validation_claim: e.target.value })}
               />
             </Field>
+            <Field label="GitHub repo URL">
+              <Input
+                value={form.github_repo_url}
+                onChange={(e) => setForm({ ...form, github_repo_url: e.target.value })}
+                placeholder="https://github.com/owner/repo"
+              />
+            </Field>
           </div>
           <Field label="Next relevance">
             <Textarea
               value={form.next_relevance}
               onChange={(e) => setForm({ ...form, next_relevance: e.target.value })}
               rows={2}
-            />
-          </Field>
-          <Field label="GitHub repo URL">
-            <Input
-              value={form.github_repo_url}
-              onChange={(e) => setForm({ ...form, github_repo_url: e.target.value })}
-              placeholder="https://github.com/owner/repo"
             />
           </Field>
           <Field label="Tags (comma separated)">

@@ -1,28 +1,21 @@
 import { useState } from "react";
 import { Images, ExternalLink, X, Search, ImageOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  evidenceStore,
-  PLACEHOLDER_GALLERY,
-  type AttachedImage,
-  type EvidenceItem,
-} from "@/lib/evidence";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { PLACEHOLDER_GALLERY, type AttachedImage } from "@/lib/evidence";
+import { projectStore } from "@/lib/store";
+import type { Project } from "@/lib/types";
 import { GithubImageScanDialog } from "./GithubImageScanDialog";
 import { toast } from "sonner";
 
-export function EvidenceGallery({ item }: { item: EvidenceItem }) {
+export function EvidenceGallery({ project }: { project: Project }) {
   const [scanOpen, setScanOpen] = useState(false);
   const [preview, setPreview] = useState<AttachedImage | null>(null);
 
-  const real = (item.attached_images ?? []).filter((i) => i.source !== "placeholder");
+  const real = (project.attached_images ?? []).filter((i) => i.source !== "placeholder");
   const showPlaceholders = real.length === 0;
   const images = showPlaceholders ? PLACEHOLDER_GALLERY : real;
-  const repoFullName = item.github_snapshot?.full_name ?? "";
+  const repoFullName = project.github_snapshot?.full_name ?? "";
 
   return (
     <div className="rounded-md border border-border/60 bg-card/60 p-3">
@@ -30,9 +23,7 @@ export function EvidenceGallery({ item }: { item: EvidenceItem }) {
         <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
           <Images className="h-3 w-3 text-primary-glow" />
           Visual Evidence
-          {!showPlaceholders && (
-            <span className="text-border">·</span>
-          )}
+          {!showPlaceholders && <span className="text-border">·</span>}
           {!showPlaceholders && (
             <span className="normal-case tracking-normal text-muted-foreground">
               {real.length} attached
@@ -74,7 +65,7 @@ export function EvidenceGallery({ item }: { item: EvidenceItem }) {
               showPlaceholders
                 ? undefined
                 : () => {
-                    evidenceStore.removeImage(item.id, img.id);
+                    projectStore.removeImage(project.id, img.id);
                     toast.success("Image removed");
                   }
             }
@@ -84,7 +75,7 @@ export function EvidenceGallery({ item }: { item: EvidenceItem }) {
 
       {repoFullName && (
         <GithubImageScanDialog
-          evidenceId={item.id}
+          projectId={project.id}
           repoFullName={repoFullName}
           open={scanOpen}
           onOpenChange={setScanOpen}

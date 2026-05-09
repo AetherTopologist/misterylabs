@@ -9,6 +9,40 @@ const daysAhead = (n: number) => {
 
 export const SEED_PROJECTS: Project[] = [
   {
+    id: "prj_luxcoregrin",
+    title: "LuxCoreGRIN Curved Ray Tracing Prototype",
+    short_summary:
+      "Validated prototype: curved-ray / GRIN-style light transport in a production-grade renderer lineage.",
+    full_description:
+      "This prototype demonstrated that a basic curved-ray tracing implementation can render at standard image resolution on a local 12-core / 24-thread workstation. It establishes that curved-ray / GRIN rendering is not merely theoretical or visual mockup work, but can be implemented in a real rendering pipeline with acceleration-aware architecture. The result is treated as validated prototype evidence — not a finished production renderer — and directly informs the design direction of the xPRIMEray engine.",
+    category: "Engineering",
+    status: "Launched",
+    priority: "High",
+    progress_percent: 100,
+    confidence_level: "High",
+    next_action: "",
+    github_repo_url: "",
+    github_snapshot: null,
+    attached_images: [],
+    evidence_links: [],
+    artifact_links: [],
+    tags: ["luxcore", "grin", "curved-ray", "prototype", "rendering"],
+    milestone_date: "",
+    notes: "",
+    is_validated: true,
+    validated_at: daysAgo(7),
+    validation_claim:
+      "Standard-resolution curved-ray rendering demonstrated end-to-end in a LuxCoreRender-derived pipeline.",
+    narrative:
+      "This prototype demonstrated that a basic curved-ray tracing implementation can render at standard image resolution on a local 12-core / 24-thread workstation. It establishes that curved-ray / GRIN rendering can be implemented in a real rendering pipeline with acceleration-aware architecture.",
+    hardware_note: "12-core / 24-thread workstation",
+    next_relevance:
+      "Informs xPRIMEray engine architecture and downstream Godot / Blender / LuxCore integration research.",
+    technical_category: "Rendering Engine / GRIN Optics",
+    created_at: daysAgo(60),
+    updated_at: daysAgo(7),
+  },
+  {
     id: "prj_xprimeray",
     title: "xPRIMEray Rendering Engine",
     short_summary: "Custom GPU-first physically based renderer with experimental spectral pipeline.",

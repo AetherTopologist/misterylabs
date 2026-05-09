@@ -17,22 +17,23 @@ import {
   ImageOff,
 } from "lucide-react";
 import {
-  evidenceStore,
   makeAttachedImage,
   scanRepoImages,
   type ScanError,
   type ScannedImage,
 } from "@/lib/evidence";
+import { projectStore } from "@/lib/store";
 import { toast } from "sonner";
 
 interface Props {
-  evidenceId: string;
+  /** Project (Research Object) the images will be attached to. */
+  projectId: string;
   repoFullName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function GithubImageScanDialog({ evidenceId, repoFullName, open, onOpenChange }: Props) {
+export function GithubImageScanDialog({ projectId, repoFullName, open, onOpenChange }: Props) {
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<ScannedImage[]>([]);
   const [capped, setCapped] = useState(false);
@@ -86,8 +87,8 @@ export function GithubImageScanDialog({ evidenceId, repoFullName, open, onOpenCh
       toast.error("Select at least one image");
       return;
     }
-    evidenceStore.attachImages(
-      evidenceId,
+    projectStore.attachImages(
+      projectId,
       picks.map((p) => makeAttachedImage(p, repoFullName)),
     );
     toast.success(`Attached ${picks.length} image${picks.length === 1 ? "" : "s"}`);
