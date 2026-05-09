@@ -34,6 +34,7 @@ const ProjectDetail = () => {
   const project = useProject(id);
 
   const [draft, setDraft] = useState<Project | null>(project ?? null);
+  const [scanOpen, setScanOpen] = useState(false);
 
   useEffect(() => {
     if (project) setDraft(project);
