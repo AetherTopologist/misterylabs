@@ -87,8 +87,8 @@ export function GithubImageScanDialog({ projectId, repoFullName, open, onOpenCha
       toast.error("Select at least one image");
       return;
     }
-    evidenceStore.attachImages(
-      evidenceId,
+    projectStore.attachImages(
+      projectId,
       picks.map((p) => makeAttachedImage(p, repoFullName)),
     );
     toast.success(`Attached ${picks.length} image${picks.length === 1 ? "" : "s"}`);
