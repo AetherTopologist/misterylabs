@@ -382,6 +382,9 @@ const ProjectDetail = () => {
               <EvidenceGallery project={project} />
             </div>
           </Section>
+        </div>
+
+        {/* Sidebar */}
         <aside className="space-y-4 lg:sticky lg:top-36 lg:self-start">
           <SidePanel title="Status">
             <Select value={draft.status} onValueChange={(v) => patch("status", v as Status)}>
