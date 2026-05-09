@@ -468,6 +468,8 @@ const ProjectDetail = () => {
           </div>
         </aside>
       </div>
+
+      <GithubScanDialog projectId={project.id} open={scanOpen} onOpenChange={setScanOpen} />
     </div>
   );
 };
