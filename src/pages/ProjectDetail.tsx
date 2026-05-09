@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft, Calendar, ExternalLink, Github, Plus, Save, Trash2, X,
+  ArrowLeft, Calendar, ExternalLink, Github, Plus, Save, Trash2, X, ShieldCheck, Search,
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -17,6 +18,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { CategoryBadge, ConfidenceBadge, PriorityBadge, StatusBadge } from "@/components/Badges";
+import { EvidenceGallery } from "@/components/EvidenceGallery";
+import { GithubScanDialog } from "@/components/GithubScanDialog";
 import { projectStore, useProject } from "@/lib/store";
 import {
   CATEGORIES, CONFIDENCE, PRIORITIES, STATUSES,
