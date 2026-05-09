@@ -56,9 +56,9 @@ const RESEARCH_LANES = [
 
 const Index = () => {
   const projects = useProjects();
-  const evidenceCount = projects.reduce((n, p) => n + (p.evidence_links?.length ?? 0), 0);
-  const validatedCount = projects.filter((p) => p.status === "Validating" || p.status === "Ready to Launch").length;
-  const inProgress = projects.filter((p) => p.status === "Building" || p.status === "Researching").length;
+  const evidenceCount = projects.reduce((n, p) => n + (p.attached_images?.filter((i) => i.source !== "placeholder").length ?? 0), 0);
+  const validatedCount = projects.filter((p) => p.is_validated).length;
+  const inProgress = projects.filter((p) => p.status === "Building" || p.status === "Researching" || p.status === "Validating").length;
 
   return (
     <div className="min-h-screen">
