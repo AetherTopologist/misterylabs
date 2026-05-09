@@ -79,7 +79,7 @@ export function GithubScanDialog({ projectId, open, onOpenChange }: Props) {
       toast.error(`Couldn't import: ${res.error.message}`);
       return;
     }
-    evidenceStore.attachGithubSnapshot(evidenceId, snapshotFromDetail(res.repo));
+    projectStore.attachGithubSnapshot(projectId, snapshotFromDetail(res.repo));
     toast.success(`Attached ${res.repo.full_name}`);
     onOpenChange(false);
   };
@@ -95,12 +95,12 @@ export function GithubScanDialog({ projectId, open, onOpenChange }: Props) {
     setImportingFor(null);
     if ("error" in res) {
       // Fallback: at least save the URL
-      evidenceStore.upsertGithub(evidenceId, manualUrl.trim());
+      projectStore.upsertGithubUrl(projectId, manualUrl.trim());
       toast.warning(`Saved URL only — metadata fetch failed: ${res.error.message}`);
       onOpenChange(false);
       return;
     }
-    evidenceStore.attachGithubSnapshot(evidenceId, snapshotFromDetail(res.repo));
+    projectStore.attachGithubSnapshot(projectId, snapshotFromDetail(res.repo));
     toast.success(`Attached ${res.repo.full_name}`);
     onOpenChange(false);
   };
