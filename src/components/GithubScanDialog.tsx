@@ -23,7 +23,6 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import {
-  evidenceStore,
   fetchScannedRepoDetail,
   parseGithubRepo,
   scanGithubRepos,
@@ -31,16 +30,18 @@ import {
   type ScannedRepo,
   type ScanError,
 } from "@/lib/evidence";
+import { projectStore } from "@/lib/store";
 import { timeAgo } from "@/lib/format";
 import { toast } from "sonner";
 
 interface Props {
-  evidenceId: string;
+  /** Project (Research Object) the snapshot will be attached to. */
+  projectId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function GithubScanDialog({ evidenceId, open, onOpenChange }: Props) {
+export function GithubScanDialog({ projectId, open, onOpenChange }: Props) {
   const [query, setQuery] = useState("");
   const [matchedOnly, setMatchedOnly] = useState(true);
   const [loading, setLoading] = useState(false);
