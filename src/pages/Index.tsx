@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { AppHeader } from "@/components/AppHeader";
 import { EvidenceVault } from "@/components/EvidenceVault";
 import { FractalInspirationAtlas } from "@/components/FractalInspirationAtlas";
+import { SeeingIsNotOpeningYourEyes } from "@/components/SeeingIsNotOpeningYourEyes";
 import { useProjects } from "@/lib/store";
 import heroImg from "@/assets/hero-curved-transport.jpg";
 
