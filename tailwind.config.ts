@@ -97,6 +97,10 @@ export default {
           "0%, 100%": { boxShadow: "0 0 0 0 hsl(var(--primary) / 0.4)" },
           "50%": { boxShadow: "0 0 0 8px hsl(var(--primary) / 0)" },
         },
+        "signal-pulse": {
+          "0%, 100%": { opacity: "1", transform: "scale(1)" },
+          "50%": { opacity: "0.25", transform: "scale(0.65)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -104,6 +108,7 @@ export default {
         "fade-in": "fade-in 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
         "scale-in": "scale-in 0.25s cubic-bezier(0.22, 1, 0.36, 1)",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "signal-pulse": "signal-pulse 2.8s ease-in-out infinite",
       },
     },
   },

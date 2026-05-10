@@ -136,9 +136,56 @@
     mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
   }
 
+  /* Fine diagnostic grid for hero / observatory atmosphere */
+  .bg-telemetry {
+    background-image:
+      linear-gradient(hsl(var(--primary) / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.03) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
   .glow-ring {
     box-shadow: 0 0 0 1px hsl(var(--primary) / 0.4), 0 0 30px -4px hsl(var(--primary) / 0.5);
   }
+
+  /* Corner bracket diagnostic frame */
+  .diagnostic-frame {
+    position: relative;
+  }
+  .diagnostic-frame::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    border-top: 1px solid hsl(var(--primary) / 0.35);
+    border-left: 1px solid hsl(var(--primary) / 0.35);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .diagnostic-frame::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    border-bottom: 1px solid hsl(var(--primary) / 0.35);
+    border-right: 1px solid hsl(var(--primary) / 0.35);
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+/* SVG arc trace animations — referenced via inline style on SVG elements */
+@keyframes arc-draw {
+  from { stroke-dashoffset: 2000; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes arc-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @layer utilities {

@@ -36,13 +36,21 @@ export function AppHeader() {
 
         <nav className="hidden items-center gap-1 md:flex">
           <HeaderLink to="/" current={pathname === "/"}>Home</HeaderLink>
-          <HeaderLink to="/#xprimeray" current={false}>xPRIMEray</HeaderLink>
+          <a
+            href="https://aethertopologist.github.io/GD_xPRIMEray/"
+            target="_blank"
+            rel="noreferrer"
+            title="Curved Transport Observatory"
+            className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-base hover:bg-secondary/60 hover:text-foreground"
+          >
+            xPRIMEray Docs <ExternalLink className="h-3 w-3" />
+          </a>
           <HeaderLink to="/#evidence-vault" current={false}>Evidence Vault</HeaderLink>
           <HeaderLink to="/#research-notes" current={false}>Research Notes</HeaderLink>
           <HeaderLink to="/#media-lab" current={false}>Media Lab</HeaderLink>
           <HeaderLink to="/dashboard" current={pathname === "/dashboard"}>Mission Control</HeaderLink>
           <a
-            href="https://github.com/"
+            href="https://github.com/AetherTopologist/GD_xPRIMEray"
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-base hover:bg-secondary/60 hover:text-foreground"
