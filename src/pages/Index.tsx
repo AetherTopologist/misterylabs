@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { AppHeader } from "@/components/AppHeader";
 import { EvidenceVault } from "@/components/EvidenceVault";
 import { FractalInspirationAtlas } from "@/components/FractalInspirationAtlas";
+import { SeeingIsNotOpeningYourEyes } from "@/components/SeeingIsNotOpeningYourEyes";
 import { useProjects } from "@/lib/store";
 import heroImg from "@/assets/hero-curved-transport.jpg";
 
@@ -252,28 +253,16 @@ const Index = () => {
         </div>
       </section>
 
-<<<<<<< HEAD
+      {/* ── SEEING IS NOT OPENING YOUR EYES ───────────────── */}
+      <SeeingIsNotOpeningYourEyes />
+
+      {/* ── FRACTAL INSPIRATION ATLAS ─────────────────────── */}
+      <FractalInspirationAtlas />
+
       {/* ── ACTIVE RESEARCH SYSTEMS ───────────────────────── */}
       <section className="border-t border-border/35">
         <div className="container py-12">
           <SectionHeader sys="SYS // 01" title="Active Research Systems" />
-=======
-      {/* FRACTAL INSPIRATION ATLAS */}
-      <FractalInspirationAtlas />
-
-      {/* FLAGSHIP */}
-      <section id="xprimeray" className="border-t border-border/60 bg-gradient-to-b from-background to-card/30">
-        <div className="container py-16">
-          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary-glow">Flagship Project</div>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
-            <span className="text-gradient">xPRIMEray</span> Rendering Engine
-          </h2>
-          <p className="mt-4 max-w-3xl text-base text-muted-foreground">
-            A Godot-based experimental rendering engine for studying curved ray transport, GRIN-style
-            fields, bounded optical transport anomalies, wormhole fixtures, ownership maps, cathedral
-            probing, and renderer validation.
-          </p>
->>>>>>> f751bfc49ed0293e76f3996f74162c691f8ff558
 
           <div className="mt-6 overflow-hidden rounded-sm border border-border/40">
             {/* Column header */}
