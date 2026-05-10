@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { AppHeader } from "@/components/AppHeader";
 import { EvidenceVault } from "@/components/EvidenceVault";
+import { FractalInspirationAtlas } from "@/components/FractalInspirationAtlas";
 import { useProjects } from "@/lib/store";
 import heroImg from "@/assets/hero-curved-transport.jpg";
 
@@ -127,6 +128,9 @@ const Index = () => {
           </aside>
         </div>
       </section>
+
+      {/* FRACTAL INSPIRATION ATLAS */}
+      <FractalInspirationAtlas />
 
       {/* FLAGSHIP */}
       <section id="xprimeray" className="border-t border-border/60 bg-gradient-to-b from-background to-card/30">
