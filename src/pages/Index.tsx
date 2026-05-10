@@ -1,3 +1,4 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import {
   Github,
@@ -83,30 +84,40 @@ const STATUS_LABEL_CLS: Record<SystemStatus, string> = {
   building: "text-primary-glow",
 };
 
-const FLAGSHIP_CARDS = [
+const FLAGSHIP_CARDS: {
+  title: string;
+  desc: string;
+  icon: React.ElementType;
+  tag: string;
+  lineage: string | null;
+}[] = [
   {
     title: "Transport Engine",
     desc: "Real-time curved ray path simulation and render harness.",
     icon: Orbit,
     tag: "CORE",
+    lineage: null,
   },
   {
     title: "LuxCoreGRIN",
     desc: "Production-grade GRIN-field rendering research.",
     icon: Sparkles,
     tag: "RESEARCH",
+    lineage: "Precursor renderer — directly informed xPRIMEray architecture",
   },
   {
     title: "Validation Cockpit",
     desc: "Instrumentation, probes, metrics, and visual regression.",
     icon: Activity,
     tag: "DIAGNOSTICS",
+    lineage: null,
   },
   {
     title: "Island Classifier",
     desc: "Detecting and classifying bounded transport anomalies.",
     icon: CircleDot,
     tag: "ANALYSIS",
+    lineage: null,
   },
 ];
 
@@ -290,15 +301,95 @@ const Index = () => {
       </section>
 
       {/* ── PRIMARY SYSTEM: xPRIMEray ─────────────────────── */}
-      <section id="xprimeray" className="border-t border-border/35">
-        <div className="container py-16">
-          <SectionHeader sys="SYS // 02" title="xPRIMEray Rendering Engine" />
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            A Godot-based research harness for curved ray transport, GRIN-style fields, bounded
-            optical anomalies, wormhole fixtures, cathedral probing, and renderer validation.
+      <section id="xprimeray" className="relative overflow-hidden border-t border-primary/15">
+        {/* Subtle observatory atmosphere */}
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/[0.045] via-transparent to-transparent"
+          aria-hidden
+        />
+        {/* Faint transport arc accent */}
+        <svg
+          className="pointer-events-none absolute right-0 top-0 h-64 w-96 opacity-[0.07]"
+          viewBox="0 0 400 260"
+          preserveAspectRatio="xMaxYMin slice"
+          aria-hidden
+        >
+          <path
+            d="M 400 0 Q 200 80 100 200 T -20 260"
+            fill="none"
+            stroke="hsl(245, 90%, 72%)"
+            strokeWidth="1.2"
+          />
+          <path
+            d="M 400 40 Q 240 100 160 220"
+            fill="none"
+            stroke="hsl(190, 95%, 65%)"
+            strokeWidth="0.7"
+          />
+          <circle cx="200" cy="130" r="3" fill="none" stroke="hsl(190, 95%, 65%)" strokeWidth="1" />
+          <circle cx="100" cy="200" r="2" fill="hsl(245, 90%, 72%)" />
+        </svg>
+
+        <div className="container relative py-16 lg:py-20">
+          {/* Status header row */}
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
+              SYS // 02
+            </span>
+            <div className="h-px w-12 bg-border/35" />
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-success animate-signal-pulse" />
+              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-success">
+                Active Observatory
+              </span>
+            </div>
+          </div>
+
+          {/* Title block — larger than other sections */}
+          <div className="mt-4">
+            <h2 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
+              xPRIMEray
+            </h2>
+            <p className="mt-2 text-base font-light text-primary-glow/80 md:text-lg">
+              Curved Transport Observatory
+            </p>
+            <div className="mt-3 h-px w-32 bg-gradient-to-r from-primary/45 to-transparent" />
+          </div>
+
+          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            A renderer research harness exploring curved-field traversal, transport topology,
+            convergence diagnostics, validation systems, and visual observability.
           </p>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Primary CTAs */}
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button
+              asChild
+              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-none"
+            >
+              <a
+                href="https://aethertopologist.github.io/GD_xPRIMEray/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Explore xPRIMEray Docs
+              </a>
+            </Button>
+            <Button variant="outline" asChild>
+              <a
+                href="https://github.com/AetherTopologist/GD_xPRIMEray"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Github className="mr-2 h-4 w-4" />
+                GitHub Repository
+              </a>
+            </Button>
+          </div>
+
+          {/* Component cards */}
+          <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {FLAGSHIP_CARDS.map((c) => (
               <div
                 key={c.title}
@@ -314,57 +405,27 @@ const Index = () => {
                 </div>
                 <h3 className="text-sm font-semibold tracking-tight">{c.title}</h3>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{c.desc}</p>
+                {c.lineage && (
+                  <p className="mt-2.5 border-t border-border/25 pt-2 font-mono text-[10px] leading-snug text-muted-foreground/45">
+                    ↳ {c.lineage}
+                  </p>
+                )}
               </div>
             ))}
-          </div>
-
-          {/* Docs entry point */}
-          <div className="diagnostic-frame mt-6 flex flex-col gap-5 rounded-sm border border-primary/20 bg-card/25 p-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="font-mono text-[8px] uppercase tracking-[0.35em] text-primary-glow">
-                Public Documentation
-              </div>
-              <h3 className="mt-1 text-base font-semibold">
-                xPRIMEray — Curved Transport Observatory
-              </h3>
-              <p className="mt-1.5 max-w-xl text-sm text-muted-foreground">
-                Research notes, architecture docs, and validation artifacts for the curved transport
-                renderer.
-              </p>
-            </div>
-            <div className="flex shrink-0 flex-wrap gap-3">
-              <Button asChild>
-                <a
-                  href="https://aethertopologist.github.io/GD_xPRIMEray/"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  xPRIMEray Docs
-                </a>
-              </Button>
-              <Button variant="outline" asChild>
-                <a
-                  href="https://github.com/AetherTopologist/GD_xPRIMEray"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Github className="mr-2 h-4 w-4" />
-                  GitHub
-                </a>
-              </Button>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* ── EVIDENCE VAULT ────────────────────────────────── */}
+      {/* ── VALIDATION ARCHIVE ────────────────────────────── */}
       <section id="evidence-vault" className="border-t border-border/35">
         <div className="container py-16">
-          <SectionHeader sys="SYS // 03" title="Evidence Vault" />
-          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-            Repository snapshots, visual artifacts, and validation records — metadata only, kept
-            lightweight.
+          <SectionHeader sys="SYS // 03" title="Validation Archive" />
+          <p className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground/45">
+            Milestone archaeology · predecessor research lineage
+          </p>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            Validated repository snapshots, visual artifacts, and historical milestones that
+            establish the research lineage feeding into the active xPRIMEray observatory.
           </p>
           <div className="mt-8">
             <EvidenceVault />
