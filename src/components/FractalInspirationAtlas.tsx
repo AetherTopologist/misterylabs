@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { X, Sparkles } from "lucide-react";
+import { X, Sparkles, ExternalLink } from "lucide-react";
 
 /* ============================================================================
    Fractal Inspiration Atlas
@@ -16,6 +16,9 @@ interface AtlasNode {
   label: string;
   subtitle?: string;
   description?: string;
+  influenced?: string;
+  xprimeConcept?: string;
+  href?: string;
   keywords?: string[];
   kind: NodeKind;
   parent?: string; // primary id this secondary belongs to
@@ -41,7 +44,9 @@ const PRIMARIES: Array<Omit<AtlasNode, "x" | "y" | "vx" | "vy" | "kind" | "radiu
     label: "Quake III Arena",
     subtitle: "Spatial Adrenaline",
     description: "The first real social engine of speed. Railguns, BSP traversal, prediction, and observer-relative space taught spatial intuition at inhuman velocity.",
-    keywords: ["railguns", "BSP traversal", "movement topology", "visibility", "prediction", "observer-relative space"],
+    influenced: "Real-time spatial cognition, arena topology, and observer-relative prediction models in xPRIMEray's transport design.",
+    xprimeConcept: "Transport island detection and observer-relative coordinate framing",
+    keywords: ["railguns", "BSP traversal", "movement topology", "visibility", "prediction"],
     hue: 28,
   },
   {
@@ -49,7 +54,9 @@ const PRIMARIES: Array<Omit<AtlasNode, "x" | "y" | "vx" | "vy" | "kind" | "radiu
     label: "Bell Labs",
     subtitle: "The Engineering Cathedral",
     description: "A cathedral of interdisciplinary instrumentation. Where signal theory, observability, and scientific visualization were treated as sacred craft.",
-    keywords: ["signal theory", "observability", "instrumentation", "interdisciplinary research", "scientific visualization"],
+    influenced: "Instrumentation culture, signal-propagation thinking, diagnostic dashboards, and the observatory metaphor itself.",
+    xprimeConcept: "Telemetry architecture, convergence diagnostics, and observatory naming",
+    keywords: ["signal theory", "observability", "instrumentation", "scientific visualization"],
     hue: 195,
   },
   {
@@ -57,6 +64,9 @@ const PRIMARIES: Array<Omit<AtlasNode, "x" | "y" | "vx" | "vy" | "kind" | "radiu
     label: "Grant Sanderson",
     subtitle: "Geometry Made Felt",
     description: "Stereographic projection, topology, and dimensional intuition rendered with such clarity that mathematics becomes a felt sense.",
+    influenced: "Geometric intuition, projection visuals, and dimensional pedagogy throughout xPRIMEray's visualization layer.",
+    xprimeConcept: "Curved field visualization and dimensional projection displays",
+    href: "https://www.youtube.com/@3blue1brown",
     keywords: ["stereographic projection", "topology", "dimensional intuition", "mathematical beauty"],
     hue: 285,
   },
@@ -65,7 +75,9 @@ const PRIMARIES: Array<Omit<AtlasNode, "x" | "y" | "vx" | "vy" | "kind" | "radiu
     label: "Apollo / NASA",
     subtitle: "Telemetry and the Unknown",
     description: "Mission control rituals, black-sky instrumentation, and the engineering courage to send signals into nothing and read what comes back.",
-    keywords: ["mission control", "diagnostics", "engineering courage", "telemetry", "black sky instrumentation"],
+    influenced: "Dashboard aesthetic, telemetry culture, and the rigor of testing against physical ground truth.",
+    xprimeConcept: "Field validation architecture and diagnostic instrumentation philosophy",
+    keywords: ["mission control", "diagnostics", "engineering courage", "telemetry"],
     hue: 210,
   },
   {
@@ -73,12 +85,14 @@ const PRIMARIES: Array<Omit<AtlasNode, "x" | "y" | "vx" | "vy" | "kind" | "radiu
     label: "Interstellar / Gargantua",
     subtitle: "Emotional Relativity",
     description: "Curved spacetime as cinema. Black hole lensing, temporal perception, and the cosmology of love rendered as physical phenomena.",
-    keywords: ["curved spacetime", "black hole lensing", "temporal perception", "emotional cosmology"],
+    influenced: "Null geodesic rendering, the visual language of curvature, and the emotional weight of transport distortion.",
+    xprimeConcept: "Null geodesic path tracing and curved transport visualization",
+    keywords: ["curved spacetime", "black hole lensing", "temporal perception"],
     hue: 320,
   },
 ];
 
-const SECONDARIES: Array<{ id: string; label: string; parent: string; description?: string; keywords?: string[] }> = [
+const SECONDARIES: Array<{ id: string; label: string; parent: string; description?: string; influenced?: string; xprimeConcept?: string; href?: string; keywords?: string[] }> = [
   // Quake / engine culture
   { id: "snes", label: "SNES ROM Hacking", parent: "quake3", description: "Memory maps, hex editors, tile graphics — archaeology by overwrite." },
   { id: "reverse", label: "Reverse Engineering", parent: "quake3", description: "Breaking systems on purpose to learn how they breathe." },
@@ -102,7 +116,7 @@ const SECONDARIES: Array<{ id: string; label: string; parent: string; descriptio
   { id: "procedural", label: "Procedural Geometry", parent: "grant", description: "Rules that grow form." },
   { id: "rune", label: "Rune Symbols", parent: "grant", description: "Dense glyphs that bind meaning to mark." },
   { id: "cathedral", label: "Cathedral Architecture", parent: "grant", description: "Stone reasoning about light, span, and silence." },
-  { id: "gateway", label: "Gateway Arch — St. Louis", parent: "grant", description: "A catenary whispering structural truth." },
+  { id: "gateway", label: "Gateway Arch — St. Louis", parent: "grant", description: "A catenary whispering structural truth.", influenced: "Portal geometry, threshold symbolism, and curved traversal imagery.", xprimeConcept: "Gateway topology and curved traversal thresholds" },
 
   // NASA
   { id: "spacex", label: "SpaceX", parent: "nasa", description: "Iterate hardware until the sky behaves." },
@@ -409,15 +423,38 @@ export function FractalInspirationAtlas() {
               The recursive constellation that became <span className="text-gradient">xPRIMEray</span>
             </h2>
             <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-              A living topology of inspirations, technologies, and life experiences that converged
-              into a renderer research observatory. Drag to pan, scroll to zoom, click any node to
-              expand its branch.
+              The Atlas maps the inspirations, tools, games, films, physics ideas, and visual
+              systems that converged into xPRIMEray.
+            </p>
+            <p className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground/45">
+              Drag to pan · scroll to zoom · click any node to explore
             </p>
           </div>
           <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.25em] text-muted-foreground">
             <Sparkles className="h-3 w-3 text-primary-glow" />
             <span>{nodes.length} nodes · {edges.length} signal paths</span>
           </div>
+        </div>
+
+        {/* Legend */}
+        <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2">
+          {([
+            { color: "hsl(245,90%,66%)", label: "Primary signal" },
+            { color: "hsl(190,95%,60%)", label: "Technical lineage" },
+            { color: "hsl(270,80%,68%)", label: "Visual inspiration" },
+            { color: "hsl(38,95%,60%)",  label: "Mythic symbol" },
+            { color: "hsl(145,65%,50%)", label: "Validation artifact" },
+          ] as const).map(({ color, label }) => (
+            <div key={label} className="flex items-center gap-1.5">
+              <span
+                className="h-2 w-2 rounded-full shrink-0"
+                style={{ background: color, boxShadow: `0 0 6px ${color}` }}
+              />
+              <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground/55">
+                {label}
+              </span>
+            </div>
+          ))}
         </div>
 
         <div
@@ -490,14 +527,14 @@ export function FractalInspirationAtlas() {
 
           {/* Detail card */}
           {selectedNode && (
-            <div className="absolute right-4 bottom-4 z-30 w-[320px] max-w-[calc(100%-2rem)] animate-in fade-in slide-in-from-bottom-4 rounded-xl border border-primary/40 bg-background/85 p-4 shadow-glow backdrop-blur-md">
+            <div className="absolute right-4 bottom-4 z-30 w-[340px] max-w-[calc(100%-2rem)] animate-in fade-in slide-in-from-bottom-4 rounded-xl border border-primary/40 bg-background/92 p-4 shadow-glow backdrop-blur-md">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div
                     className="font-mono text-[9px] uppercase tracking-[0.25em]"
                     style={{ color: `hsl(${selectedNode.hue} 80% 70%)` }}
                   >
-                    {selectedNode.kind === "core" ? "Convergence Node" : selectedNode.kind === "primary" ? "Primary Inspiration" : "Fractal Branch"}
+                    {selectedNode.kind === "core" ? "Convergence Node" : selectedNode.kind === "primary" ? "Primary Signal" : "Fractal Branch"}
                   </div>
                   <div className="mt-1 text-base font-semibold text-foreground">{selectedNode.label}</div>
                   {selectedNode.subtitle && (
@@ -509,15 +546,40 @@ export function FractalInspirationAtlas() {
                     stateRef.current.selectedId = null;
                     setSelectedNode(null);
                   }}
-                  className="rounded p-1 text-muted-foreground transition hover:text-foreground"
+                  className="shrink-0 rounded p-1 text-muted-foreground transition hover:text-foreground"
                   aria-label="Close"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
-              {selectedNode.description && (
-                <p className="mt-3 text-xs leading-relaxed text-foreground/80">{selectedNode.description}</p>
-              )}
+
+              <div className="mt-3 space-y-3">
+                {selectedNode.description && (
+                  <div>
+                    <div className="mb-1 font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/50">
+                      Why it matters
+                    </div>
+                    <p className="text-xs leading-relaxed text-foreground/80">{selectedNode.description}</p>
+                  </div>
+                )}
+                {selectedNode.influenced && (
+                  <div>
+                    <div className="mb-1 font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/50">
+                      What it influenced
+                    </div>
+                    <p className="text-xs leading-relaxed text-foreground/75">{selectedNode.influenced}</p>
+                  </div>
+                )}
+                {selectedNode.xprimeConcept && (
+                  <div>
+                    <div className="mb-1 font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/50">
+                      xPRIMEray concept
+                    </div>
+                    <p className="text-xs leading-relaxed text-primary-glow/85">{selectedNode.xprimeConcept}</p>
+                  </div>
+                )}
+              </div>
+
               {selectedNode.keywords && selectedNode.keywords.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1">
                   {selectedNode.keywords.map((k) => (
@@ -530,8 +592,21 @@ export function FractalInspirationAtlas() {
                   ))}
                 </div>
               )}
+
+              {selectedNode.href && (
+                <a
+                  href={selectedNode.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.2em] text-primary/70 transition hover:text-primary"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  View resource
+                </a>
+              )}
+
               {selectedNode.kind === "primary" && (
-                <div className="mt-3 font-mono text-[9px] uppercase tracking-[0.2em] text-primary-glow/80">
+                <div className="mt-3 border-t border-border/25 pt-2 font-mono text-[9px] uppercase tracking-[0.2em] text-primary-glow/60">
                   click again to {expanded.has(selectedNode.id) ? "collapse" : "expand"} branch
                 </div>
               )}
