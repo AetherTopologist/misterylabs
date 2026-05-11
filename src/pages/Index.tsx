@@ -126,8 +126,8 @@ const RESEARCH_ATLAS = [
   { title: "GRIN Optics", desc: "Gradient index fields", icon: Compass },
   { title: "Rendering Diagnostics", desc: "Instrumentation & metrics", icon: Microscope },
   { title: "Pareidolia Lab", desc: "Perception & pattern", icon: Eye },
-  { title: "ACT Media", desc: "Animation & storytelling", icon: Film },
-  { title: "Myth → Measurement", desc: "Philosophy & method", icon: Telescope },
+  { title: "Media Lab", desc: "Visual experiments & ACT research", icon: Film },
+  { title: "Field Methods", desc: "Philosophy of measurement", icon: Telescope },
 ];
 
 // ── Page ──────────────────────────────────────────────────
@@ -201,15 +201,16 @@ const Index = () => {
             </h1>
 
             <p className="mt-4 font-light text-muted-foreground md:text-lg">
-              Curved Transport Observatory
+              Gateway Observatory
             </p>
             <div className="mt-2 h-px w-20 bg-gradient-to-r from-primary/50 to-transparent" />
 
             <p className="mt-6 max-w-lg text-sm leading-relaxed text-muted-foreground">
-              Experimental instruments for rendering, probing, and explaining how signals traverse
-              curved fields, gradient media, and simulated space.
-              <br />
-              Open methods. Reproducible results.
+              MisterY Labs is a gateway observatory for curved transport research, visual
+              diagnostics, and the mysteries that inspire them.
+            </p>
+            <p className="mt-2 max-w-lg text-xs leading-relaxed text-muted-foreground/55">
+              Open instruments. Reproducible methods. Measurable results.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -237,7 +238,7 @@ const Index = () => {
               <Button variant="ghost" asChild>
                 <a href="#evidence-vault">
                   <FolderOpen className="mr-2 h-4 w-4" />
-                  Evidence Vault
+                  Validation Archive
                 </a>
               </Button>
             </div>
@@ -268,7 +269,9 @@ const Index = () => {
       <SeeingIsNotOpeningYourEyes />
 
       {/* ── FRACTAL INSPIRATION ATLAS ─────────────────────── */}
-      <FractalInspirationAtlas />
+      <div id="inspiration">
+        <FractalInspirationAtlas />
+      </div>
 
       {/* ── ACTIVE RESEARCH SYSTEMS ───────────────────────── */}
       <section className="border-t border-border/35">
@@ -433,12 +436,15 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ── RESEARCH ATLAS ────────────────────────────────── */}
+      {/* ── RESEARCH NOTES ────────────────────────────────── */}
       <section id="research-notes" className="border-t border-border/35">
         <div className="container py-16">
-          <SectionHeader sys="SYS // 04" title="Research Atlas" />
-          <p className="mt-2 text-sm text-muted-foreground">
-            Active domains and research vectors within the observatory.
+          <SectionHeader sys="SYS // 04" title="Research Notes" />
+          <p className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground/45">
+            Docs · field reports · active research domains
+          </p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Docs, papers, and field reports across the observatory's active research domains.
           </p>
           <div className="mt-8 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
             {RESEARCH_ATLAS.map((l) => (
@@ -491,13 +497,16 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ── OPEN SIGNAL ───────────────────────────────────── */}
+      {/* ── MEDIA LAB · OPEN SIGNAL ───────────────────────── */}
       <section id="media-lab" className="border-t border-border/35">
         <div className="container py-16">
-          <SectionHeader sys="SYS // 05" title="Open Signal" />
+          <SectionHeader sys="SYS // 05" title="Media Lab" />
+          <p className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground/45">
+            Visual experiments · ACT research · Open signal
+          </p>
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-            MisterY Labs is an open observatory. Engineers, artists, skeptics, and rendering
-            researchers are welcome. Bring tests, renders, doubts, and code.
+            An open observatory for rendering researchers, visual artists, and curious engineers.
+            Bring tests, renders, field notes, and code.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild>
@@ -759,12 +768,12 @@ function Metric({ label, value }: { label: string; value: number }) {
 
 function SubsystemsRail() {
   const items = [
-    { label: "Curved Transport", desc: "Core field", icon: Waves, href: "#research-notes" },
-    { label: "GRIN Optics", desc: "Gradient fields", icon: Compass, href: "#research-notes" },
-    { label: "Transport Islands", desc: "Anomalies", icon: CircleDot, href: "#xprimeray" },
-    { label: "Diagnostics", desc: "Instrumentation", icon: Microscope, href: "#xprimeray" },
-    { label: "Pareidolia Lab", desc: "Perception", icon: Eye, href: "#research-notes" },
-    { label: "ACT Media", desc: "Experiments", icon: Film, href: "#media-lab" },
+    { label: "xPRIMEray", desc: "Active observatory", icon: Orbit, href: "#xprimeray" },
+    { label: "Inspiration Atlas", desc: "Cognitive ancestry", icon: Sparkles, href: "#inspiration" },
+    { label: "Validation Archive", desc: "Evidence lineage", icon: FolderOpen, href: "#evidence-vault" },
+    { label: "Research Notes", desc: "Field reports", icon: Microscope, href: "#research-notes" },
+    { label: "Media Lab", desc: "Visual experiments", icon: Film, href: "#media-lab" },
+    { label: "Mission Control", desc: "Project dashboard", icon: GitBranch, href: "/dashboard" },
   ];
   return (
     <div className="rounded-sm border border-border/35 bg-card/30 py-2">

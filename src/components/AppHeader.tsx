@@ -29,7 +29,7 @@ export function AppHeader() {
               MisterY <span className="text-gradient">Labs</span>
             </div>
             <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              Curved Transport Research
+              Gateway Observatory
             </div>
           </div>
         </Link>
@@ -45,7 +45,7 @@ export function AppHeader() {
           >
             xPRIMEray Docs <ExternalLink className="h-3 w-3" />
           </a>
-          <HeaderLink to="/#evidence-vault" current={false}>Evidence Vault</HeaderLink>
+          <HeaderLink to="/#evidence-vault" current={false}>Validation Archive</HeaderLink>
           <HeaderLink to="/#research-notes" current={false}>Research Notes</HeaderLink>
           <HeaderLink to="/#media-lab" current={false}>Media Lab</HeaderLink>
           <HeaderLink to="/dashboard" current={pathname === "/dashboard"}>Mission Control</HeaderLink>
