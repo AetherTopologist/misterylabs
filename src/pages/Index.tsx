@@ -121,6 +121,27 @@ const FLAGSHIP_CARDS: {
   },
 ];
 
+interface InspirationNode {
+  id: string;
+  name: string;
+  role: string;
+  signal: string;
+  tags: string[];
+  href?: string;
+}
+
+const INSPIRATIONS: InspirationNode[] = [
+  {
+    id: "ewin-tang",
+    name: "Ewin Tang",
+    role: "Quantum algorithms researcher",
+    signal:
+      "Elegant mathematical insight can overturn assumptions previously believed computationally impossible.",
+    tags: ["independent reasoning", "algorithmic elegance", "youthful rigor", "humility under complexity"],
+    href: "https://ewintang.com/",
+  },
+];
+
 const RESEARCH_ATLAS = [
   { title: "Curved Transport", desc: "Core field of study", icon: Waves },
   { title: "GRIN Optics", desc: "Gradient index fields", icon: Compass },
@@ -497,6 +518,32 @@ const Index = () => {
         </div>
       </section>
 
+      {/* ── SIGNALS & INSPIRATIONS ────────────────────────── */}
+      <section id="signals" className="border-t border-border/35">
+        <div className="container py-14">
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
+              Influences
+            </span>
+            <div className="h-px flex-1 bg-border/35" />
+          </div>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">
+            Signals &amp; Inspirations
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            MisterY Labs is inspired by researchers, engineers, artists, physicists, game
+            developers, and strange beautiful minds who challenged assumptions through curiosity,
+            rigor, and imagination.
+          </p>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {INSPIRATIONS.map((node) => (
+              <InspirationCard key={node.id} node={node} />
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── MEDIA LAB · OPEN SIGNAL ───────────────────────── */}
       <section id="media-lab" className="border-t border-border/35">
         <div className="container py-16">
@@ -795,6 +842,45 @@ function SubsystemsRail() {
               <span className="block text-[10px] text-muted-foreground">{it.desc}</span>
             </span>
           </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function InspirationCard({ node }: { node: InspirationNode }) {
+  return (
+    <div className="diagnostic-frame rounded-sm border border-border/35 bg-card/25 p-5 transition-base hover:border-primary/30 hover:bg-card/40">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <div className="text-sm font-semibold tracking-tight">{node.name}</div>
+          <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60">
+            {node.role}
+          </div>
+        </div>
+        {node.href && (
+          <a
+            href={node.href}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 text-muted-foreground/30 transition-base hover:text-primary"
+            aria-label={`External link for ${node.name}`}
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        )}
+      </div>
+      <blockquote className="mt-3 text-xs leading-relaxed text-foreground/75 italic">
+        "{node.signal}"
+      </blockquote>
+      <div className="mt-4 flex flex-wrap gap-1.5">
+        {node.tags.map((tag) => (
+          <span
+            key={tag}
+            className="rounded-sm border border-border/40 bg-secondary/40 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground/60"
+          >
+            {tag}
+          </span>
         ))}
       </div>
     </div>
