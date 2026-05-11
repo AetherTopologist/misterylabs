@@ -903,7 +903,7 @@ function Metric({ label, value }: { label: string; value: number }) {
 function SubsystemsRail() {
   const items = [
     { label: "xPRIMEray", desc: "Active observatory", icon: Orbit, href: "#xprimeray" },
-    { label: "Inspiration Atlas", desc: "Cognitive ancestry", icon: Sparkles, href: "#inspiration" },
+    { label: "Fractal Inspiration Atlas", desc: "Cognitive ancestry", icon: Sparkles, href: "#atlas" },
     { label: "Validation Archive", desc: "Evidence lineage", icon: FolderOpen, href: "#evidence-vault" },
     { label: "Research Notes", desc: "Field reports", icon: Microscope, href: "#research-notes" },
     { label: "Media Lab", desc: "Visual experiments", icon: Film, href: "#media-lab" },

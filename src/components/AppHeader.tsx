@@ -43,12 +43,13 @@ export function AppHeader() {
             title="Curved Transport Observatory"
             className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-base hover:bg-secondary/60 hover:text-foreground"
           >
-            xPRIMEray Docs <ExternalLink className="h-3 w-3" />
+            xPRIMEray <ExternalLink className="h-3 w-3" />
           </a>
-          <HeaderLink to="/#evidence-vault" current={false}>Validation Archive</HeaderLink>
-          <HeaderLink to="/#research-notes" current={false}>Research Notes</HeaderLink>
-          <HeaderLink to="/#media-lab" current={false}>Media Lab</HeaderLink>
-          <HeaderLink to="/dashboard" current={pathname === "/dashboard"}>Mission Control</HeaderLink>
+          <HeaderLink to="/#atlas" current={false}>Atlas</HeaderLink>
+          <HeaderLink to="/#evidence-vault" current={false}>Archive</HeaderLink>
+          <HeaderLink to="/#research-notes" current={false}>Research</HeaderLink>
+          <HeaderLink to="/#media-lab" current={false}>Media</HeaderLink>
+          <HeaderLink to="/dashboard" current={pathname === "/dashboard"}>Mission</HeaderLink>
           <a
             href="https://github.com/AetherTopologist/GD_xPRIMEray"
             target="_blank"
