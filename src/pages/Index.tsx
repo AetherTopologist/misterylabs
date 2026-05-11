@@ -663,6 +663,25 @@ const Index = () => {
         </div>
       </section>
 
+      {/* ── MANIFESTO ─────────────────────────────────────── */}
+      <section className="border-t border-border/25">
+        <div className="container py-16">
+          <div className="mx-auto max-w-2xl border-l border-primary/20 pl-7">
+            <h2 className="text-xl font-bold tracking-tight md:text-2xl">
+              Gateway to the Unknown Known
+            </h2>
+            <blockquote className="mt-4 text-sm leading-relaxed text-foreground/70 italic">
+              "We build instruments for seeing what is usually hidden: transport seams,
+              convergence behavior, observer pathways, and the strange coherence between
+              technical systems and human imagination."
+            </blockquote>
+            <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground/40">
+              All paths are signals. All signals become structure.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* ── FOOTER ────────────────────────────────────────── */}
       <footer className="border-t border-border/35">
         <div className="container py-5">
