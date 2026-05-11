@@ -142,6 +142,67 @@ const INSPIRATIONS: InspirationNode[] = [
   },
 ];
 
+type PortalStatus = "live" | "research" | "archive" | "coming-soon";
+
+interface ResearchPortal {
+  id: string;
+  title: string;
+  desc: string;
+  href: string;
+  status: PortalStatus;
+  icon: React.ElementType;
+}
+
+const PORTAL_STATUS: Record<PortalStatus, { label: string; cls: string }> = {
+  live: { label: "Live", cls: "text-success border-success/25 bg-success/10" },
+  research: { label: "Research", cls: "text-info border-info/25 bg-info/10" },
+  archive: { label: "Archive", cls: "text-muted-foreground border-border/40 bg-secondary/30" },
+  "coming-soon": { label: "Coming Soon", cls: "text-warning border-warning/25 bg-warning/10" },
+};
+
+const PORTALS: ResearchPortal[] = [
+  {
+    id: "xprimeray-docs",
+    title: "xPRIMEray Docs",
+    desc: "Full documentation for the curved transport observatory.",
+    href: "https://aethertopologist.github.io/GD_xPRIMEray/",
+    status: "live",
+    icon: Orbit,
+  },
+  {
+    id: "github-repo",
+    title: "GitHub Repository",
+    desc: "Source code, commit history, and open development.",
+    href: "https://github.com/AetherTopologist/GD_xPRIMEray",
+    status: "live",
+    icon: Github,
+  },
+  {
+    id: "cathedral-probe",
+    title: "Cathedral Probe Architecture",
+    desc: "Wormhole fixture topology and traversal geometry design notes.",
+    href: "https://aethertopologist.github.io/GD_xPRIMEray/Research/cathedral_probe_architecture/",
+    status: "research",
+    icon: Telescope,
+  },
+  {
+    id: "transport-island",
+    title: "Transport Island Microscopy",
+    desc: "Resolving transport instability in curved null-geodesic rendering.",
+    href: "https://aethertopologist.github.io/GD_xPRIMEray/Research/transport_island_microscopy/",
+    status: "research",
+    icon: Microscope,
+  },
+  {
+    id: "validation-ladder",
+    title: "Curved Field Validation Ladder",
+    desc: "Latest visual validation packet — convergence and correctness milestones.",
+    href: "https://aethertopologist.github.io/GD_xPRIMEray/#current-milestone-curved-field-validation-ladder",
+    status: "research",
+    icon: Activity,
+  },
+];
+
 const RESEARCH_ATLAS = [
   { title: "Curved Transport", desc: "Core field of study", icon: Waves },
   { title: "GRIN Optics", desc: "Gradient index fields", icon: Compass },
@@ -435,6 +496,32 @@ const Index = () => {
                   </p>
                 )}
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── RESEARCH PORTALS ─────────────────────────────── */}
+      <section id="portals" className="border-t border-border/35">
+        <div className="container py-12">
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
+              SYS // 02.A
+            </span>
+            <div className="h-px w-12 bg-border/35" />
+            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary-glow/60">
+              Direct Access
+            </span>
+          </div>
+          <h2 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">
+            Research Portals
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            Direct entry points into the xPRIMEray observatory — docs, source, and active research notes.
+          </p>
+          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {PORTALS.map((portal) => (
+              <PortalCard key={portal.id} portal={portal} />
             ))}
           </div>
         </div>
@@ -845,6 +932,34 @@ function SubsystemsRail() {
         ))}
       </div>
     </div>
+  );
+}
+
+function PortalCard({ portal }: { portal: ResearchPortal }) {
+  const badge = PORTAL_STATUS[portal.status];
+  return (
+    <a
+      href={portal.href}
+      target="_blank"
+      rel="noreferrer"
+      className="group diagnostic-frame flex flex-col rounded-sm border border-border/40 bg-card/25 p-4 transition-base hover:border-primary/40 hover:bg-card/45 hover:shadow-[0_0_16px_-4px_hsl(var(--primary)/0.2)]"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-sm bg-secondary/60 ring-1 ring-inset ring-border/40">
+          <portal.icon className="h-3.5 w-3.5 text-primary-glow" />
+        </div>
+        <span className={`rounded-sm border px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.2em] ${badge.cls}`}>
+          {badge.label}
+        </span>
+      </div>
+      <div className="mt-3 flex-1">
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm font-semibold tracking-tight">{portal.title}</span>
+          <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground/30 transition-base group-hover:text-primary/60" />
+        </div>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{portal.desc}</p>
+      </div>
+    </a>
   );
 }
 
