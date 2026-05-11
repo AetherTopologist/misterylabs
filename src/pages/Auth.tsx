@@ -55,9 +55,10 @@ export default function Auth() {
 
         <Card className="border-border/60">
           <CardHeader className="space-y-1.5">
-            <CardTitle className="text-lg">Sign in to continue</CardTitle>
+            <CardTitle className="text-lg">Sign in to edit</CardTitle>
             <CardDescription className="text-xs">
-              Authentication is required to run GitHub repository scans against the Evidence Vault.
+              Sign in to access Mission Control, add evidence, and run GitHub repository scans.
+              The public observatory is always open without an account.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

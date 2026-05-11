@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Github,
   ShieldCheck,
@@ -12,7 +13,9 @@ import {
   Star,
   X,
   Images,
+  Lock,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -241,6 +244,7 @@ function GithubPanel({ item }: { item: Project }) {
   const [scanOpen, setScanOpen] = useState(false);
   const [imageScanOpen, setImageScanOpen] = useState(false);
 
+  const { user } = useAuth();
   const snapshot = item.github_snapshot;
 
   useEffect(() => {
@@ -287,15 +291,25 @@ function GithubPanel({ item }: { item: Project }) {
         </div>
         <div className="flex items-center gap-1">
           {loading && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-6 gap-1 px-1.5 text-[10px] font-mono uppercase tracking-wider text-primary-glow hover:bg-primary/10"
-            onClick={() => setScanOpen(true)}
-          >
-            <Search className="h-3 w-3" />
-            Scan
-          </Button>
+          {user ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 gap-1 px-1.5 text-[10px] font-mono uppercase tracking-wider text-primary-glow hover:bg-primary/10"
+              onClick={() => setScanOpen(true)}
+            >
+              <Search className="h-3 w-3" />
+              Scan
+            </Button>
+          ) : (
+            <Link
+              to="/auth"
+              className="inline-flex items-center gap-1 px-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/40 hover:text-muted-foreground/70 transition-colors"
+            >
+              <Lock className="h-2.5 w-2.5" />
+              Sign in to scan GitHub
+            </Link>
+          )}
         </div>
       </div>
 
@@ -353,71 +367,85 @@ function GithubPanel({ item }: { item: Project }) {
 
           <div className="flex items-center justify-between gap-2 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
             <span>imported {timeAgo(snapshot.imported_at)}</span>
-            <div className="flex items-center gap-2">
-              <button
-                className="inline-flex items-center gap-1 text-primary-glow hover:underline"
-                onClick={() => setImageScanOpen(true)}
-              >
-                <Images className="h-2.5 w-2.5" />
-                Scan Repo Images
-              </button>
-              <button
-                className="inline-flex items-center gap-0.5 hover:text-destructive"
-                onClick={() => {
-                  projectStore.clearGithubSnapshot(item.id);
-                  toast.success("Snapshot cleared");
-                }}
-              >
-                <X className="h-2.5 w-2.5" />
-                Clear
-              </button>
-            </div>
+            {user && (
+              <div className="flex items-center gap-2">
+                <button
+                  className="inline-flex items-center gap-1 text-primary-glow hover:underline"
+                  onClick={() => setImageScanOpen(true)}
+                >
+                  <Images className="h-2.5 w-2.5" />
+                  Scan Repo Images
+                </button>
+                <button
+                  className="inline-flex items-center gap-0.5 hover:text-destructive"
+                  onClick={() => {
+                    projectStore.clearGithubSnapshot(item.id);
+                    toast.success("Snapshot cleared");
+                  }}
+                >
+                  <X className="h-2.5 w-2.5" />
+                  Clear
+                </button>
+              </div>
+            )}
           </div>
         </div>
       ) : (
         <>
-          <div className="flex gap-1.5">
-            <Input
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://github.com/owner/repo"
-              className="h-8 text-xs"
-            />
-            <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={save}>
-              Save
-            </Button>
-          </div>
-
-          {error && !meta && (
-            <div className="mt-2 text-[11px] text-destructive">
-              {error}. The repo may be private or rate-limited — use Scan to import via server.
-            </div>
-          )}
-
-          {meta && (
-            <a
-              href={meta.html_url}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-2 block rounded-md border border-border/60 bg-secondary/30 p-2 transition-colors hover:bg-secondary/50"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="truncate font-mono text-xs text-foreground">{meta.full_name}</span>
-                <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+          {user ? (
+            <>
+              <div className="flex gap-1.5">
+                <Input
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://github.com/owner/repo"
+                  className="h-8 text-xs"
+                />
+                <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={save}>
+                  Save
+                </Button>
               </div>
-              {meta.description && (
-                <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">
-                  {meta.description}
-                </p>
+
+              {error && !meta && (
+                <div className="mt-2 text-[11px] text-destructive">
+                  {error}. The repo may be private or rate-limited — use Scan to import via server.
+                </div>
               )}
-              <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                {meta.language && <span>{meta.language}</span>}
-                <span className="text-border">·</span>
-                <span>★ {meta.stargazers_count}</span>
-                <span className="text-border">·</span>
-                <span>updated {timeAgo(meta.pushed_at)}</span>
-              </div>
-            </a>
+
+              {meta && (
+                <a
+                  href={meta.html_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 block rounded-md border border-border/60 bg-secondary/30 p-2 transition-colors hover:bg-secondary/50"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate font-mono text-xs text-foreground">{meta.full_name}</span>
+                    <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+                  </div>
+                  {meta.description && (
+                    <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">
+                      {meta.description}
+                    </p>
+                  )}
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {meta.language && <span>{meta.language}</span>}
+                    <span className="text-border">·</span>
+                    <span>★ {meta.stargazers_count}</span>
+                    <span className="text-border">·</span>
+                    <span>updated {timeAgo(meta.pushed_at)}</span>
+                  </div>
+                </a>
+              )}
+            </>
+          ) : (
+            <Link
+              to="/auth"
+              className="mt-1 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/40 transition-colors hover:text-muted-foreground/70"
+            >
+              <Lock className="h-2.5 w-2.5" />
+              Sign in to save changes
+            </Link>
           )}
         </>
       )}
@@ -473,6 +501,7 @@ function CompactEvidenceCard({ item }: { item: Project }) {
 /* ---------------- Add dialog ---------------- */
 
 function AddEvidenceDialog() {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     title: "",
@@ -531,6 +560,17 @@ function AddEvidenceDialog() {
       tags: "",
     });
   };
+
+  if (!user) {
+    return (
+      <Button size="sm" variant="ghost" asChild className="h-8 gap-1.5 px-2.5 text-xs text-muted-foreground/60 hover:text-muted-foreground">
+        <Link to="/auth">
+          <Lock className="h-3 w-3" />
+          Sign in to add evidence
+        </Link>
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

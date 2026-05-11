@@ -61,25 +61,36 @@ export function AppHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <QuickCreateDialog />
-          {user && (
-            <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-secondary/40 py-1 pl-1 pr-2">
-              <span className="grid h-6 w-6 place-items-center rounded-md bg-primary/15 text-[11px] font-semibold text-primary">
-                {initial}
-              </span>
-              <span className="hidden max-w-[140px] truncate text-xs text-muted-foreground sm:inline">
-                {user.email}
-              </span>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-6 w-6"
-                onClick={handleSignOut}
-                title="Sign out"
-              >
-                <LogOut className="h-3.5 w-3.5" />
-              </Button>
-            </div>
+          {user ? (
+            <>
+              <QuickCreateDialog />
+              <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-secondary/40 py-1 pl-1 pr-2">
+                <span className="grid h-6 w-6 place-items-center rounded-md bg-primary/15 text-[11px] font-semibold text-primary">
+                  {initial}
+                </span>
+                <span className="hidden max-w-[140px] truncate text-xs text-muted-foreground sm:inline">
+                  {user.email}
+                </span>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6"
+                  onClick={handleSignOut}
+                  title="Sign out"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </>
+          ) : (
+            <Button
+              asChild
+              size="sm"
+              variant="ghost"
+              className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
+            >
+              <Link to="/auth">Sign in</Link>
+            </Button>
           )}
         </div>
       </div>
