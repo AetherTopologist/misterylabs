@@ -15,7 +15,9 @@ import {
   Compass,
   CircleDot,
   ExternalLink,
+  Layers,
 } from "lucide-react";
+import { KleinBottleSVG } from "@/components/KleinBottleSVG";
 import { Button } from "@/components/ui/button";
 import { AppHeader } from "@/components/AppHeader";
 import { EvidenceVault } from "@/components/EvidenceVault";
@@ -210,6 +212,7 @@ const RESEARCH_ATLAS = [
   { title: "Pareidolia Lab", desc: "Perception & pattern", icon: Eye },
   { title: "Media Lab", desc: "Visual experiments & ACT research", icon: Film },
   { title: "Field Methods", desc: "Philosophy of measurement", icon: Telescope },
+  { title: "Klein Topology", desc: "Non-orientable manifolds, recursive geometry", icon: Layers },
 ];
 
 // ── Page ──────────────────────────────────────────────────
@@ -342,6 +345,7 @@ const Index = () => {
               <FieldNote icon={Waves} title="Curved Photon Paths" desc="Light in motion through gradients" />
               <FieldNote icon={CircleDot} title="Bounded Anomalies" desc="Transport islands and distortions" />
               <FieldNote icon={Microscope} title="Measurable Models" desc="Testable, reproducible, open" />
+              <FieldNote icon={Layers} title="Klein Topology" desc="Non-orientable traversal, recursive manifolds" />
             </div>
           </aside>
         </div>
@@ -444,6 +448,10 @@ const Index = () => {
           <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             A renderer research harness exploring curved-field traversal, transport topology,
             convergence diagnostics, validation systems, and visual observability.
+          </p>
+          <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted-foreground/55">
+            Guided by Klein topology: the observer and the field share one continuous manifold.
+            Where the signal goes, the geometry follows.
           </p>
 
           {/* Primary CTAs */}
@@ -666,18 +674,29 @@ const Index = () => {
       {/* ── MANIFESTO ─────────────────────────────────────── */}
       <section className="border-t border-border/25">
         <div className="container py-16">
-          <div className="mx-auto max-w-2xl border-l border-primary/20 pl-7">
-            <h2 className="text-xl font-bold tracking-tight md:text-2xl">
-              Gateway to the Unknown Known
-            </h2>
-            <blockquote className="mt-4 text-sm leading-relaxed text-foreground/70 italic">
-              "We build instruments for seeing what is usually hidden: transport seams,
-              convergence behavior, observer pathways, and the strange coherence between
-              technical systems and human imagination."
-            </blockquote>
-            <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground/40">
-              All paths are signals. All signals become structure.
-            </p>
+          <div className="mx-auto max-w-2xl">
+            <div className="flex items-start gap-10">
+              <div className="border-l border-primary/20 pl-7 flex-1">
+                <h2 className="text-xl font-bold tracking-tight md:text-2xl">
+                  Gateway to the Unknown Known
+                </h2>
+                <blockquote className="mt-4 text-sm leading-relaxed text-foreground/70 italic">
+                  "We build instruments for seeing what is usually hidden: transport seams,
+                  convergence behavior, observer pathways, and the strange coherence between
+                  technical systems and human imagination."
+                </blockquote>
+                <p className="mt-3 text-xs leading-relaxed text-muted-foreground/50">
+                  The Klein bottle is our compass — a surface where inside and outside share
+                  one continuous manifold. Topology before ontology.
+                </p>
+                <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground/40">
+                  All paths are signals. All signals become structure.
+                </p>
+              </div>
+              <div className="hidden md:block shrink-0 text-primary/20 mt-1">
+                <KleinBottleSVG size={84} animated />
+              </div>
+            </div>
           </div>
         </div>
       </section>

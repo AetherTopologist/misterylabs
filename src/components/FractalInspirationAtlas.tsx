@@ -424,7 +424,8 @@ export function FractalInspirationAtlas() {
             </h2>
             <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
               The Atlas maps the inspirations, tools, games, films, physics ideas, and visual
-              systems that converged into xPRIMEray.
+              systems that converged into xPRIMEray. The topology is non-orientable: what begins
+              as geometry ends as perception, and returns as geometry again.
             </p>
             <p className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground/45">
               Drag to pan · scroll to zoom · click any node to explore
