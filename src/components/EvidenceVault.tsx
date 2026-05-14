@@ -95,29 +95,47 @@ export function EvidenceVault() {
 
 /* ---------------- Featured card ---------------- */
 
-function FeaturedEvidenceCard({ item }: { item: Project }) {
+function FeaturedEvidenceCard({ item, index }: { item: Project; index: number }) {
   const validatedAt = item.validated_at ?? item.updated_at;
+  const score = scoreFor(item);
+  const recordId = `EV-${String(index).padStart(3, "0")}`;
   return (
-    <article className="relative overflow-hidden rounded-xl border border-primary/25 bg-gradient-to-br from-card via-card to-primary/5 shadow-[var(--shadow-card)]">
+    <article className="corner-marks panel relative overflow-hidden">
+      {/* Archive header trail (Evidence Vault › Project › Record) */}
+      <div className="panel-header">
+        <div className="flex min-w-0 items-center gap-2">
+          <ShieldCheck className="h-3 w-3 text-spectral-cool" />
+          <span>Evidence Vault</span>
+          <span className="text-border">›</span>
+          <span className="truncate text-foreground/80">{item.title}</span>
+          <span className="text-border">›</span>
+          <span className="text-spectral-cool">{recordId}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="hidden sm:inline">Status</span>
+          <span className="text-status-launched">{item.status}</span>
+          <span className="text-border">·</span>
+          <span>Validated {timeAgo(validatedAt)}</span>
+        </div>
+      </div>
+
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary/15 blur-3xl"
+        className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-spectral-cool/10 blur-3xl"
       />
+
       <div className="relative grid gap-4 p-4 lg:grid-cols-[1.6fr_1fr] lg:p-5">
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex items-center gap-1 rounded-md bg-primary/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-primary-glow ring-1 ring-inset ring-primary/40">
-              <ShieldCheck className="h-3 w-3" />
-              Evidence
-            </span>
-            <span className="inline-flex items-center rounded-md bg-success/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-success ring-1 ring-inset ring-success/30">
-              {item.status}
-            </span>
             {item.technical_category && (
               <span className="inline-flex items-center rounded-md bg-secondary/60 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-secondary-foreground ring-1 ring-inset ring-border">
                 {item.technical_category}
               </span>
             )}
+            <span className="inline-flex items-center gap-1 rounded-md bg-spectral-cool/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-spectral-cool ring-1 ring-inset ring-spectral-cool/30">
+              <ShieldCheck className="h-3 w-3" />
+              Validated artefact
+            </span>
           </div>
 
           <div className="space-y-1.5">
@@ -160,6 +178,8 @@ function FeaturedEvidenceCard({ item }: { item: Project }) {
         </div>
 
         <div className="space-y-2">
+          <EvidenceScorePanel score={score} item={item} />
+
           <GithubPanel item={item} />
 
           {item.evidence_links.length > 0 && (
@@ -168,13 +188,87 @@ function FeaturedEvidenceCard({ item }: { item: Project }) {
           {(item.artifact_links?.length ?? 0) > 0 && (
             <LinkList title="Artifacts / screenshots" links={item.artifact_links!} />
           )}
-
-          <div className="rounded-md border border-border/60 bg-card/60 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-            Validated {timeAgo(validatedAt)}
-          </div>
         </div>
       </div>
+
+      {/* Spectral foot bar — instrumentation rhythm */}
+      <div className="spectral-bar" aria-hidden />
     </article>
+  );
+}
+
+/* ---------------- Evidence score / validation summary panel ---------------- */
+
+function scoreFor(item: Project) {
+  let s = 50;
+  if (item.is_validated) s += 20;
+  if (item.github_snapshot) s += 10;
+  if ((item.attached_images ?? []).some((i) => i.source !== "placeholder")) s += 8;
+  if (item.validation_claim) s += 5;
+  if (item.narrative) s += 4;
+  if ((item.evidence_links?.length ?? 0) > 0) s += 3;
+  return Math.min(100, s);
+}
+
+function EvidenceScorePanel({ score, item }: { score: number; item: Project }) {
+  const checks = [
+    { label: "Repository linked", ok: !!item.github_snapshot },
+    { label: "Visual evidence", ok: (item.attached_images ?? []).some((i) => i.source !== "placeholder") },
+    { label: "Validation claim", ok: !!item.validation_claim },
+    { label: "Narrative", ok: !!item.narrative },
+    { label: "Hardware note", ok: !!item.hardware_note },
+  ];
+  const passed = checks.filter((c) => c.ok).length;
+
+  // Circular score — pure SVG, no extra deps
+  const r = 26;
+  const circ = 2 * Math.PI * r;
+  const dash = (score / 100) * circ;
+
+  return (
+    <div className="rounded-md border border-border/60 bg-card/60 p-3">
+      <div className="mb-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+        <span>Validation summary</span>
+        <span className="text-spectral-cool">{passed}/{checks.length}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="relative h-16 w-16 shrink-0">
+          <svg viewBox="0 0 64 64" className="h-16 w-16 -rotate-90">
+            <circle cx="32" cy="32" r={r} fill="none" stroke="hsl(var(--border))" strokeWidth="3" />
+            <circle
+              cx="32" cy="32" r={r} fill="none"
+              stroke="hsl(var(--spectral-cool))"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeDasharray={`${dash} ${circ}`}
+            />
+          </svg>
+          <div className="absolute inset-0 grid place-items-center">
+            <div className="text-center leading-none">
+              <div className="readout text-base font-semibold text-foreground">{score}</div>
+              <div className="font-mono text-[8px] uppercase tracking-[0.2em] text-muted-foreground">
+                /100
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul className="flex-1 space-y-1 text-[11px]">
+          {checks.map((c) => (
+            <li key={c.label} className="flex items-center gap-1.5">
+              <span
+                className={
+                  "inline-block h-1.5 w-1.5 rounded-full " +
+                  (c.ok ? "bg-status-launched" : "bg-border")
+                }
+              />
+              <span className={c.ok ? "text-foreground/85" : "text-muted-foreground"}>
+                {c.label}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }
 
