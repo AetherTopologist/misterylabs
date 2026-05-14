@@ -56,10 +56,11 @@ export function EvidenceGallery({ project }: { project: Project }) {
       )}
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {images.map((img) => (
+        {images.map((img, i) => (
           <GalleryThumb
             key={img.id}
             image={img}
+            index={i + 1}
             onOpen={() => !showPlaceholders && setPreview(img)}
             onRemove={
               showPlaceholders
