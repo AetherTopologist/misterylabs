@@ -34,6 +34,13 @@
     --accent: 190 95% 60%;
     --accent-foreground: 230 25% 7%;
 
+    /* Spectral instrumentation palette — cool / warm / violet */
+    --spectral-cool: 188 92% 58%;
+    --spectral-warm: 28 95% 60%;
+    --spectral-violet: 280 80% 68%;
+    --spectral-magenta: 322 88% 64%;
+    --instrument-line: 210 40% 80%;
+
     --destructive: 0 75% 60%;
     --destructive-foreground: 220 25% 95%;
 
