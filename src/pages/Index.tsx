@@ -7,84 +7,22 @@ import {
   Waves,
   Orbit,
   Activity,
-  Eye,
-  Film,
-  Telescope,
-  GitBranch,
-  Microscope,
-  Compass,
   CircleDot,
   ExternalLink,
   Layers,
+  Microscope,
+  Film,
+  GitBranch,
 } from "lucide-react";
 import { KleinBottleSVG } from "@/components/KleinBottleSVG";
 import { Button } from "@/components/ui/button";
 import { AppHeader } from "@/components/AppHeader";
-import { EvidenceVault } from "@/components/EvidenceVault";
-import { FractalInspirationAtlas } from "@/components/FractalInspirationAtlas";
 import { SeeingIsNotOpeningYourEyes } from "@/components/SeeingIsNotOpeningYourEyes";
+import { SiteFooter } from "@/components/SiteFooter";
 import { useProjects } from "@/lib/store";
 import heroImg from "@/assets/hero-curved-transport.jpg";
 
 // ── Data ──────────────────────────────────────────────────
-
-type SystemStatus = "active" | "researching" | "building";
-
-interface ResearchSystem {
-  id: string;
-  name: string;
-  desc: string;
-  status: SystemStatus;
-  label: string;
-  href: string | null;
-}
-
-const ACTIVE_SYSTEMS: ResearchSystem[] = [
-  {
-    id: "xprimeray",
-    name: "xPRIMEray",
-    desc: "Curved transport renderer — Godot engine research harness",
-    status: "active",
-    label: "ACTIVE",
-    href: "https://aethertopologist.github.io/GD_xPRIMEray/",
-  },
-  {
-    id: "cathedral",
-    name: "Cathedral Probe",
-    desc: "Wormhole fixture and traversal topology experiments",
-    status: "active",
-    label: "ACTIVE",
-    href: null,
-  },
-  {
-    id: "islands",
-    name: "Transport Islands",
-    desc: "Bounded optical anomaly detection and classification",
-    status: "researching",
-    label: "RESEARCHING",
-    href: null,
-  },
-  {
-    id: "validation",
-    name: "Curved Field Validation Ladder",
-    desc: "Convergence diagnostics and renderer correctness suite",
-    status: "building",
-    label: "BUILDING",
-    href: null,
-  },
-];
-
-const STATUS_DOT: Record<SystemStatus, string> = {
-  active: "bg-success animate-signal-pulse",
-  researching: "bg-info",
-  building: "bg-primary",
-};
-
-const STATUS_LABEL_CLS: Record<SystemStatus, string> = {
-  active: "text-success",
-  researching: "text-info",
-  building: "text-primary-glow",
-};
 
 const FLAGSHIP_CARDS: {
   title: string;
@@ -121,287 +59,6 @@ const FLAGSHIP_CARDS: {
     tag: "ANALYSIS",
     lineage: null,
   },
-];
-
-interface InspirationNode {
-  id: string;
-  name: string;
-  role: string;
-  signal: string;
-  tags: string[];
-  href?: string;
-  category?: string;
-  featured?: boolean;
-}
-
-const INSPIRATIONS: InspirationNode[] = [
-  // ── Featured ──────────────────────────────────────────────
-  {
-    id: "isaac-asimov",
-    name: "Isaac Asimov",
-    role: "Biochemist & science fiction author",
-    signal:
-      "The most exciting phrase to hear in science is not 'Eureka!' but 'That's funny…' — anomaly is the beginning of all discovery.",
-    tags: ["scientific imagination", "curiosity as method", "interdisciplinary thought", "accessible wonder"],
-    href: "https://en.wikipedia.org/wiki/Isaac_Asimov",
-    category: "Sci-Fi & Imagination",
-    featured: true,
-  },
-  // ── Mathematics & Physics ─────────────────────────────────
-  {
-    id: "roger-penrose",
-    name: "Roger Penrose",
-    role: "Mathematical physicist",
-    signal:
-      "Consciousness, geometry, and physics are not separate territories — they share a single underlying structure that mathematics glimpses but cannot yet fully see.",
-    tags: ["twistor theory", "tiling & aperiodicity", "quantum mind", "geometry of spacetime"],
-    href: "https://en.wikipedia.org/wiki/Roger_Penrose",
-    category: "Mathematics & Physics",
-  },
-  {
-    id: "euclid",
-    name: "Euclid",
-    role: "Greek mathematician (c. 300 BCE)",
-    signal:
-      "Rigorous proof from minimal axioms: the idea that geometry could be derived entirely from five postulates remains one of the most powerful intellectual templates in history.",
-    tags: ["axiomatic reasoning", "proof culture", "geometry", "foundations of mathematics"],
-    href: "https://en.wikipedia.org/wiki/Euclid",
-    category: "Mathematics & Physics",
-  },
-  {
-    id: "emmy-noether",
-    name: "Emmy Noether",
-    role: "Abstract algebraist & theoretical physicist",
-    signal:
-      "Every symmetry in nature corresponds to a conservation law — a profound link between abstract algebra and the deepest structure of physical reality.",
-    tags: ["symmetry", "conservation laws", "abstract algebra", "perseverance against exclusion"],
-    href: "https://en.wikipedia.org/wiki/Emmy_Noether",
-    category: "Mathematics & Physics",
-  },
-  {
-    id: "poincare",
-    name: "Henri Poincaré",
-    role: "Mathematician & physicist",
-    signal:
-      "Topology and dynamical systems emerged together from a single mind asking what happens when geometry becomes qualitative rather than quantitative.",
-    tags: ["topology", "dynamical systems", "chaos precursor", "mathematical intuition"],
-    href: "https://en.wikipedia.org/wiki/Henri_Poincar%C3%A9",
-    category: "Mathematics & Physics",
-  },
-  {
-    id: "hilbert",
-    name: "David Hilbert",
-    role: "Mathematician",
-    signal:
-      "We must know, we will know — even as Gödel proved the limits of formal systems, Hilbert's vision of mathematical completeness launched a century of foundational inquiry.",
-    tags: ["formalism", "infinite-dimensional spaces", "completeness", "mathematical ambition"],
-    href: "https://en.wikipedia.org/wiki/David_Hilbert",
-    category: "Mathematics & Physics",
-  },
-  {
-    id: "richard-feynman",
-    name: "Richard Feynman",
-    role: "Theoretical physicist",
-    signal:
-      "The pleasure of finding things out — physics as play, as path integral, as honest reckoning with what we do not yet understand.",
-    tags: ["path integrals", "QED", "teaching clarity", "intellectual honesty"],
-    href: "https://en.wikipedia.org/wiki/Richard_Feynman",
-    category: "Mathematics & Physics",
-  },
-  // ── CS & Graphics ─────────────────────────────────────────
-  {
-    id: "ewin-tang",
-    name: "Ewin Tang",
-    role: "Quantum algorithms researcher",
-    signal:
-      "Elegant mathematical insight can overturn assumptions previously believed computationally impossible.",
-    tags: ["independent reasoning", "algorithmic elegance", "youthful rigor", "humility under complexity"],
-    href: "https://ewintang.com/",
-    category: "CS & Graphics",
-  },
-  {
-    id: "claude-shannon",
-    name: "Claude Shannon",
-    role: "Mathematician & electrical engineer",
-    signal:
-      "Information is not meaning — but its mathematical structure underlies every signal, every compression, every communication channel ever built.",
-    tags: ["information theory", "entropy", "channel capacity", "mathematical engineering"],
-    href: "https://en.wikipedia.org/wiki/Claude_Shannon",
-    category: "CS & Graphics",
-  },
-  {
-    id: "john-carmack",
-    name: "John Carmack",
-    role: "Game engine architect",
-    signal:
-      "Render the impossible efficiently: from BSP trees to ray casting to megatextures, each breakthrough came from refusing to accept that real-time was the ceiling.",
-    tags: ["real-time rendering", "software craftsmanship", "optimization culture", "iterative engineering"],
-    href: "https://en.wikipedia.org/wiki/John_Carmack",
-    category: "CS & Graphics",
-  },
-  {
-    id: "inigo-quilez",
-    name: "Inigo Quilez",
-    role: "Graphics researcher & shader artist",
-    signal:
-      "Entire worlds can emerge from a few lines of math — signed distance functions and procedural noise as instruments of geometric poetry.",
-    tags: ["ray marching", "SDF geometry", "procedural graphics", "open knowledge sharing"],
-    href: "https://iquilezles.org/",
-    category: "CS & Graphics",
-  },
-  {
-    id: "ken-perlin",
-    name: "Ken Perlin",
-    role: "Computer scientist & visual effects pioneer",
-    signal:
-      "Noise is not the opposite of signal — structured randomness is the foundation of every organic texture, terrain, and fluid ever rendered in real time.",
-    tags: ["procedural noise", "texture synthesis", "GPU algorithms", "natural rendering"],
-    href: "https://en.wikipedia.org/wiki/Ken_Perlin",
-    category: "CS & Graphics",
-  },
-  {
-    id: "blender-foundation",
-    name: "Blender Foundation",
-    role: "Open-source 3D creation suite",
-    signal:
-      "Professional-grade 3D tools can be radically open: Blender proved that community-driven development outpaces closed studios when the mission is clear.",
-    tags: ["open source", "cycles renderer", "3D pipeline", "community governance"],
-    href: "https://www.blender.org/",
-    category: "CS & Graphics",
-  },
-  // ── Emergence & Complexity ────────────────────────────────
-  {
-    id: "karl-friston",
-    name: "Karl Friston",
-    role: "Theoretical neuroscientist",
-    signal:
-      "The brain does not passively receive the world — it actively models, predicts, and minimizes the surprise between its expectations and incoming signals.",
-    tags: ["free energy principle", "active inference", "predictive coding", "self-organization"],
-    href: "https://en.wikipedia.org/wiki/Karl_Friston",
-    category: "Emergence & Complexity",
-  },
-  {
-    id: "douglas-hofstadter",
-    name: "Douglas Hofstadter",
-    role: "Cognitive scientist & author",
-    signal:
-      "Strange loops, self-reference, and tangled hierarchies are not anomalies in formal systems — they are the substrate from which consciousness and meaning arise.",
-    tags: ["strange loops", "Gödel", "self-reference", "consciousness & identity"],
-    href: "https://en.wikipedia.org/wiki/Douglas_Hofstadter",
-    category: "Emergence & Complexity",
-  },
-  {
-    id: "bandyopadhyay",
-    name: "Anirban Bandyopadhyay",
-    role: "Biophysicist & consciousness researcher",
-    signal:
-      "Consciousness may be substrate-independent and fractal in nature — a resonance phenomenon that pervades biology at every scale, not an emergent property of neurons alone.",
-    tags: ["fractal neuroscience", "resonance & consciousness", "microtubule physics", "unconventional hypotheses"],
-    href: "https://en.wikipedia.org/wiki/Anirban_Bandyopadhyay",
-    category: "Emergence & Complexity",
-  },
-  {
-    id: "buckminster-fuller",
-    name: "Buckminster Fuller",
-    role: "Architect, systems theorist & futurist",
-    signal:
-      "You never change things by fighting against the existing reality. To change something, build a new model that makes the existing model obsolete.",
-    tags: ["synergetics", "geodesic geometry", "whole-systems thinking", "doing more with less"],
-    href: "https://en.wikipedia.org/wiki/Buckminster_Fuller",
-    category: "Emergence & Complexity",
-  },
-  // ── Sci-Fi & Imagination ──────────────────────────────────
-  {
-    id: "arthur-c-clarke",
-    name: "Arthur C. Clarke",
-    role: "Science fiction author & futurist",
-    signal:
-      "Any sufficiently advanced technology is indistinguishable from magic — and sufficiently rigorous imagination becomes a roadmap for physics to follow.",
-    tags: ["hard sci-fi", "geostationary orbit", "monolith as metaphor", "long-range foresight"],
-    href: "https://en.wikipedia.org/wiki/Arthur_C._Clarke",
-    category: "Sci-Fi & Imagination",
-  },
-  {
-    id: "stanislaw-lem",
-    name: "Stanisław Lem",
-    role: "Science fiction author & philosopher",
-    signal:
-      "The universe is under no obligation to be comprehensible — and science fiction is most honest when it refuses to make alien truly legible to human categories.",
-    tags: ["xenolinguistics", "philosophical sci-fi", "information theory in fiction", "epistemological humility"],
-    href: "https://en.wikipedia.org/wiki/Stanis%C5%82aw_Lem",
-    category: "Sci-Fi & Imagination",
-  },
-];
-
-type PortalStatus = "live" | "research" | "archive" | "coming-soon";
-
-interface ResearchPortal {
-  id: string;
-  title: string;
-  desc: string;
-  href: string;
-  status: PortalStatus;
-  icon: React.ElementType;
-}
-
-const PORTAL_STATUS: Record<PortalStatus, { label: string; cls: string }> = {
-  live: { label: "Live", cls: "text-success border-success/25 bg-success/10" },
-  research: { label: "Research", cls: "text-info border-info/25 bg-info/10" },
-  archive: { label: "Archive", cls: "text-muted-foreground border-border/40 bg-secondary/30" },
-  "coming-soon": { label: "Coming Soon", cls: "text-warning border-warning/25 bg-warning/10" },
-};
-
-const PORTALS: ResearchPortal[] = [
-  {
-    id: "xprimeray-docs",
-    title: "xPRIMEray Docs",
-    desc: "Full documentation for the curved transport observatory.",
-    href: "https://aethertopologist.github.io/GD_xPRIMEray/",
-    status: "live",
-    icon: Orbit,
-  },
-  {
-    id: "github-repo",
-    title: "GitHub Repository",
-    desc: "Source code, commit history, and open development.",
-    href: "https://github.com/AetherTopologist/GD_xPRIMEray",
-    status: "live",
-    icon: Github,
-  },
-  {
-    id: "cathedral-probe",
-    title: "Cathedral Probe Architecture",
-    desc: "Wormhole fixture topology and traversal geometry design notes.",
-    href: "https://aethertopologist.github.io/GD_xPRIMEray/Research/cathedral_probe_architecture/",
-    status: "research",
-    icon: Telescope,
-  },
-  {
-    id: "transport-island",
-    title: "Transport Island Microscopy",
-    desc: "Resolving transport instability in curved null-geodesic rendering.",
-    href: "https://aethertopologist.github.io/GD_xPRIMEray/Research/transport_island_microscopy/",
-    status: "research",
-    icon: Microscope,
-  },
-  {
-    id: "validation-ladder",
-    title: "Curved Field Validation Ladder",
-    desc: "Latest visual validation packet — convergence and correctness milestones.",
-    href: "https://aethertopologist.github.io/GD_xPRIMEray/#current-milestone-curved-field-validation-ladder",
-    status: "research",
-    icon: Activity,
-  },
-];
-
-const RESEARCH_ATLAS = [
-  { title: "Curved Transport", desc: "Core field of study", icon: Waves },
-  { title: "GRIN Optics", desc: "Gradient index fields", icon: Compass },
-  { title: "Rendering Diagnostics", desc: "Instrumentation & metrics", icon: Microscope },
-  { title: "Pareidolia Lab", desc: "Perception & pattern", icon: Eye },
-  { title: "Media Lab", desc: "Visual experiments & ACT research", icon: Film },
-  { title: "Field Methods", desc: "Philosophy of measurement", icon: Telescope },
-  { title: "Klein Topology", desc: "Non-orientable manifolds, recursive geometry", icon: Layers },
 ];
 
 // ── Page ──────────────────────────────────────────────────
@@ -477,6 +134,7 @@ const Index = () => {
             <p className="mt-4 font-light text-muted-foreground md:text-lg">
               Gateway Observatory
             </p>
+
             <div className="mt-2 h-px w-20 bg-gradient-to-r from-primary/50 to-transparent" />
 
             <p className="mt-6 max-w-lg text-sm leading-relaxed text-muted-foreground">
@@ -510,10 +168,10 @@ const Index = () => {
                 </a>
               </Button>
               <Button variant="ghost" asChild>
-                <a href="#evidence-vault">
+                <Link to="/archive">
                   <FolderOpen className="mr-2 h-4 w-4" />
                   Validation Archive
-                </a>
+                </Link>
               </Button>
             </div>
           </div>
@@ -542,41 +200,6 @@ const Index = () => {
 
       {/* ── SEEING IS NOT OPENING YOUR EYES ───────────────── */}
       <SeeingIsNotOpeningYourEyes />
-
-      {/* ── FRACTAL INSPIRATION ATLAS ─────────────────────── */}
-      <div id="inspiration">
-        <FractalInspirationAtlas />
-      </div>
-
-      {/* ── ACTIVE RESEARCH SYSTEMS ───────────────────────── */}
-      <section className="border-t border-border/35">
-        <div className="container py-12">
-          <SectionHeader sys="SYS // 01" title="Active Research Systems" />
-
-          <div className="mt-6 overflow-hidden rounded-sm border border-border/40">
-            {/* Column header */}
-            <div className="grid grid-cols-[20px_1fr_auto] items-center gap-6 border-b border-border/30 bg-card/20 px-5 py-2">
-              <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/40">
-                SIG
-              </span>
-              <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/40">
-                System · Descriptor
-              </span>
-              <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/40">
-                State
-              </span>
-            </div>
-
-            {ACTIVE_SYSTEMS.map((sys, i) => (
-              <SystemRow
-                key={sys.id}
-                sys={sys}
-                isLast={i === ACTIVE_SYSTEMS.length - 1}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── PRIMARY SYSTEM: xPRIMEray ─────────────────────── */}
       <section id="xprimeray" className="relative overflow-hidden border-t border-primary/15">
@@ -623,7 +246,7 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Title block — larger than other sections */}
+          {/* Title block */}
           <div className="mt-4">
             <h2 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
               xPRIMEray
@@ -668,6 +291,12 @@ const Index = () => {
                 GitHub Repository
               </a>
             </Button>
+            <Button variant="ghost" asChild>
+              <Link to="/research">
+                <Microscope className="mr-2 h-4 w-4" />
+                Research Systems
+              </Link>
+            </Button>
           </div>
 
           {/* Component cards */}
@@ -692,78 +321,6 @@ const Index = () => {
                     ↳ {c.lineage}
                   </p>
                 )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── RESEARCH PORTALS ─────────────────────────────── */}
-      <section id="portals" className="border-t border-border/35">
-        <div className="container py-12">
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
-              SYS // 02.A
-            </span>
-            <div className="h-px w-12 bg-border/35" />
-            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary-glow/60">
-              Direct Access
-            </span>
-          </div>
-          <h2 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">
-            Research Portals
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Direct entry points into the xPRIMEray observatory — docs, source, and active research notes.
-          </p>
-          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {PORTALS.map((portal) => (
-              <PortalCard key={portal.id} portal={portal} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── VALIDATION ARCHIVE ────────────────────────────── */}
-      <section id="evidence-vault" className="border-t border-border/35">
-        <div className="container py-16">
-          <SectionHeader sys="SYS // 03" title="Validation Archive" />
-          <p className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground/45">
-            Milestone archaeology · predecessor research lineage
-          </p>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Validated repository snapshots, visual artifacts, and historical milestones that
-            establish the research lineage feeding into the active xPRIMEray observatory.
-          </p>
-          <div className="mt-8">
-            <EvidenceVault />
-          </div>
-        </div>
-      </section>
-
-      {/* ── RESEARCH NOTES ────────────────────────────────── */}
-      <section id="research-notes" className="border-t border-border/35">
-        <div className="container py-16">
-          <SectionHeader sys="SYS // 04" title="Research Notes" />
-          <p className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground/45">
-            Docs · field reports · active research domains
-          </p>
-          <p className="mt-3 text-sm text-muted-foreground">
-            Docs, papers, and field reports across the observatory's active research domains.
-          </p>
-          <div className="mt-8 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-            {RESEARCH_ATLAS.map((l) => (
-              <div
-                key={l.title}
-                className="flex items-center gap-3 rounded-sm border border-border/35 bg-card/25 px-4 py-3 transition-base hover:border-primary/30 hover:bg-card/45"
-              >
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-sm bg-secondary/50">
-                  <l.icon className="h-4 w-4 text-primary-glow" />
-                </span>
-                <div>
-                  <div className="text-sm font-medium">{l.title}</div>
-                  <div className="text-xs text-muted-foreground">{l.desc}</div>
-                </div>
               </div>
             ))}
           </div>
@@ -802,41 +359,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ── SIGNALS & INSPIRATIONS ────────────────────────── */}
-      <SignalsSection />
-
-      {/* ── MEDIA LAB · OPEN SIGNAL ───────────────────────── */}
-      <section id="media-lab" className="border-t border-border/35">
-        <div className="container py-16">
-          <SectionHeader sys="SYS // 05" title="Media Lab" />
-          <p className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground/45">
-            Visual experiments · ACT research · Open signal
-          </p>
-          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-            An open observatory for rendering researchers, visual artists, and curious engineers.
-            Bring tests, renders, field notes, and code.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild>
-              <a
-                href="https://github.com/AetherTopologist/GD_xPRIMEray"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Github className="mr-2 h-4 w-4" />
-                Join on GitHub
-              </a>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/dashboard">
-                <GitBranch className="mr-2 h-4 w-4" />
-                Mission Control
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
       {/* ── MANIFESTO ─────────────────────────────────────── */}
       <section className="border-t border-border/25">
         <div className="container py-16">
@@ -867,21 +389,12 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ── FOOTER ────────────────────────────────────────── */}
-      <footer className="border-t border-border/35">
-        <div className="container py-5">
-          <div className="flex flex-wrap items-center justify-between gap-4 font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/40">
-            <div className="flex items-center gap-2.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-success animate-signal-pulse" />
-              <span>MisterY Labs · MYL-OBS-001 · Nominal</span>
-            </div>
-            <span>Open research · Reproducible · Community-driven</span>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 };
+
+export default Index;
 
 // ── Sub-components ────────────────────────────────────────
 
@@ -893,7 +406,6 @@ function TelemetryOverlay() {
       preserveAspectRatio="xMidYMid slice"
       aria-hidden
     >
-      {/* Primary transport arc — indigo */}
       <path
         d="M -60 530 Q 280 210 700 370 T 1260 160"
         fill="none"
@@ -908,7 +420,6 @@ function TelemetryOverlay() {
             "arc-draw 7s cubic-bezier(0.22,1,0.36,1) 0.5s forwards, arc-fade 2s ease-out 0.5s forwards",
         }}
       />
-      {/* Secondary arc — cyan */}
       <path
         d="M 80 640 Q 420 290 880 430"
         fill="none"
@@ -923,7 +434,6 @@ function TelemetryOverlay() {
             "arc-draw 5.5s cubic-bezier(0.22,1,0.36,1) 1.6s forwards, arc-fade 2s ease-out 1.6s forwards",
         }}
       />
-      {/* Short diagonal probe trace */}
       <path
         d="M 820 70 L 1140 310"
         fill="none"
@@ -938,7 +448,6 @@ function TelemetryOverlay() {
             "arc-draw 3s ease-out 2.8s forwards, arc-fade 1.5s ease-out 2.8s forwards",
         }}
       />
-      {/* Node — primary intersection */}
       <circle
         cx="700"
         cy="370"
@@ -949,7 +458,6 @@ function TelemetryOverlay() {
         strokeOpacity="0.55"
         style={{ opacity: 0, animation: "arc-fade 0.6s ease-out 7.2s forwards" }}
       />
-      {/* Node — secondary */}
       <circle
         cx="280"
         cy="270"
@@ -958,83 +466,10 @@ function TelemetryOverlay() {
         fillOpacity="0.45"
         style={{ opacity: 0, animation: "arc-fade 0.6s ease-out 6.6s forwards" }}
       />
-      {/* Very faint reference crosshair */}
-      <line
-        x1="0" y1="300" x2="1200" y2="300"
-        stroke="hsl(245, 90%, 66%)"
-        strokeWidth="0.3"
-        strokeOpacity="0.04"
-      />
-      <line
-        x1="600" y1="0" x2="600" y2="600"
-        stroke="hsl(245, 90%, 66%)"
-        strokeWidth="0.3"
-        strokeOpacity="0.03"
-      />
+      <line x1="0" y1="300" x2="1200" y2="300" stroke="hsl(245, 90%, 66%)" strokeWidth="0.3" strokeOpacity="0.04" />
+      <line x1="600" y1="0" x2="600" y2="600" stroke="hsl(245, 90%, 66%)" strokeWidth="0.3" strokeOpacity="0.03" />
     </svg>
   );
-}
-
-function SectionHeader({ sys, title }: { sys: string; title: string }) {
-  return (
-    <div>
-      <div className="flex items-center gap-3">
-        <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
-          {sys}
-        </span>
-        <div className="h-px flex-1 bg-border/35" />
-      </div>
-      <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">{title}</h2>
-    </div>
-  );
-}
-
-function SystemRow({ sys, isLast }: { sys: ResearchSystem; isLast: boolean }) {
-  const rowCls = [
-    "group grid grid-cols-[20px_1fr_auto] items-center gap-6 px-5 py-3.5 transition-base",
-    !isLast ? "border-b border-border/25" : "",
-    sys.href ? "hover:bg-card/40 cursor-pointer" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  const inner = (
-    <>
-      {/* Signal dot */}
-      <div className="flex justify-center">
-        <span className={`h-2 w-2 rounded-full ${STATUS_DOT[sys.status]}`} />
-      </div>
-
-      {/* Name + descriptor */}
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
-          <span className="font-mono text-sm font-medium">{sys.name}</span>
-          <span className="text-xs text-muted-foreground">{sys.desc}</span>
-        </div>
-      </div>
-
-      {/* State badge + external icon */}
-      <div className="flex items-center gap-2.5">
-        <span
-          className={`font-mono text-[9px] uppercase tracking-[0.25em] ${STATUS_LABEL_CLS[sys.status]}`}
-        >
-          {sys.label}
-        </span>
-        {sys.href && (
-          <ExternalLink className="h-3 w-3 text-muted-foreground/30 transition-base group-hover:text-primary" />
-        )}
-      </div>
-    </>
-  );
-
-  if (sys.href) {
-    return (
-      <a href={sys.href} target="_blank" rel="noreferrer" className={rowCls}>
-        {inner}
-      </a>
-    );
-  }
-  return <div className={rowCls}>{inner}</div>;
 }
 
 function FieldNote({
@@ -1107,11 +542,11 @@ function Metric({ label, value }: { label: string; value: number }) {
 function SubsystemsRail() {
   const items: { label: string; desc: string; icon: React.ElementType; href: string; route?: boolean }[] = [
     { label: "xPRIMEray", desc: "Active observatory", icon: Orbit, href: "#xprimeray" },
-    { label: "Fractal Inspiration Atlas", desc: "Cognitive ancestry", icon: Sparkles, href: "#atlas" },
-    { label: "Validation Archive", desc: "Evidence lineage", icon: FolderOpen, href: "#evidence-vault" },
-    { label: "Research Notes", desc: "Field reports", icon: Microscope, href: "#research-notes" },
-    { label: "Media Lab", desc: "Visual experiments", icon: Film, href: "#media-lab" },
-    { label: "Mission Control", desc: "Project dashboard", icon: GitBranch, href: "/dashboard", route: true },
+    { label: "Atlas", desc: "Cognitive ancestry", icon: Sparkles, href: "/atlas", route: true },
+    { label: "Archive", desc: "Evidence lineage", icon: FolderOpen, href: "/archive", route: true },
+    { label: "Research", desc: "Field reports & systems", icon: Microscope, href: "/research", route: true },
+    { label: "Media", desc: "Visual experiments", icon: Film, href: "/media", route: true },
+    { label: "Mission", desc: "Project dashboard", icon: GitBranch, href: "/mission", route: true },
   ];
   const itemCls = "flex items-center gap-2.5 px-3 py-2 transition-base hover:bg-secondary/35";
   return (
@@ -1142,147 +577,3 @@ function SubsystemsRail() {
     </div>
   );
 }
-
-function PortalCard({ portal }: { portal: ResearchPortal }) {
-  const badge = PORTAL_STATUS[portal.status];
-  return (
-    <a
-      href={portal.href}
-      target="_blank"
-      rel="noreferrer"
-      className="group diagnostic-frame flex flex-col rounded-sm border border-border/40 bg-card/25 p-4 transition-base hover:border-primary/40 hover:bg-card/45 hover:shadow-[0_0_16px_-4px_hsl(var(--primary)/0.2)]"
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-sm bg-secondary/60 ring-1 ring-inset ring-border/40">
-          <portal.icon className="h-3.5 w-3.5 text-primary-glow" />
-        </div>
-        <span className={`rounded-sm border px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.2em] ${badge.cls}`}>
-          {badge.label}
-        </span>
-      </div>
-      <div className="mt-3 flex-1">
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm font-semibold tracking-tight">{portal.title}</span>
-          <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground/30 transition-base group-hover:text-primary/60" />
-        </div>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{portal.desc}</p>
-      </div>
-    </a>
-  );
-}
-
-function InspirationCard({ node }: { node: InspirationNode }) {
-  return (
-    <div
-      className={`diagnostic-frame rounded-sm border p-5 transition-base hover:border-primary/30 hover:bg-card/40 ${
-        node.featured
-          ? "border-primary/40 bg-card/40 col-span-full"
-          : "border-border/35 bg-card/25"
-      }`}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          {node.featured && (
-            <span className="mb-2 inline-block font-mono text-[9px] uppercase tracking-[0.3em] text-primary/70">
-              Featured Signal
-            </span>
-          )}
-          <div className="text-sm font-semibold tracking-tight">{node.name}</div>
-          <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60">
-            {node.role}
-          </div>
-        </div>
-        {node.href && (
-          <a
-            href={node.href}
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 text-muted-foreground/30 transition-base hover:text-primary"
-            aria-label={`External link for ${node.name}`}
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
-        )}
-      </div>
-      <blockquote className="mt-3 text-xs leading-relaxed text-foreground/75 italic">
-        "{node.signal}"
-      </blockquote>
-      <div className="mt-4 flex flex-wrap gap-1.5">
-        {node.tags.map((tag) => (
-          <span
-            key={tag}
-            className="rounded-sm border border-border/40 bg-secondary/40 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground/60"
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-const SIGNAL_CATEGORIES = [
-  "All",
-  "Sci-Fi & Imagination",
-  "Mathematics & Physics",
-  "CS & Graphics",
-  "Emergence & Complexity",
-] as const;
-
-function SignalsSection() {
-  const [active, setActive] = React.useState<string>("All");
-  const visible =
-    active === "All"
-      ? INSPIRATIONS
-      : INSPIRATIONS.filter((n) => n.category === active);
-
-  return (
-    <section id="signals" className="border-t border-border/35">
-      <div className="container py-14">
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
-            Influences
-          </span>
-          <div className="h-px flex-1 bg-border/35" />
-        </div>
-        <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">
-          Signals &amp; Inspirations
-        </h2>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          MisterY Labs is inspired by researchers, engineers, artists, physicists, game developers,
-          and strange beautiful minds who challenged assumptions through curiosity, rigor, and
-          imagination.
-        </p>
-        <p className="mt-1 max-w-2xl text-xs text-muted-foreground/55">
-          Signals detected across mathematics, rendering, physics, computation, systems theory, and
-          scientific imagination.
-        </p>
-
-        {/* Category filter */}
-        <div className="mt-6 flex flex-wrap gap-2">
-          {SIGNAL_CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActive(cat)}
-              className={`rounded-sm border px-3 py-1 font-mono text-[9px] uppercase tracking-[0.2em] transition-base ${
-                active === cat
-                  ? "border-primary/50 bg-primary/10 text-primary"
-                  : "border-border/40 text-muted-foreground/50 hover:border-border/70 hover:text-muted-foreground"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((node) => (
-            <InspirationCard key={node.id} node={node} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export default Index;

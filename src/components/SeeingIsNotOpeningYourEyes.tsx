@@ -145,13 +145,13 @@ export function SeeingIsNotOpeningYourEyes() {
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <a href="#evidence-vault">
+              <Link to="/archive">
                 Explore the Vault
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </a>
+              </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to="/dashboard">
+              <Link to="/mission">
                 <Telescope className="mr-2 h-4 w-4" />
                 Enter MisterY Labs
               </Link>

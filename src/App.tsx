@@ -4,6 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
+import Atlas from "./pages/Atlas.tsx";
+import Archive from "./pages/Archive.tsx";
+import Research from "./pages/Research.tsx";
+import Media from "./pages/Media.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import ProjectDetail from "./pages/ProjectDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -23,6 +27,12 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<Index />} />
+            <Route path="/atlas" element={<Atlas />} />
+            <Route path="/archive" element={<Archive />} />
+            <Route path="/research" element={<Research />} />
+            <Route path="/media" element={<Media />} />
+            {/* /mission and /dashboard both render Mission Control */}
+            <Route path="/mission" element={<RequireAuth><Dashboard /></RequireAuth>} />
             <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
             <Route path="/projects/:id" element={<RequireAuth><ProjectDetail /></RequireAuth>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
