@@ -57,14 +57,16 @@ export function EvidenceVault() {
       <div className="flex items-end justify-between gap-3">
         <div className="space-y-1">
           <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-            <ShieldCheck className="h-3 w-3 text-primary-glow" />
-            Evidence Vault
+            <ShieldCheck className="h-3 w-3 text-spectral-cool" />
+            xPRIME Archive
+            <span className="text-border">/</span>
+            <span className="text-foreground/80">Evidence Vault</span>
             <span className="text-border">·</span>
-            <span>Validated archaeology &amp; milestone history</span>
+            <span>Validated artefacts &amp; milestone history</span>
           </div>
           <p className="max-w-xl text-xs text-muted-foreground">
-            Projects flagged as validated. Same Research Objects as Mission Control —
-            promoted here once they ship measurable evidence.
+            Scientific record of validated Research Objects. Same source-of-truth as Mission
+            Control — promoted here once they ship measurable evidence.
           </p>
         </div>
         <AddEvidenceDialog />
@@ -78,7 +80,7 @@ export function EvidenceVault() {
         </div>
       )}
 
-      {featured && <FeaturedEvidenceCard item={featured} />}
+      {featured && <FeaturedEvidenceCard item={featured} index={items.length} />}
 
       {rest.length > 0 && (
         <div className="grid gap-3 md:grid-cols-2">
