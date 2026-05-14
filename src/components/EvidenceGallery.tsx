@@ -56,10 +56,11 @@ export function EvidenceGallery({ project }: { project: Project }) {
       )}
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {images.map((img) => (
+        {images.map((img, i) => (
           <GalleryThumb
             key={img.id}
             image={img}
+            index={i + 1}
             onOpen={() => !showPlaceholders && setPreview(img)}
             onRemove={
               showPlaceholders
@@ -121,23 +122,36 @@ export function EvidenceGallery({ project }: { project: Project }) {
 
 function GalleryThumb({
   image,
+  index,
   onOpen,
   onRemove,
 }: {
   image: AttachedImage;
+  index: number;
   onOpen: () => void;
   onRemove?: () => void;
 }) {
   const isPlaceholder = image.source === "placeholder";
+  const ext = image.filename.split(".").pop()?.toUpperCase() ?? "";
   return (
     <div className="group relative overflow-hidden rounded-md border border-border/60 bg-card/40">
+      {/* Cool corner index — archive-style label */}
+      <span className="pointer-events-none absolute left-1 top-1 z-10 inline-flex items-center gap-1 rounded bg-background/70 px-1 py-0.5 font-mono text-[8.5px] uppercase tracking-[0.18em] text-spectral-cool ring-1 ring-inset ring-spectral-cool/30 backdrop-blur">
+        <span className="opacity-70">#</span>
+        {String(index).padStart(2, "0")}
+      </span>
+      {ext && (
+        <span className="pointer-events-none absolute right-1 top-1 z-10 rounded bg-background/70 px-1 py-0.5 font-mono text-[8.5px] uppercase tracking-[0.18em] text-muted-foreground ring-1 ring-inset ring-border backdrop-blur">
+          {ext}
+        </span>
+      )}
       <button
         type="button"
         onClick={onOpen}
         className="block w-full text-left"
         aria-label={`Open ${image.filename}`}
       >
-        <div className="flex aspect-video w-full items-center justify-center overflow-hidden bg-secondary/40">
+        <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden bg-secondary/40">
           {isPlaceholder ? (
             <ImageOff className="h-6 w-6 text-muted-foreground/60" />
           ) : (
@@ -151,6 +165,8 @@ function GalleryThumb({
               }}
             />
           )}
+          {/* faint scanline overlay — observatory feel */}
+          <span aria-hidden className="pointer-events-none absolute inset-0 scanlines opacity-40 mix-blend-overlay" />
         </div>
         <div className="space-y-0.5 p-1.5">
           <div className="truncate font-mono text-[10px] text-foreground">{image.filename}</div>
@@ -167,7 +183,7 @@ function GalleryThumb({
           href={image.blob_url}
           target="_blank"
           rel="noreferrer"
-          className="absolute left-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded bg-card/80 text-muted-foreground opacity-0 transition-opacity hover:text-primary-glow group-hover:opacity-100"
+          className="absolute bottom-1 left-1 inline-flex h-5 w-5 items-center justify-center rounded bg-card/80 text-muted-foreground opacity-0 transition-opacity hover:text-spectral-cool group-hover:opacity-100"
           aria-label="Open on GitHub"
         >
           <ExternalLink className="h-3 w-3" />
@@ -177,7 +193,7 @@ function GalleryThumb({
         <button
           type="button"
           onClick={onRemove}
-          className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded bg-card/80 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+          className="absolute bottom-1 right-1 inline-flex h-5 w-5 items-center justify-center rounded bg-card/80 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
           aria-label="Remove image"
         >
           <X className="h-3 w-3" />

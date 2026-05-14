@@ -72,6 +72,12 @@ export default {
           ready: "hsl(var(--status-ready))",
           launched: "hsl(var(--status-launched))",
         },
+        spectral: {
+          cool: "hsl(var(--spectral-cool))",
+          warm: "hsl(var(--spectral-warm))",
+          violet: "hsl(var(--spectral-violet))",
+          magenta: "hsl(var(--spectral-magenta))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
