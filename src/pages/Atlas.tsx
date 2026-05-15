@@ -216,6 +216,101 @@ const INSPIRATIONS: InspirationNode[] = [
   },
 ];
 
+// ── XenoCitation Data ─────────────────────────────────────
+
+interface XenoCitationCard {
+  id: string;
+  name: string;
+  era: string;
+  coreIdea: string;
+  xprimerayResonance: string;
+  feature: string;
+  motifLabel: string;
+  href: string;
+  complete: boolean;
+}
+
+const XENO_CITATIONS: XenoCitationCard[] = [
+  {
+    id: "xc-001",
+    name: "Sabrina Pasterski",
+    era: "2010s – present",
+    coreIdea:
+      "Celestial holography and soft theorems — the mathematical structure linking asymptotic symmetries of spacetime to memory effects in gravitational radiation.",
+    xprimerayResonance:
+      "The observatory's transport ownership mapping resonates with Pasterski's celestial sphere framing: every ray path carries a latent topology, and the boundary of the transport field is where geometry speaks most clearly.",
+    feature: "CelestialHolographyInspiration · TransportOwnershipOverlay",
+    motifLabel: "Celestial Holography",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    complete: true,
+  },
+  {
+    id: "xc-002",
+    name: "Emmy Noether",
+    era: "1882 – 1935",
+    coreIdea:
+      "Every differentiable symmetry of the action of a physical system has a corresponding conservation law.",
+    xprimerayResonance:
+      "Resonates with the xPRIMEray field symmetry diagnostics — transport invariants under traversal mode changes echo Noether's deep link between symmetry and conservation.",
+    feature: "FieldSymmetryDiagnostics",
+    motifLabel: "Field Symmetry",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    complete: false,
+  },
+  {
+    id: "xc-003",
+    name: "James Clerk Maxwell",
+    era: "1831 – 1879",
+    coreIdea:
+      "GRIN optics and the wave theory of light: the refractive index as a continuous field governing ray trajectories.",
+    xprimerayResonance:
+      "Directly inspired the GRIN field rendering pipeline — curved transport through gradient-index media is the computational descendant of Maxwell's fish-eye lens.",
+    feature: "GRINFieldRenderer · LuxCoreGRIN",
+    motifLabel: "GRIN Optics",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    complete: false,
+  },
+  {
+    id: "xc-004",
+    name: "Gauss & Riemann",
+    era: "19th century",
+    coreIdea:
+      "Differential geometry of curved surfaces: intrinsic curvature, geodesics, and the metric tensor as descriptors of space itself.",
+    xprimerayResonance:
+      "Resonates with the curved null-geodesic traversal at the heart of xPRIMEray — each ray follows a geodesic through a field-warped medium.",
+    feature: "CurvedFieldTraversal · GeodesicPath",
+    motifLabel: "Differential Geometry",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    complete: false,
+  },
+  {
+    id: "xc-005",
+    name: "Misner, Thorne & Wheeler",
+    era: "1973",
+    coreIdea:
+      "Gravitation — the language of metric tensors, curvature, and geodesic deviation as the full mathematical machinery of general relativity.",
+    xprimerayResonance:
+      "Resonates with the transport diagnostic language: field ownership, curvature domain maps, and boundary behavior all echo MTW's geometric vocabulary.",
+    feature: "CurvatureDomainMap · TransportDiagnostics",
+    motifLabel: "Metric Tensor Language",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    complete: false,
+  },
+  {
+    id: "xc-006",
+    name: "Richard Feynman",
+    era: "1918 – 1988",
+    coreIdea:
+      "Path integral formulation: a particle takes all paths simultaneously, weighted by phase — the classical path emerges as the stationary-phase result.",
+    xprimerayResonance:
+      "Inspired the oracle path architecture — the oracle traces all candidate geodesic paths to determine which transport boundary a pixel truly belongs to.",
+    feature: "OraclePathTracer · IslandMicroscopy",
+    motifLabel: "Path Integral",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    complete: false,
+  },
+];
+
 const SIGNAL_CATEGORIES = [
   "All",
   "Sci-Fi & Imagination",
@@ -232,6 +327,7 @@ export default function AtlasPage() {
       <AppHeader />
       <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/25 to-transparent" aria-hidden />
       <FractalInspirationAtlas />
+      <XenoCitationSection />
       <SignalsSection />
       <SiteFooter />
     </div>
@@ -239,6 +335,92 @@ export default function AtlasPage() {
 }
 
 // ── Sub-components ────────────────────────────────────────
+
+function XenoCitationSection() {
+  return (
+    <section id="xeno-citations" className="border-t border-border/35">
+      <div className="container py-14">
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
+            Conceptual Lineage
+          </span>
+          <div className="h-px flex-1 bg-border/35" />
+        </div>
+        <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">XenoCitations</h2>
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          xPRIMEray draws conceptual lineage from mathematical physics — not as endorsement or
+          claimed derivation, but as resonance. These thinkers shaped the vocabulary the observatory
+          uses to see.
+        </p>
+        <p className="mt-1 max-w-2xl text-xs text-muted-foreground/55">
+          "Inspired by" and "resonates with" — not "proves" or "derives from."
+        </p>
+
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {XENO_CITATIONS.map((card) => (
+            <XenoCitationCardView key={card.id} card={card} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function XenoCitationCardView({ card }: { card: XenoCitationCard }) {
+  return (
+    <div
+      className={`diagnostic-frame rounded-sm border p-5 transition-base hover:border-primary/30 hover:bg-card/40 ${
+        card.complete
+          ? "border-primary/40 bg-card/40 col-span-full"
+          : "border-border/35 bg-card/25"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          {card.complete ? (
+            <span className="mb-2 inline-block font-mono text-[9px] uppercase tracking-[0.3em] text-primary/70">
+              XC-001 · Complete
+            </span>
+          ) : (
+            <span className="mb-2 inline-block font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground/40">
+              Stub · In Progress
+            </span>
+          )}
+          <div className="text-sm font-semibold tracking-tight">{card.name}</div>
+          <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60">
+            {card.era}
+          </div>
+        </div>
+        <a
+          href={card.href}
+          target="_blank"
+          rel="noreferrer"
+          className="shrink-0 text-muted-foreground/30 transition-base hover:text-primary"
+          aria-label={`Feature link for ${card.name}`}
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+        </a>
+      </div>
+
+      <blockquote className="mt-3 text-xs leading-relaxed text-foreground/75 italic">
+        "{card.coreIdea}"
+      </blockquote>
+
+      <p className={`mt-3 text-xs leading-relaxed ${card.complete ? "text-muted-foreground" : "text-muted-foreground/50"}`}>
+        {card.xprimerayResonance}
+      </p>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="rounded-sm border border-border/40 bg-secondary/40 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground/60">
+          {card.motifLabel}
+        </span>
+        <span className="font-mono text-[9px] text-muted-foreground/40">
+          ↳ {card.feature}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 function InspirationCard({ node }: { node: InspirationNode }) {
   return (

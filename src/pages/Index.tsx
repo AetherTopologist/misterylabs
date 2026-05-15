@@ -324,6 +324,39 @@ const Index = () => {
               </div>
             ))}
           </div>
+
+          {/* Release status row */}
+          <div className="mt-8 border-t border-border/25 pt-6">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="font-mono text-[9px] uppercase tracking-[0.35em] text-muted-foreground/45">
+                Release Status
+              </span>
+              <div className="h-px flex-1 bg-border/25" />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <ObsMetric
+                value={16}
+                label="Ship-Ready Features"
+                sublabel="Core transport, GRIN fields, validation, overlays"
+                variant="success"
+                href="https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/"
+              />
+              <ObsMetric
+                value={4}
+                label="In Progress"
+                sublabel="TestBench recipe, wormhole rig, atomic orbital fixtures"
+                variant="warning"
+                href="https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/"
+              />
+              <ObsMetric
+                value={13}
+                label="Proposed Overlays"
+                sublabel="Celestial Boundary, Curvature Domain Map, Transport Memory..."
+                variant="info"
+                href="https://AetherTopologist.github.io/GD_xPRIMEray/Observatory/OVERLAY_MASTER_LIST/"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -536,6 +569,43 @@ function Metric({ label, value }: { label: string; value: number }) {
         {label}
       </div>
     </div>
+  );
+}
+
+function ObsMetric({
+  value,
+  label,
+  sublabel,
+  variant,
+  href,
+}: {
+  value: number;
+  label: string;
+  sublabel: string;
+  variant: "success" | "warning" | "info";
+  href: string;
+}) {
+  const variantCls = {
+    success: { num: "text-success", dot: "bg-success", border: "hover:border-success/40" },
+    warning: { num: "text-warning", dot: "bg-warning", border: "hover:border-warning/40" },
+    info:    { num: "text-info",    dot: "bg-info",    border: "hover:border-info/40" },
+  }[variant];
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className={`group relative rounded-sm border border-border/35 bg-card/25 p-4 transition-base hover:bg-card/45 ${variantCls.border}`}
+    >
+      <span className={`absolute right-3 top-3 h-1.5 w-1.5 rounded-full ${variantCls.dot}`} />
+      <div className={`text-3xl font-bold tabular-nums ${variantCls.num}`}>{value}</div>
+      <div className="mt-1 text-xs font-medium text-foreground/80">{label}</div>
+      <div className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground/60">{sublabel}</div>
+      <div className="mt-3 font-mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground/30 transition-base group-hover:text-muted-foreground/60">
+        Feature Index →
+      </div>
+    </a>
   );
 }
 

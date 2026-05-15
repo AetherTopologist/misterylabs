@@ -11,6 +11,7 @@ import {
   Activity,
   Github,
   ExternalLink,
+  Sparkles,
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -136,6 +137,49 @@ const PORTALS: ResearchPortal[] = [
   },
 ];
 
+const TECH_DOCS: ResearchPortal[] = [
+  {
+    id: "feature-index",
+    title: "Feature Index",
+    desc: "Full index of all xPRIMEray features — ship-ready, in-progress, and proposed.",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    status: "live",
+    icon: Layers,
+  },
+  {
+    id: "overlay-master",
+    title: "Overlay Master List",
+    desc: "All 13+ proposed visual overlays with design status and feature links.",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/Observatory/OVERLAY_MASTER_LIST/",
+    status: "research",
+    icon: Eye,
+  },
+  {
+    id: "inspiration-cards",
+    title: "Inspiration Cards",
+    desc: "XenoCitation feature links — conceptual lineage between mathematical physics and observatory instruments.",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/MisterYLabs/INSPIRATION_CARD_FEATURE_LINKS/",
+    status: "research",
+    icon: Sparkles,
+  },
+  {
+    id: "release-audit",
+    title: "Release Readiness Audit",
+    desc: "Current readiness audit: 16 ship-ready, 4 in-progress, 13 proposed overlays.",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/Release/FEATURE_READINESS_AUDIT/",
+    status: "live",
+    icon: Activity,
+  },
+  {
+    id: "transport-map",
+    title: "Optical Transport Feature Map",
+    desc: "Visual map of transport research features across curved-field, GRIN, and boundary systems.",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/Research/OPTICAL_TRANSPORT_FEATURE_MAP/",
+    status: "research",
+    icon: Compass,
+  },
+];
+
 const RESEARCH_DOMAINS = [
   { title: "Curved Transport", desc: "Core field of study", icon: Waves },
   { title: "GRIN Optics", desc: "Gradient index fields", icon: Compass },
@@ -216,6 +260,31 @@ export default function ResearchPage() {
           </p>
           <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {PORTALS.map((portal) => (
+              <PortalCard key={portal.id} portal={portal} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TECHNICAL DOCS ─────────────────────────────────── */}
+      <section className="border-t border-border/35">
+        <div className="container py-12">
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
+              SYS // 02.B
+            </span>
+            <div className="h-px w-12 bg-border/35" />
+            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary-glow/60">
+              Technical Docs
+            </span>
+          </div>
+          <h2 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">Technical Observatory Docs</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            Feature indexes, overlay catalogs, and readiness audits — the working documents of the
+            xPRIMEray observatory's build and research record.
+          </p>
+          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {TECH_DOCS.map((portal) => (
               <PortalCard key={portal.id} portal={portal} />
             ))}
           </div>
