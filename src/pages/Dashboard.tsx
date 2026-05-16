@@ -288,6 +288,14 @@ const Index = () => {
           </span>
           <span>last sync {timeAgo(lastSync)}</span>
         </div>
+        <div className="mt-3 flex items-center gap-3 border-t border-border/30 pt-3 text-[9px] text-muted-foreground/35">
+          <div className="flex items-center gap-1.5">
+            <span className="h-1 w-1 rounded-full bg-success/40" />
+            <span className="tracking-[0.3em]">Observatory Node</span>
+          </div>
+          <span className="text-border/40">·</span>
+          <span className="tracking-[0.25em]">xPRIMEray // Online</span>
+        </div>
       </footer>
     </div>
   );

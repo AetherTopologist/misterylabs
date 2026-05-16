@@ -9,6 +9,17 @@ export function SiteFooter() {
           </div>
           <span>Open research · Reproducible · Community-driven</span>
         </div>
+        <div className="mt-3 flex items-center gap-2 border-t border-border/20 pt-3">
+          <img
+            src="/assets/xprimeray-icon.svg"
+            alt=""
+            aria-hidden
+            className="h-4 w-4 opacity-20"
+          />
+          <span className="font-mono text-[7px] uppercase tracking-[0.3em] text-muted-foreground/25">
+            Curved transport diagnostics powered by xPRIMEray Observatory
+          </span>
+        </div>
       </div>
     </footer>
   );

@@ -296,6 +296,12 @@ function GalleryCard({ item }: { item: GalleryItem }) {
           <span className="absolute right-2 top-2 rounded-sm bg-background/70 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-primary-glow/80 backdrop-blur-sm">
             {item.system}
           </span>
+          <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-sm bg-background/60 px-1.5 py-0.5 backdrop-blur-sm">
+            <img src="/assets/xprimeray-icon.svg" alt="" aria-hidden className="h-2.5 w-2.5 opacity-40" />
+            <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-foreground/30">
+              xPRIMEray node
+            </span>
+          </span>
         </div>
 
         {/* Caption */}
