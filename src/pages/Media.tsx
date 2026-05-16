@@ -96,6 +96,13 @@ const GALLERY_CATEGORIES: GalleryCategory[] = [
   "All", "Overview", "Cathedral Probe", "Transport Islands", "Curved Field Validation",
 ];
 
+const PROVENANCE_LABEL: Record<Exclude<GalleryCategory, "All">, string> = {
+  "Overview":                "observatory capture",
+  "Cathedral Probe":         "transport probe",
+  "Transport Islands":       "transport island",
+  "Curved Field Validation": "field validation",
+};
+
 // ── Planned Artifacts ─────────────────────────────────────
 
 const PLANNED_ARTIFACTS = [
@@ -185,7 +192,14 @@ export default function MediaPage() {
       </section>
 
       {/* ── OBSERVATORY GALLERY ─────────────────────────────── */}
-      <section id="observatory-gallery" className="border-t border-border/35">
+      <section id="observatory-gallery" className="relative border-t border-border/35">
+        {/* Section watermark */}
+        <img
+          src="/assets/xPRIMEray_Logo_Research_256.png"
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute right-6 top-8 h-16 w-auto opacity-[0.055] select-none"
+        />
         <div className="container py-12">
           <div className="flex items-center gap-3">
             <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
@@ -221,7 +235,7 @@ export default function MediaPage() {
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visibleItems.map((item) => (
-              <GalleryCard key={item.id} item={item} />
+              <GalleryCard key={item.id} item={item} provenanceLabel={PROVENANCE_LABEL[item.system]} />
             ))}
           </div>
         </div>
@@ -272,7 +286,7 @@ export default function MediaPage() {
 
 // ── Sub-components ────────────────────────────────────────
 
-function GalleryCard({ item }: { item: GalleryItem }) {
+function GalleryCard({ item, provenanceLabel }: { item: GalleryItem; provenanceLabel: string }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -299,7 +313,7 @@ function GalleryCard({ item }: { item: GalleryItem }) {
           <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-sm bg-background/60 px-1.5 py-0.5 backdrop-blur-sm">
             <img src="/assets/xprimeray-icon.svg" alt="" aria-hidden className="h-2.5 w-2.5 opacity-40" />
             <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-foreground/30">
-              xPRIMEray node
+              {provenanceLabel}
             </span>
           </span>
         </div>

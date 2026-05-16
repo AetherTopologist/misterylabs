@@ -70,8 +70,9 @@ export function AppHeader() {
               target="_blank"
               rel="noreferrer"
               title="Curved Transport Observatory"
-              className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-base hover:bg-secondary/60 hover:text-foreground"
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-base hover:bg-secondary/60 hover:text-foreground"
             >
+              <img src="/assets/xprimeray-icon.svg" alt="" aria-hidden className="h-3.5 w-3.5 opacity-40" />
               xPRIMEray <ExternalLink className="h-3 w-3" />
             </a>
             <a
@@ -159,6 +160,7 @@ export function AppHeader() {
               onClick={closeMobile}
               className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-base hover:bg-secondary/60 hover:text-foreground"
             >
+              <img src="/assets/xprimeray-icon.svg" alt="" aria-hidden className="h-3.5 w-3.5 opacity-40" />
               xPRIMEray <ExternalLink className="h-3 w-3" />
             </a>
             <a

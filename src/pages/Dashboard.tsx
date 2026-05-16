@@ -295,6 +295,12 @@ const Index = () => {
           </div>
           <span className="text-border/40">·</span>
           <span className="tracking-[0.25em]">xPRIMEray // Online</span>
+          <img
+            src="/assets/xPRIMEray_Logo_Research_256.png"
+            alt=""
+            aria-hidden
+            className="ml-auto h-4 w-auto opacity-[0.18]"
+          />
         </div>
       </footer>
     </div>

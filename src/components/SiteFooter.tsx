@@ -9,12 +9,12 @@ export function SiteFooter() {
           </div>
           <span>Open research · Reproducible · Community-driven</span>
         </div>
-        <div className="mt-3 flex items-center gap-2 border-t border-border/20 pt-3">
+        <div className="mt-3 flex items-center gap-3 border-t border-border/20 pt-3">
           <img
-            src="/assets/xprimeray-icon.svg"
-            alt=""
+            src="/assets/xPRIMEray_Logo_Research_256.png"
+            alt="xPRIMEray Observatory"
             aria-hidden
-            className="h-4 w-4 opacity-20"
+            className="h-5 w-auto opacity-[0.12]"
           />
           <span className="font-mono text-[7px] uppercase tracking-[0.3em] text-muted-foreground/25">
             Curved transport diagnostics powered by xPRIMEray Observatory
