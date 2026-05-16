@@ -28,7 +28,7 @@ const INSPIRATIONS: InspirationNode[] = [
     name: "Anirban Bandyopadhyay",
     role: "Biophysicist · Nanobrain pioneer · precision instrumentation",
     signal:
-      "The Nanobrain architecture — time crystal oscillators, Geometric Music Language, and microtubule triplet resonance structures — serves as the observatory's primary instrumentation metaphor: a model for what ultra-precise temporal and spatial field sampling might look like. Handcrafted atom-probe scanning lineage informs the diagnostic philosophy. Treated here as research-facing aesthetic and instrumentation inspiration, not as a proven framework.",
+      "Nanobrain, time crystal instrumentation, and Geometric Music Language frame the observer as a temporal analyzer: structure is sampled through precision, rhythm, and coherent measurement rather than merely seen. xPRIMEray borrows this instrumentation metaphor for its observatory model: each diagnostic frame becomes a sampled transport field, each pixel a possible time-series witness to hidden curvature structure. Treated here as research-facing aesthetic and instrumentation inspiration, not as a proven framework.",
     tags: [
       "nanobrain architecture",
       "time crystal instrumentation",
@@ -38,7 +38,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "temporal geometry",
     ],
     href: "https://en.wikipedia.org/wiki/Anirban_Bandyopadhyay",
-    category: "Foundational Signals",
+    category: "Primary Signal",
     tier: "primary",
   },
   {
@@ -46,7 +46,7 @@ const INSPIRATIONS: InspirationNode[] = [
     name: "Roger Penrose",
     role: "Mathematical physicist · optical geometry · spacetime topology",
     signal:
-      "Null geodesics, Penrose diagrams, and twistor geometry articulate the causal architecture of spacetime as a visual and mathematical vocabulary. The conformal boundary, the light cone, the optical path as fundamental datum — these form the observatory's optical geometry intuition and the visual rigor behind its transport diagnostic language.",
+      "Null geodesics, causal boundaries, and topological imagination give xPRIMEray its visual vocabulary for paths, horizons, and observer-dependent structure. Transport ownership maps and curved traversal diagnostics resonate with Penrose-style optical geometry: the path is not just a line, but a statement about the field it crosses.",
     tags: [
       "null geodesics",
       "Penrose diagrams",
@@ -56,7 +56,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "conformal boundary",
     ],
     href: "https://en.wikipedia.org/wiki/Roger_Penrose",
-    category: "Foundational Signals",
+    category: "Foundational Geometry",
     tier: "foundational",
   },
   {
@@ -64,7 +64,7 @@ const INSPIRATIONS: InspirationNode[] = [
     name: "Étienne-Louis Boullée",
     role: "Visionary architect (1728–1799) · monumental observatory geometry",
     signal:
-      "The Cenotaph for Newton — a hollow sphere large enough to contain the solar system, with stars cut into the shell — proposed that architecture could confront infinity as containment rather than extension. The interior becomes the universe it models. This is the visual lineage for the observatory's own monumental institutional calm: the idea that an instrument should feel as large as what it observes.",
+      "The Cenotaph for Newton offers a monumental language for spherical containment, interior infinity, and architectural silence. xPRIMEray's observatory seal and horizon-cut imagery borrow this feeling: a civilization-scale instrument confronting hidden structure inside a bounded sphere.",
     tags: [
       "Cenotaph for Newton",
       "spherical containment",
@@ -74,7 +74,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "civilizational scale",
     ],
     href: "https://en.wikipedia.org/wiki/%C3%89tienne-Louis_Boull%C3%A9e",
-    category: "Foundational Signals",
+    category: "Observatory Architecture",
     tier: "foundational",
   },
 
@@ -162,6 +162,74 @@ const INSPIRATIONS: InspirationNode[] = [
       "natural boundary form",
     ],
     href: "https://en.wikipedia.org/wiki/Benoit_Mandelbrot",
+    category: "Supporting Observers",
+    tier: "observer",
+  },
+  {
+    id: "james-clerk-maxwell",
+    name: "James Clerk Maxwell",
+    role: "Mathematical physicist (1831–1879)",
+    signal:
+      "GRIN optics and the wave theory of light: the refractive index as a continuous field governing ray trajectories through gradient media. Maxwell's fish-eye lens is the conceptual ancestor of every curved-transport field renderer that treats the medium itself as the geometry.",
+    tags: [
+      "GRIN optics",
+      "refractive index field",
+      "wave equations",
+      "electromagnetic theory",
+      "gradient media",
+    ],
+    href: "https://en.wikipedia.org/wiki/James_Clerk_Maxwell",
+    category: "Supporting Observers",
+    tier: "observer",
+  },
+  {
+    id: "gauss-riemann",
+    name: "Gauss & Riemann",
+    role: "Mathematicians (19th century)",
+    signal:
+      "Differential geometry of curved surfaces: intrinsic curvature, geodesics, and the metric tensor as descriptors of space itself rather than as coordinate impositions. The curved null-geodesic traversal at the heart of xPRIMEray follows paths that Gauss and Riemann first gave language to.",
+    tags: [
+      "differential geometry",
+      "intrinsic curvature",
+      "metric tensor",
+      "geodesic paths",
+      "Riemannian manifolds",
+    ],
+    href: "https://en.wikipedia.org/wiki/Bernhard_Riemann",
+    category: "Supporting Observers",
+    tier: "observer",
+  },
+  {
+    id: "misner-thorne-wheeler",
+    name: "Misner, Thorne & Wheeler",
+    role: "Physicists · Gravitation (1973)",
+    signal:
+      "Gravitation remains the definitive synthesis of general relativity as geometry — the language of metric tensors, curvature, and geodesic deviation articulated as a complete mathematical machinery. The observatory's transport diagnostic language echoes this vocabulary: field ownership, curvature domain maps, and boundary behavior.",
+    tags: [
+      "metric tensor language",
+      "geodesic deviation",
+      "spacetime curvature",
+      "mathematical GR",
+      "transport diagnostics",
+    ],
+    href: "https://en.wikipedia.org/wiki/Gravitation_(book)",
+    category: "Supporting Observers",
+    tier: "observer",
+  },
+  {
+    id: "sabrina-pasterski",
+    name: "Sabrina Pasterski",
+    role: "Theoretical physicist · celestial holography",
+    signal:
+      "Celestial holography and soft theorems link asymptotic symmetries of spacetime to memory effects in gravitational radiation. The observatory's transport ownership mapping resonates with Pasterski's celestial sphere framing: every ray path carries a latent topology, and the boundary of the transport field is where geometry speaks most clearly.",
+    tags: [
+      "celestial holography",
+      "soft theorems",
+      "asymptotic symmetries",
+      "gravitational memory",
+      "boundary geometry",
+    ],
+    href: "https://en.wikipedia.org/wiki/Sabrina_Gonz%C3%A1lez_Pasterski",
     category: "Supporting Observers",
     tier: "observer",
   },
@@ -465,7 +533,9 @@ const XENO_CITATIONS: XenoCitationCard[] = [
 
 const SIGNAL_CATEGORIES = [
   "All",
-  "Foundational Signals",
+  "Primary Signal",
+  "Foundational Geometry",
+  "Observatory Architecture",
   "Supporting Observers",
   "Cultural Mirrors",
 ] as const;
@@ -667,12 +737,13 @@ function SignalsSection() {
           Foundational Observatory Lineage
         </h2>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          The thinkers, instruments, and aesthetic lineages that shape how the observatory sees.
-          Grouped by proximity to the research — from primary instrumentation inspiration, through
-          supporting mathematical and engineering vocabulary, to the cultural mirrors that set the tone.
+          xPRIMEray draws conceptual lineage from mathematical physics, instrumentation, and monumental
+          observatory architecture — not as endorsement or claimed derivation, but as resonance. These
+          observers shaped the visual, mathematical, and instrumental vocabulary through which the
+          observatory interprets transport structure.
         </p>
         <p className="mt-1 max-w-2xl text-xs text-muted-foreground/55">
-          Inspiration and visual vocabulary only — no claims of derivation or endorsement.
+          "Inspired by" and "resonates with" — not "proves" or "derives from."
         </p>
 
         <div className="mt-6 flex flex-wrap gap-2">
