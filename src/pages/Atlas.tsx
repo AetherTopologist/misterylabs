@@ -253,6 +253,43 @@ const INSPIRATIONS: InspirationNode[] = [
     tier: "observer",
   },
 
+  // ── Frontier Interface Signals ────────────────────────────
+
+  {
+    id: "salvatore-pais",
+    name: "Salvatore Pais",
+    role: "Aerospace engineer · Naval patent discourse · field propulsion concepts",
+    signal:
+      "Naval aerospace patent discourse around high-energy electromagnetic field propulsion, inertial mass reduction, and engineered spacetime analogies — a frontier interface between engineering language and effective-metric speculation. Included as a transport-field speculation interface, not as validated physics.",
+    tags: [
+      "frontier aerospace engineering",
+      "electromagnetic field propulsion",
+      "effective metric analogy",
+      "transport-field speculation",
+      "engineered spacetime language",
+    ],
+    href: "https://en.wikipedia.org/wiki/Salvatore_Pais",
+    category: "Frontier Interface Signals",
+    tier: "observer",
+  },
+  {
+    id: "ashton-forbes",
+    name: "Ashton Forbes",
+    role: "Open-source anomaly analyst · visual synthesis · transport interpretation",
+    signal:
+      "Represents a contemporary public-facing anomaly-analysis culture where visual evidence, optical transport interpretation, aerospace speculation, and open-source investigation intersect. The observer-as-analyst stance and cross-disciplinary synthesis methodology resonate with xPRIMEray's own diagnostic interpretation approach. Included as a signal interpretation and modern anomaly investigation culture reference, not as endorsement of specific claims.",
+    tags: [
+      "signal interpretation",
+      "observer analysis",
+      "cross-disciplinary synthesis",
+      "anomaly investigation culture",
+      "open-source transport analysis",
+    ],
+    href: "https://www.youtube.com/@AshtonForbes",
+    category: "Frontier Interface Signals",
+    tier: "observer",
+  },
+
   // ── Systems / Computation ─────────────────────────────────
 
   {
@@ -613,6 +650,34 @@ const XENO_CITATIONS: XenoCitationCard[] = [
     href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
+  // xc-010 — Frontier Interface: Field Propulsion Discourse
+  {
+    id: "xc-010",
+    name: "Salvatore Pais",
+    era: "1990s – present",
+    coreIdea:
+      "Naval aerospace patent discourse around high-energy electromagnetic field propulsion, inertial mass reduction, and engineered spacetime analogies — a frontier interface between engineering specification language and effective-metric speculation.",
+    xprimerayResonance:
+      "Resonates as a frontier aerospace engineering language reference: the conceptual framing of rotating electromagnetic fields and high-energy density regions as transport-field analogues maps loosely onto xPRIMEray's curved-transport vocabulary. Included as a transport-field speculation interface, not as validated physics.",
+    feature: "FrontierAerospaceLanguage · TransportFieldSpeculation",
+    motifLabel: "Field Propulsion Discourse",
+    href: "https://en.wikipedia.org/wiki/Salvatore_Pais",
+    complete: false,
+  },
+  // xc-011 — Frontier Interface: Anomaly Investigation Culture
+  {
+    id: "xc-011",
+    name: "Ashton Forbes",
+    era: "2010s – present",
+    coreIdea:
+      "Open-source anomaly analysis and cross-disciplinary visual synthesis: a contemporary public-facing investigation culture where optical transport interpretation, aerospace speculation, and observer analysis intersect without institutional gatekeeping.",
+    xprimerayResonance:
+      "Resonates as a model of modern anomaly investigation culture — the observer-as-analyst stance, the application of optical transport intuition to visual evidence, and the open synthesis methodology mirror how xPRIMEray approaches its own diagnostic interpretation. Included as a signal interpretation reference, not as endorsement of specific claims.",
+    feature: "ObserverAnalysisModel · OpenSourceSynthesis",
+    motifLabel: "Anomaly Investigation Culture",
+    href: "https://www.youtube.com/@AshtonForbes",
+    complete: false,
+  },
 ];
 
 // ── Category filter order — mirrors the master lineage hierarchy ──
@@ -628,6 +693,7 @@ const SIGNAL_CATEGORIES = [
   "Multi-Path / Quantum Transport Intuition",
   "Temporal Instrumentation & Nanobrain",
   "Boundary Correspondence",
+  "Frontier Interface Signals",
   "Systems / Computation",
   "Cultural / Mythic Mirrors",
 ] as const;
@@ -691,6 +757,11 @@ function XenoCitationSection() {
         <p className="mt-2 max-w-2xl text-xs italic text-muted-foreground/40">
           The sequence begins with established optical-transport and geometric foundations, then
           moves outward toward instrumentation, correspondence frameworks, and boundary correspondence.
+        </p>
+        <p className="mt-3 max-w-2xl rounded-sm border border-border/20 bg-secondary/15 px-3 py-2 text-xs italic text-muted-foreground/40">
+          Frontier-interface entries (xc-010, xc-011) represent contemporary aerospace discourse
+          and anomaly-analysis culture. Inclusion reflects conceptual resonance and public
+          transport-language investigation — not endorsement or validation of extraordinary claims.
         </p>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -857,6 +928,14 @@ function SignalsSection() {
             </button>
           ))}
         </div>
+
+        {active === "Frontier Interface Signals" && (
+          <p className="mt-4 max-w-2xl rounded-sm border border-border/20 bg-secondary/15 px-3 py-2 text-xs italic text-muted-foreground/40">
+            These frontier-interface entries represent contemporary aerospace discourse and
+            anomaly-analysis culture. Inclusion reflects conceptual resonance and public
+            transport-language investigation, not endorsement or validation of extraordinary claims.
+          </p>
+        )}
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((node) => (
