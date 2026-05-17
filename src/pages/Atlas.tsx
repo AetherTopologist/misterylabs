@@ -4,7 +4,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { FractalInspirationAtlas } from "@/components/FractalInspirationAtlas";
 import { SiteFooter } from "@/components/SiteFooter";
 
-// ── Data ──────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────
 
 type InspirationTier = "primary" | "foundational" | "observer" | "mirror";
 
@@ -19,9 +19,15 @@ interface InspirationNode {
   tier: InspirationTier;
 }
 
+// ── Inspiration Data ──────────────────────────────────────
+// Canonical ordering: Foundational Optical Transport → Differential Geometry →
+// Hamiltonian Transport → Metric Relativity → Observer Geometry → Symmetry →
+// Multi-Path Intuition → Temporal Instrumentation → Boundary Correspondence →
+// Systems / Computation → Cultural / Mythic Mirrors
+
 const INSPIRATIONS: InspirationNode[] = [
 
-  // ── Foundational Signals ──────────────────────────────────
+  // ── Temporal Instrumentation & Nanobrain (Primary Signal) ─
 
   {
     id: "bandyopadhyay",
@@ -38,81 +44,48 @@ const INSPIRATIONS: InspirationNode[] = [
       "temporal geometry",
     ],
     href: "https://en.wikipedia.org/wiki/Anirban_Bandyopadhyay",
-    category: "Primary Signal",
+    category: "Temporal Instrumentation & Nanobrain",
     tier: "primary",
   },
+
+  // ── Foundational Optical Transport ───────────────────────
+
   {
-    id: "roger-penrose",
-    name: "Roger Penrose",
-    role: "Mathematical physicist · optical geometry · spacetime topology",
+    id: "james-clerk-maxwell",
+    name: "James Clerk Maxwell",
+    role: "Mathematical physicist (1831–1879)",
     signal:
-      "Null geodesics, causal boundaries, and topological imagination give xPRIMEray its visual vocabulary for paths, horizons, and observer-dependent structure. Transport ownership maps and curved traversal diagnostics resonate with Penrose-style optical geometry: the path is not just a line, but a statement about the field it crosses.",
+      "GRIN optics and the wave theory of light: the refractive index as a continuous field governing ray trajectories through gradient media. Maxwell's fish-eye lens is the conceptual ancestor of every curved-transport field renderer that treats the medium itself as the geometry.",
     tags: [
-      "null geodesics",
-      "Penrose diagrams",
-      "twistor theory",
-      "causal structure",
-      "optical geometry",
-      "conformal boundary",
+      "GRIN optics",
+      "refractive index field",
+      "wave equations",
+      "electromagnetic theory",
+      "gradient media",
     ],
-    href: "https://en.wikipedia.org/wiki/Roger_Penrose",
-    category: "Foundational Geometry",
-    tier: "foundational",
-  },
-  {
-    id: "etienne-boullee",
-    name: "Étienne-Louis Boullée",
-    role: "Visionary architect (1728–1799) · monumental observatory geometry",
-    signal:
-      "The Cenotaph for Newton offers a monumental language for spherical containment, interior infinity, and architectural silence. xPRIMEray's observatory seal and horizon-cut imagery borrow this feeling: a civilization-scale instrument confronting hidden structure inside a bounded sphere.",
-    tags: [
-      "Cenotaph for Newton",
-      "spherical containment",
-      "observatory architecture",
-      "monumental institutional form",
-      "infinity as interior",
-      "civilizational scale",
-    ],
-    href: "https://en.wikipedia.org/wiki/%C3%89tienne-Louis_Boull%C3%A9e",
-    category: "Observatory Architecture",
+    href: "https://en.wikipedia.org/wiki/James_Clerk_Maxwell",
+    category: "Foundational Optical Transport",
     tier: "foundational",
   },
 
-  // ── Supporting Observers ──────────────────────────────────
+  // ── Differential Geometry & Curvature ────────────────────
 
   {
-    id: "albert-einstein",
-    name: "Albert Einstein",
-    role: "Theoretical physicist (1879–1955)",
+    id: "gauss-riemann",
+    name: "Gauss & Riemann",
+    role: "Mathematicians (19th century)",
     signal:
-      "Spacetime is not the stage for physics — it is a participant. The curvature of geodesics by mass-energy is the conceptual origin of any renderer that takes field geometry seriously rather than approximating it as post-process distortion.",
+      "Differential geometry of curved surfaces: intrinsic curvature, geodesics, and the metric tensor as descriptors of space itself rather than as coordinate impositions. The curved null-geodesic traversal at the heart of xPRIMEray follows paths that Gauss and Riemann first gave language to.",
     tags: [
-      "general relativity",
-      "spacetime curvature",
+      "differential geometry",
+      "intrinsic curvature",
+      "metric tensor",
       "geodesic paths",
-      "field equations",
-      "thought experiment method",
+      "Riemannian manifolds",
     ],
-    href: "https://en.wikipedia.org/wiki/Albert_Einstein",
-    category: "Supporting Observers",
-    tier: "observer",
-  },
-  {
-    id: "william-hamilton",
-    name: "William Rowan Hamilton",
-    role: "Mathematician & physicist (1805–1865)",
-    signal:
-      "Quaternions as the algebra of rotation, and the Hamiltonian as the phase-space evolution operator — the mathematical substrate beneath every orientation traversal and field-state propagation in curved rendering systems.",
-    tags: [
-      "quaternions",
-      "Hamiltonian mechanics",
-      "phase space",
-      "rotational algebra",
-      "canonical coordinates",
-    ],
-    href: "https://en.wikipedia.org/wiki/William_Rowan_Hamilton",
-    category: "Supporting Observers",
-    tier: "observer",
+    href: "https://en.wikipedia.org/wiki/Bernhard_Riemann",
+    category: "Differential Geometry & Curvature",
+    tier: "foundational",
   },
   {
     id: "felix-klein",
@@ -128,7 +101,169 @@ const INSPIRATIONS: InspirationNode[] = [
       "projective geometry",
     ],
     href: "https://en.wikipedia.org/wiki/Felix_Klein",
-    category: "Supporting Observers",
+    category: "Differential Geometry & Curvature",
+    tier: "observer",
+  },
+  {
+    id: "euclid",
+    name: "Euclid",
+    role: "Greek mathematician (c. 300 BCE)",
+    signal:
+      "Rigorous proof from minimal axioms — the idea that geometry could be derived entirely from five postulates remains one of the most powerful intellectual templates in history, and the baseline against which non-Euclidean geometry defines itself.",
+    tags: ["axiomatic reasoning", "proof culture", "geometry foundations", "Euclidean baseline"],
+    href: "https://en.wikipedia.org/wiki/Euclid",
+    category: "Differential Geometry & Curvature",
+    tier: "observer",
+  },
+  {
+    id: "poincare",
+    name: "Henri Poincaré",
+    role: "Mathematician & physicist (1854–1912)",
+    signal:
+      "Topology and dynamical systems emerged together from a single mind asking what happens when geometry becomes qualitative rather than quantitative — a precursor to the chaos and phase-space thinking that underpins modern field simulation.",
+    tags: ["topology", "dynamical systems", "chaos precursor", "qualitative geometry"],
+    href: "https://en.wikipedia.org/wiki/Henri_Poincar%C3%A9",
+    category: "Differential Geometry & Curvature",
+    tier: "observer",
+  },
+
+  // ── Hamiltonian / Quaternion Transport ───────────────────
+
+  {
+    id: "william-hamilton",
+    name: "William Rowan Hamilton",
+    role: "Mathematician & physicist (1805–1865)",
+    signal:
+      "Quaternions as the algebra of rotation, and the Hamiltonian as the phase-space evolution operator — the mathematical substrate beneath every orientation traversal and field-state propagation in curved rendering systems.",
+    tags: [
+      "quaternions",
+      "Hamiltonian mechanics",
+      "phase space",
+      "rotational algebra",
+      "canonical coordinates",
+    ],
+    href: "https://en.wikipedia.org/wiki/William_Rowan_Hamilton",
+    category: "Hamiltonian / Quaternion Transport",
+    tier: "observer",
+  },
+
+  // ── Metric Relativity Language ────────────────────────────
+
+  {
+    id: "misner-thorne-wheeler",
+    name: "Misner, Thorne & Wheeler",
+    role: "Physicists · Gravitation (1973)",
+    signal:
+      "Gravitation remains the definitive synthesis of general relativity as geometry — the language of metric tensors, curvature, and geodesic deviation articulated as a complete mathematical machinery. The observatory's transport diagnostic language echoes this vocabulary: field ownership, curvature domain maps, and boundary behavior.",
+    tags: [
+      "metric tensor language",
+      "geodesic deviation",
+      "spacetime curvature",
+      "mathematical GR",
+      "transport diagnostics",
+    ],
+    href: "https://en.wikipedia.org/wiki/Gravitation_(book)",
+    category: "Metric Relativity Language",
+    tier: "observer",
+  },
+  {
+    id: "albert-einstein",
+    name: "Albert Einstein",
+    role: "Theoretical physicist (1879–1955)",
+    signal:
+      "Spacetime is not the stage for physics — it is a participant. The curvature of geodesics by mass-energy is the conceptual origin of any renderer that takes field geometry seriously rather than approximating it as post-process distortion.",
+    tags: [
+      "general relativity",
+      "spacetime curvature",
+      "geodesic paths",
+      "field equations",
+      "thought experiment method",
+    ],
+    href: "https://en.wikipedia.org/wiki/Albert_Einstein",
+    category: "Metric Relativity Language",
+    tier: "observer",
+  },
+
+  // ── Observer Geometry & Causal Structure ─────────────────
+
+  {
+    id: "roger-penrose",
+    name: "Roger Penrose",
+    role: "Mathematical physicist · optical geometry · spacetime topology",
+    signal:
+      "Null geodesics, causal boundaries, and topological imagination give xPRIMEray its visual vocabulary for paths, horizons, and observer-dependent structure. Transport ownership maps and curved traversal diagnostics resonate with Penrose-style optical geometry: the path is not just a line, but a statement about the field it crosses.",
+    tags: [
+      "null geodesics",
+      "Penrose diagrams",
+      "twistor theory",
+      "causal structure",
+      "optical geometry",
+      "conformal boundary",
+    ],
+    href: "https://en.wikipedia.org/wiki/Roger_Penrose",
+    category: "Observer Geometry & Causal Structure",
+    tier: "foundational",
+  },
+
+  // ── Symmetry & Invariants ─────────────────────────────────
+
+  {
+    id: "emmy-noether",
+    name: "Emmy Noether",
+    role: "Abstract algebraist & theoretical physicist (1882–1935)",
+    signal:
+      "Every differentiable symmetry of the action corresponds to a conservation law — a profound link between abstract algebra and the deepest structure of physical reality. Transport invariants under traversal mode changes echo this connection.",
+    tags: ["symmetry", "conservation laws", "abstract algebra", "field invariants"],
+    href: "https://en.wikipedia.org/wiki/Emmy_Noether",
+    category: "Symmetry & Invariants",
+    tier: "observer",
+  },
+
+  // ── Multi-Path / Quantum Transport Intuition ─────────────
+
+  {
+    id: "richard-feynman",
+    name: "Richard Feynman",
+    role: "Theoretical physicist (1918–1988)",
+    signal:
+      "The path integral: a particle takes all paths simultaneously, weighted by phase — the classical trajectory emerges as the stationary-phase result. The oracle path architecture in xPRIMEray traces all candidate geodesics to determine which transport boundary a pixel belongs to.",
+    tags: ["path integrals", "QED", "oracle path lineage", "teaching clarity", "intellectual honesty"],
+    href: "https://en.wikipedia.org/wiki/Richard_Feynman",
+    category: "Multi-Path / Quantum Transport Intuition",
+    tier: "observer",
+  },
+
+  // ── Boundary Correspondence ───────────────────────────────
+
+  {
+    id: "sabrina-pasterski",
+    name: "Sabrina Pasterski",
+    role: "Theoretical physicist · celestial holography",
+    signal:
+      "Celestial holography and soft theorems link asymptotic symmetries of spacetime to memory effects in gravitational radiation. The observatory's transport ownership mapping resonates with Pasterski's celestial sphere framing: every ray path carries a latent topology, and the boundary of the transport field is where geometry speaks most clearly.",
+    tags: [
+      "celestial holography",
+      "soft theorems",
+      "asymptotic symmetries",
+      "gravitational memory",
+      "boundary geometry",
+    ],
+    href: "https://en.wikipedia.org/wiki/Sabrina_Gonz%C3%A1lez_Pasterski",
+    category: "Boundary Correspondence",
+    tier: "observer",
+  },
+
+  // ── Systems / Computation ─────────────────────────────────
+
+  {
+    id: "claude-shannon",
+    name: "Claude Shannon",
+    role: "Mathematician & electrical engineer (1916–2001)",
+    signal:
+      "Information is not meaning — but its mathematical structure underlies every signal, every compression, every communication channel. The diagnostic data the observatory emits is, at its foundation, a channel with capacity constraints.",
+    tags: ["information theory", "entropy", "channel capacity", "signal structure"],
+    href: "https://en.wikipedia.org/wiki/Claude_Shannon",
+    category: "Systems / Computation",
     tier: "observer",
   },
   {
@@ -145,7 +280,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "reaction-diffusion systems",
     ],
     href: "https://en.wikipedia.org/wiki/Alan_Turing",
-    category: "Supporting Observers",
+    category: "Systems / Computation",
     tier: "observer",
   },
   {
@@ -162,130 +297,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "natural boundary form",
     ],
     href: "https://en.wikipedia.org/wiki/Benoit_Mandelbrot",
-    category: "Supporting Observers",
-    tier: "observer",
-  },
-  {
-    id: "james-clerk-maxwell",
-    name: "James Clerk Maxwell",
-    role: "Mathematical physicist (1831–1879)",
-    signal:
-      "GRIN optics and the wave theory of light: the refractive index as a continuous field governing ray trajectories through gradient media. Maxwell's fish-eye lens is the conceptual ancestor of every curved-transport field renderer that treats the medium itself as the geometry.",
-    tags: [
-      "GRIN optics",
-      "refractive index field",
-      "wave equations",
-      "electromagnetic theory",
-      "gradient media",
-    ],
-    href: "https://en.wikipedia.org/wiki/James_Clerk_Maxwell",
-    category: "Supporting Observers",
-    tier: "observer",
-  },
-  {
-    id: "gauss-riemann",
-    name: "Gauss & Riemann",
-    role: "Mathematicians (19th century)",
-    signal:
-      "Differential geometry of curved surfaces: intrinsic curvature, geodesics, and the metric tensor as descriptors of space itself rather than as coordinate impositions. The curved null-geodesic traversal at the heart of xPRIMEray follows paths that Gauss and Riemann first gave language to.",
-    tags: [
-      "differential geometry",
-      "intrinsic curvature",
-      "metric tensor",
-      "geodesic paths",
-      "Riemannian manifolds",
-    ],
-    href: "https://en.wikipedia.org/wiki/Bernhard_Riemann",
-    category: "Supporting Observers",
-    tier: "observer",
-  },
-  {
-    id: "misner-thorne-wheeler",
-    name: "Misner, Thorne & Wheeler",
-    role: "Physicists · Gravitation (1973)",
-    signal:
-      "Gravitation remains the definitive synthesis of general relativity as geometry — the language of metric tensors, curvature, and geodesic deviation articulated as a complete mathematical machinery. The observatory's transport diagnostic language echoes this vocabulary: field ownership, curvature domain maps, and boundary behavior.",
-    tags: [
-      "metric tensor language",
-      "geodesic deviation",
-      "spacetime curvature",
-      "mathematical GR",
-      "transport diagnostics",
-    ],
-    href: "https://en.wikipedia.org/wiki/Gravitation_(book)",
-    category: "Supporting Observers",
-    tier: "observer",
-  },
-  {
-    id: "sabrina-pasterski",
-    name: "Sabrina Pasterski",
-    role: "Theoretical physicist · celestial holography",
-    signal:
-      "Celestial holography and soft theorems link asymptotic symmetries of spacetime to memory effects in gravitational radiation. The observatory's transport ownership mapping resonates with Pasterski's celestial sphere framing: every ray path carries a latent topology, and the boundary of the transport field is where geometry speaks most clearly.",
-    tags: [
-      "celestial holography",
-      "soft theorems",
-      "asymptotic symmetries",
-      "gravitational memory",
-      "boundary geometry",
-    ],
-    href: "https://en.wikipedia.org/wiki/Sabrina_Gonz%C3%A1lez_Pasterski",
-    category: "Supporting Observers",
-    tier: "observer",
-  },
-  {
-    id: "emmy-noether",
-    name: "Emmy Noether",
-    role: "Abstract algebraist & theoretical physicist (1882–1935)",
-    signal:
-      "Every differentiable symmetry of the action corresponds to a conservation law — a profound link between abstract algebra and the deepest structure of physical reality. Transport invariants under traversal mode changes echo this connection.",
-    tags: ["symmetry", "conservation laws", "abstract algebra", "field invariants"],
-    href: "https://en.wikipedia.org/wiki/Emmy_Noether",
-    category: "Supporting Observers",
-    tier: "observer",
-  },
-  {
-    id: "richard-feynman",
-    name: "Richard Feynman",
-    role: "Theoretical physicist (1918–1988)",
-    signal:
-      "The path integral: a particle takes all paths simultaneously, weighted by phase — the classical trajectory emerges as the stationary-phase result. The oracle path architecture in xPRIMEray traces all candidate geodesics to determine which transport boundary a pixel belongs to.",
-    tags: ["path integrals", "QED", "oracle path lineage", "teaching clarity", "intellectual honesty"],
-    href: "https://en.wikipedia.org/wiki/Richard_Feynman",
-    category: "Supporting Observers",
-    tier: "observer",
-  },
-  {
-    id: "claude-shannon",
-    name: "Claude Shannon",
-    role: "Mathematician & electrical engineer (1916–2001)",
-    signal:
-      "Information is not meaning — but its mathematical structure underlies every signal, every compression, every communication channel. The diagnostic data the observatory emits is, at its foundation, a channel with capacity constraints.",
-    tags: ["information theory", "entropy", "channel capacity", "signal structure"],
-    href: "https://en.wikipedia.org/wiki/Claude_Shannon",
-    category: "Supporting Observers",
-    tier: "observer",
-  },
-  {
-    id: "euclid",
-    name: "Euclid",
-    role: "Greek mathematician (c. 300 BCE)",
-    signal:
-      "Rigorous proof from minimal axioms — the idea that geometry could be derived entirely from five postulates remains one of the most powerful intellectual templates in history, and the baseline against which non-Euclidean geometry defines itself.",
-    tags: ["axiomatic reasoning", "proof culture", "geometry foundations", "Euclidean baseline"],
-    href: "https://en.wikipedia.org/wiki/Euclid",
-    category: "Supporting Observers",
-    tier: "observer",
-  },
-  {
-    id: "poincare",
-    name: "Henri Poincaré",
-    role: "Mathematician & physicist (1854–1912)",
-    signal:
-      "Topology and dynamical systems emerged together from a single mind asking what happens when geometry becomes qualitative rather than quantitative — a precursor to the chaos and phase-space thinking that underpins modern field simulation.",
-    tags: ["topology", "dynamical systems", "chaos precursor", "qualitative geometry"],
-    href: "https://en.wikipedia.org/wiki/Henri_Poincar%C3%A9",
-    category: "Supporting Observers",
+    category: "Systems / Computation",
     tier: "observer",
   },
   {
@@ -296,7 +308,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "Infinite-dimensional spaces, formalism, and the drive toward completeness — even after Gödel showed completeness was unattainable, Hilbert's programme launched a century of foundational inquiry that shaped every formal system the observatory's diagnostics rely on.",
     tags: ["formalism", "infinite-dimensional spaces", "completeness", "foundational inquiry"],
     href: "https://en.wikipedia.org/wiki/David_Hilbert",
-    category: "Supporting Observers",
+    category: "Systems / Computation",
     tier: "observer",
   },
   {
@@ -307,7 +319,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "The brain does not passively receive the world — it actively models, predicts, and minimizes surprise between expectation and incoming signal. Active inference as a template for how an observatory instrument might decide where to look.",
     tags: ["free energy principle", "active inference", "predictive coding", "self-organization"],
     href: "https://en.wikipedia.org/wiki/Karl_Friston",
-    category: "Supporting Observers",
+    category: "Systems / Computation",
     tier: "observer",
   },
   {
@@ -318,7 +330,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "Strange loops and tangled hierarchies as structural features of formal systems — the idea that self-reference generates new levels of description, which the observatory encounters whenever a diagnostic instrument models its own output.",
     tags: ["strange loops", "Gödel", "self-reference", "formal hierarchy"],
     href: "https://en.wikipedia.org/wiki/Douglas_Hofstadter",
-    category: "Supporting Observers",
+    category: "Systems / Computation",
     tier: "observer",
   },
   {
@@ -329,7 +341,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "Synergetics and geodesic geometry — the principle that whole-system behavior is not derivable from examining parts in isolation. The observatory's transport seams are a geodesic phenomenon: locally flat, globally curved.",
     tags: ["synergetics", "geodesic geometry", "whole-systems thinking", "tensegrity"],
     href: "https://en.wikipedia.org/wiki/Buckminster_Fuller",
-    category: "Supporting Observers",
+    category: "Systems / Computation",
     tier: "observer",
   },
   {
@@ -340,7 +352,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "Elegant mathematical insight can overturn assumptions previously believed computationally intractable. A reminder that the complexity class of a problem is a property of our understanding, not the problem itself.",
     tags: ["algorithmic elegance", "independent reasoning", "humility under complexity"],
     href: "https://ewintang.com/",
-    category: "Supporting Observers",
+    category: "Systems / Computation",
     tier: "observer",
   },
   {
@@ -351,7 +363,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "From BSP trees to ray casting to megatextures — each breakthrough came from refusing to accept that real-time was the ceiling. Real-time rendering as engineering discipline, not just graphics artistry.",
     tags: ["real-time rendering", "software craftsmanship", "optimization culture", "iterative engineering"],
     href: "https://en.wikipedia.org/wiki/John_Carmack",
-    category: "Supporting Observers",
+    category: "Systems / Computation",
     tier: "observer",
   },
   {
@@ -362,7 +374,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "Entire worlds emerge from a few lines of math — signed distance functions and procedural noise as instruments of geometric poetry. The aesthetic model for concise, expressive transport code.",
     tags: ["ray marching", "SDF geometry", "procedural graphics", "open knowledge sharing"],
     href: "https://iquilezles.org/",
-    category: "Supporting Observers",
+    category: "Systems / Computation",
     tier: "observer",
   },
   {
@@ -373,7 +385,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "Structured randomness as the foundation of every organic texture, terrain, and fluid ever rendered in real time. Noise is not the opposite of signal — it is a signal with a complex origin.",
     tags: ["procedural noise", "texture synthesis", "GPU algorithms", "natural rendering"],
     href: "https://en.wikipedia.org/wiki/Ken_Perlin",
-    category: "Supporting Observers",
+    category: "Systems / Computation",
     tier: "observer",
   },
   {
@@ -384,12 +396,30 @@ const INSPIRATIONS: InspirationNode[] = [
       "Professional-grade 3D tools can be radically open. Blender proved that community-driven development with a clear mission outpaces closed studios — the model for how the observatory's own tooling is approached.",
     tags: ["open source", "cycles renderer", "3D pipeline", "community governance"],
     href: "https://www.blender.org/",
-    category: "Supporting Observers",
+    category: "Systems / Computation",
     tier: "observer",
   },
 
-  // ── Cultural Mirrors ──────────────────────────────────────
+  // ── Cultural / Mythic Mirrors ─────────────────────────────
 
+  {
+    id: "etienne-boullee",
+    name: "Étienne-Louis Boullée",
+    role: "Visionary architect (1728–1799) · monumental observatory geometry",
+    signal:
+      "The Cenotaph for Newton offers a monumental language for spherical containment, interior infinity, and architectural silence. xPRIMEray's observatory seal and horizon-cut imagery borrow this feeling: a civilization-scale instrument confronting hidden structure inside a bounded sphere.",
+    tags: [
+      "Cenotaph for Newton",
+      "spherical containment",
+      "observatory architecture",
+      "monumental institutional form",
+      "infinity as interior",
+      "civilizational scale",
+    ],
+    href: "https://en.wikipedia.org/wiki/%C3%89tienne-Louis_Boull%C3%A9e",
+    category: "Cultural / Mythic Mirrors",
+    tier: "mirror",
+  },
   {
     id: "isaac-asimov",
     name: "Isaac Asimov",
@@ -398,7 +428,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "'That's funny…' — anomaly is the beginning of all discovery. Asimov's scientific imagination and insistence on accessible wonder set the tone for how the observatory communicates what it finds.",
     tags: ["scientific imagination", "curiosity as method", "accessible wonder", "interdisciplinary thought"],
     href: "https://en.wikipedia.org/wiki/Isaac_Asimov",
-    category: "Cultural Mirrors",
+    category: "Cultural / Mythic Mirrors",
     tier: "mirror",
   },
   {
@@ -409,7 +439,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "2001: A Space Odyssey established the visual grammar for deep-space instrumentation cinema — monumental silence, minimal UI, machine-readable readouts, and the aesthetic of a mission that proceeds with or without human comprehension. The visual tone reference for observatory instrumentation.",
     tags: ["2001 A Space Odyssey", "mission-control visual language", "monumental cinema", "scientific aesthetic"],
     href: "https://en.wikipedia.org/wiki/Stanley_Kubrick",
-    category: "Cultural Mirrors",
+    category: "Cultural / Mythic Mirrors",
     tier: "mirror",
   },
   {
@@ -420,7 +450,7 @@ const INSPIRATIONS: InspirationNode[] = [
       "Any sufficiently advanced technology is indistinguishable from magic — and sufficiently rigorous imagination becomes a roadmap for physics to follow. Hard sci-fi as a design brief.",
     tags: ["hard sci-fi", "geostationary orbit", "monolith as metaphor", "long-range foresight"],
     href: "https://en.wikipedia.org/wiki/Arthur_C._Clarke",
-    category: "Cultural Mirrors",
+    category: "Cultural / Mythic Mirrors",
     tier: "mirror",
   },
   {
@@ -431,12 +461,18 @@ const INSPIRATIONS: InspirationNode[] = [
       "The universe is under no obligation to be comprehensible — and science fiction is most honest when it refuses to make the alien legible to human categories. Epistemological humility as a design principle.",
     tags: ["philosophical sci-fi", "xenolinguistics", "epistemological humility", "information theory in fiction"],
     href: "https://en.wikipedia.org/wiki/Stanis%C5%82aw_Lem",
-    category: "Cultural Mirrors",
+    category: "Cultural / Mythic Mirrors",
     tier: "mirror",
   },
 ];
 
 // ── XenoCitation Data ─────────────────────────────────────
+// CANONICAL ORDER — do not reorder without updating this comment.
+// Master hierarchy: Foundational Optical Transport (Maxwell) →
+// Differential Geometry (Gauss/Riemann) → Hamiltonian Transport (Hamilton) →
+// Metric Relativity (MTW) → Observer Geometry (Penrose) → Symmetry (Noether) →
+// Multi-Path Intuition (Feynman) → Temporal Instrumentation (Bandyopadhyay) →
+// Boundary Correspondence (Pasterski)
 
 interface XenoCitationCard {
   id: string;
@@ -451,60 +487,51 @@ interface XenoCitationCard {
 }
 
 const XENO_CITATIONS: XenoCitationCard[] = [
+  // xc-001 — Foundational Optical Transport
   {
     id: "xc-001",
-    name: "Sabrina Pasterski",
-    era: "2010s – present",
-    coreIdea:
-      "Celestial holography and soft theorems — the mathematical structure linking asymptotic symmetries of spacetime to memory effects in gravitational radiation.",
-    xprimerayResonance:
-      "The observatory's transport ownership mapping resonates with Pasterski's celestial sphere framing: every ray path carries a latent topology, and the boundary of the transport field is where geometry speaks most clearly.",
-    feature: "CelestialHolographyInspiration · TransportOwnershipOverlay",
-    motifLabel: "Celestial Holography",
-    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
-    complete: true,
-  },
-  {
-    id: "xc-002",
-    name: "Emmy Noether",
-    era: "1882 – 1935",
-    coreIdea:
-      "Every differentiable symmetry of the action of a physical system has a corresponding conservation law.",
-    xprimerayResonance:
-      "Resonates with the xPRIMEray field symmetry diagnostics — transport invariants under traversal mode changes echo Noether's deep link between symmetry and conservation.",
-    feature: "FieldSymmetryDiagnostics",
-    motifLabel: "Field Symmetry",
-    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
-    complete: false,
-  },
-  {
-    id: "xc-003",
     name: "James Clerk Maxwell",
     era: "1831 – 1879",
     coreIdea:
-      "GRIN optics and the wave theory of light: the refractive index as a continuous field governing ray trajectories.",
+      "GRIN optics and the wave theory of light: the refractive index as a continuous field governing ray trajectories through gradient media. Maxwell's fish-eye lens is the conceptual ancestor of every curved-transport renderer that treats the medium itself as the geometry.",
     xprimerayResonance:
-      "Directly inspired the GRIN field rendering pipeline — curved transport through gradient-index media is the computational descendant of Maxwell's fish-eye lens.",
-    feature: "GRINFieldRenderer · LuxCoreGRIN",
+      "Directly inspired the GRIN field rendering pipeline — curved transport through gradient-index media is the computational descendant of Maxwell's fish-eye lens. The refractive index field is the field xPRIMEray navigates.",
+    feature: "GRINFieldRenderer · LuxCoreGRIN · CurvedFieldTraversal",
     motifLabel: "GRIN Optics",
     href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
-    complete: false,
+    complete: true,
   },
+  // xc-002 — Differential Geometry & Curvature
   {
-    id: "xc-004",
+    id: "xc-002",
     name: "Gauss & Riemann",
     era: "19th century",
     coreIdea:
-      "Differential geometry of curved surfaces: intrinsic curvature, geodesics, and the metric tensor as descriptors of space itself.",
+      "Differential geometry of curved surfaces: intrinsic curvature, geodesics, and the metric tensor as descriptors of space itself rather than as coordinate impositions.",
     xprimerayResonance:
-      "Resonates with the curved null-geodesic traversal at the heart of xPRIMEray — each ray follows a geodesic through a field-warped medium.",
+      "The curved null-geodesic traversal at the heart of xPRIMEray follows paths that Gauss and Riemann first gave language to. Each ray is a geodesic through a field-warped medium.",
     feature: "CurvedFieldTraversal · GeodesicPath",
     motifLabel: "Differential Geometry",
     href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
+  // xc-003 — Hamiltonian / Quaternion Transport
   {
-    id: "xc-005",
+    id: "xc-003",
+    name: "William Rowan Hamilton",
+    era: "1805 – 1865",
+    coreIdea:
+      "Hamiltonian optics reformulates ray propagation as a phase-space flow — position plus direction as the fundamental state, governed by the optical Hamiltonian through a medium.",
+    xprimerayResonance:
+      "Phase-space transport intuition underpins xPRIMEray's traversal model: each ray state is position plus direction, propagated through the field's Hamiltonian structure. Quaternion algebra also informs orientation handling in curved traversal.",
+    feature: "PhaseSpaceTransport · CurvedFieldTraversal",
+    motifLabel: "Hamiltonian / Quaternion Transport",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    complete: false,
+  },
+  // xc-004 — Metric Relativity Language
+  {
+    id: "xc-004",
     name: "Misner, Thorne & Wheeler",
     era: "1973",
     coreIdea:
@@ -516,8 +543,37 @@ const XENO_CITATIONS: XenoCitationCard[] = [
     href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
+  // xc-005 — Observer Geometry & Causal Structure
+  {
+    id: "xc-005",
+    name: "Roger Penrose",
+    era: "1931 – present",
+    coreIdea:
+      "Null geodesics, Penrose diagrams, and twistor geometry articulate the causal architecture of spacetime — the conformal boundary, the light cone, the optical path as fundamental datum.",
+    xprimerayResonance:
+      "Transport ownership maps and curved traversal diagnostics resonate with Penrose-style optical geometry: the path is not just a line, but a statement about the field it crosses. Observer geometry and causal structure inform how xPRIMEray assigns boundary ownership.",
+    feature: "TransportOwnershipOverlay · CausalStructureDiagnostics",
+    motifLabel: "Observer Geometry",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    complete: false,
+  },
+  // xc-006 — Symmetry & Invariants
   {
     id: "xc-006",
+    name: "Emmy Noether",
+    era: "1882 – 1935",
+    coreIdea:
+      "Every differentiable symmetry of the action of a physical system has a corresponding conservation law.",
+    xprimerayResonance:
+      "Resonates with the xPRIMEray field symmetry diagnostics — transport invariants under traversal mode changes echo Noether's deep link between symmetry and conservation.",
+    feature: "FieldSymmetryDiagnostics",
+    motifLabel: "Field Symmetry",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    complete: false,
+  },
+  // xc-007 — Multi-Path / Quantum Transport Intuition
+  {
+    id: "xc-007",
     name: "Richard Feynman",
     era: "1918 – 1988",
     coreIdea:
@@ -529,15 +585,51 @@ const XENO_CITATIONS: XenoCitationCard[] = [
     href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
+  // xc-008 — Temporal Instrumentation & Nanobrain
+  {
+    id: "xc-008",
+    name: "Anirban Bandyopadhyay",
+    era: "present",
+    coreIdea:
+      "Nanobrain, time crystal instrumentation, and Geometric Music Language frame the observer as a temporal analyzer: structure is sampled through precision, rhythm, and coherent measurement rather than merely seen.",
+    xprimerayResonance:
+      "xPRIMEray borrows this instrumentation metaphor: each diagnostic frame becomes a sampled transport field, each pixel a possible time-series witness to hidden curvature structure. Treated as research-facing aesthetic and instrumentation inspiration, not as a proven framework.",
+    feature: "TemporalFieldSampling · DiagnosticInstrumentationModel",
+    motifLabel: "Temporal Instrumentation",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    complete: false,
+  },
+  // xc-009 — Boundary Correspondence / Celestial Holography
+  {
+    id: "xc-009",
+    name: "Sabrina Pasterski",
+    era: "2010s – present",
+    coreIdea:
+      "Celestial holography and soft theorems — the mathematical structure linking asymptotic symmetries of spacetime to memory effects in gravitational radiation.",
+    xprimerayResonance:
+      "The observatory's transport ownership mapping resonates with Pasterski's celestial sphere framing: every ray path carries a latent topology, and the boundary of the transport field is where geometry speaks most clearly.",
+    feature: "CelestialHolographyInspiration · TransportOwnershipOverlay",
+    motifLabel: "Celestial Holography",
+    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    complete: false,
+  },
 ];
+
+// ── Category filter order — mirrors the master lineage hierarchy ──
 
 const SIGNAL_CATEGORIES = [
   "All",
-  "Primary Signal",
-  "Foundational Geometry",
-  "Observatory Architecture",
-  "Supporting Observers",
-  "Cultural Mirrors",
+  "Foundational Optical Transport",
+  "Differential Geometry & Curvature",
+  "Hamiltonian / Quaternion Transport",
+  "Metric Relativity Language",
+  "Observer Geometry & Causal Structure",
+  "Symmetry & Invariants",
+  "Multi-Path / Quantum Transport Intuition",
+  "Temporal Instrumentation & Nanobrain",
+  "Boundary Correspondence",
+  "Systems / Computation",
+  "Cultural / Mythic Mirrors",
 ] as const;
 
 // ── Tier styling ───────────────────────────────────────────
@@ -596,6 +688,10 @@ function XenoCitationSection() {
         <p className="mt-1 max-w-2xl text-xs text-muted-foreground/55">
           "Inspired by" and "resonates with" — not "proves" or "derives from."
         </p>
+        <p className="mt-2 max-w-2xl text-xs italic text-muted-foreground/40">
+          The sequence begins with established optical-transport and geometric foundations, then
+          moves outward toward instrumentation, correspondence frameworks, and boundary correspondence.
+        </p>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {XENO_CITATIONS.map((card) => (
@@ -620,11 +716,11 @@ function XenoCitationCardView({ card }: { card: XenoCitationCard }) {
         <div>
           {card.complete ? (
             <span className="mb-2 inline-block font-mono text-[9px] uppercase tracking-[0.3em] text-primary/70">
-              XC-001 · Complete
+              {card.id.toUpperCase()} · Foundational Link
             </span>
           ) : (
             <span className="mb-2 inline-block font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground/40">
-              Stub · In Progress
+              {card.id.toUpperCase()} · Resonance Note
             </span>
           )}
           <div className="text-sm font-semibold tracking-tight">{card.name}</div>
@@ -737,10 +833,10 @@ function SignalsSection() {
           Foundational Observatory Lineage
         </h2>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          xPRIMEray draws conceptual lineage from mathematical physics, instrumentation, and monumental
-          observatory architecture — not as endorsement or claimed derivation, but as resonance. These
-          observers shaped the visual, mathematical, and instrumental vocabulary through which the
-          observatory interprets transport structure.
+          xPRIMEray draws conceptual lineage from mathematical physics, instrumentation, and
+          observatory architecture — not as endorsement or claimed derivation, but as resonance.
+          These observers shaped the visual, mathematical, and instrumental vocabulary through which
+          the observatory interprets transport structure.
         </p>
         <p className="mt-1 max-w-2xl text-xs text-muted-foreground/55">
           "Inspired by" and "resonates with" — not "proves" or "derives from."
