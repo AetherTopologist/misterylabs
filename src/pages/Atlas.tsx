@@ -147,6 +147,27 @@ const INSPIRATIONS: InspirationNode[] = [
     tier: "observer",
   },
 
+  // ── Effective Optical Metric / GRIN Analogy ───────────────
+
+  {
+    id: "gordon-metric",
+    name: "Gordon Metric",
+    role: "Walter Gordon (1893–1939) · effective optical metric in media",
+    signal:
+      "The Gordon metric formalizes how light in a dielectric medium experiences an effective curved spacetime: the refractive index field directly defines the metric through which photons travel. Every ray in a gradient-index medium follows a geodesic through Gordon's effective metric — making GRIN optics formally equivalent to curved-space transport. This is the direct mathematical ancestor of xPRIMEray's curved-field rendering architecture.",
+    tags: [
+      "effective optical metric",
+      "Gordon optical metric",
+      "dielectric spacetime",
+      "refractive index as curvature",
+      "GRIN as curved-space transport",
+      "metric analogue optics",
+    ],
+    href: "https://en.wikipedia.org/wiki/Gordon_metric",
+    category: "Foundational Optical Transport",
+    tier: "foundational",
+  },
+
   // ── Metric Relativity Language ────────────────────────────
 
   {
@@ -507,9 +528,10 @@ const INSPIRATIONS: InspirationNode[] = [
 // CANONICAL ORDER — do not reorder without updating this comment.
 // Master hierarchy: Foundational Optical Transport (Maxwell) →
 // Differential Geometry (Gauss/Riemann) → Hamiltonian Transport (Hamilton) →
+// Gordon Metric (effective optical metric, 1923) →
 // Metric Relativity (MTW) → Observer Geometry (Penrose) → Symmetry (Noether) →
 // Multi-Path Intuition (Feynman) → Temporal Instrumentation (Bandyopadhyay) →
-// Boundary Correspondence (Pasterski)
+// Boundary Correspondence (Pasterski) → Frontier Interface (Pais, Forbes)
 
 interface XenoCitationCard {
   id: string;
@@ -566,9 +588,23 @@ const XENO_CITATIONS: XenoCitationCard[] = [
     href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
-  // xc-004 — Metric Relativity Language
+  // xc-004 — Effective Optical Metric / GRIN Analogy
   {
     id: "xc-004",
+    name: "Gordon Metric",
+    era: "1923 · Walter Gordon",
+    coreIdea:
+      "The Gordon metric formalizes the equivalence between light propagation in a dielectric medium and geodesic motion in an effective curved spacetime: the refractive index field directly defines the metric tensor for photon trajectories.",
+    xprimerayResonance:
+      "This is the direct mathematical foundation for xPRIMEray's GRIN field rendering: every curved ray in a gradient-index medium is a geodesic through the Gordon effective metric. The refractive index field is not just an optical property — it is the curvature geometry xPRIMEray navigates.",
+    feature: "GRINFieldRenderer · EffectiveMetricTransport · CurvedFieldTraversal",
+    motifLabel: "Effective Optical Metric",
+    href: "https://en.wikipedia.org/wiki/Gordon_metric",
+    complete: false,
+  },
+  // xc-005 — Metric Relativity Language
+  {
+    id: "xc-005",
     name: "Misner, Thorne & Wheeler",
     era: "1973",
     coreIdea:
@@ -580,9 +616,9 @@ const XENO_CITATIONS: XenoCitationCard[] = [
     href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
-  // xc-005 — Observer Geometry & Causal Structure
+  // xc-006 — Observer Geometry & Causal Structure
   {
-    id: "xc-005",
+    id: "xc-006",
     name: "Roger Penrose",
     era: "1931 – present",
     coreIdea:
@@ -594,9 +630,9 @@ const XENO_CITATIONS: XenoCitationCard[] = [
     href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
-  // xc-006 — Symmetry & Invariants
+  // xc-007 — Symmetry & Invariants
   {
-    id: "xc-006",
+    id: "xc-007",
     name: "Emmy Noether",
     era: "1882 – 1935",
     coreIdea:
@@ -608,9 +644,9 @@ const XENO_CITATIONS: XenoCitationCard[] = [
     href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
-  // xc-007 — Multi-Path / Quantum Transport Intuition
+  // xc-008 — Multi-Path / Quantum Transport Intuition
   {
-    id: "xc-007",
+    id: "xc-008",
     name: "Richard Feynman",
     era: "1918 – 1988",
     coreIdea:
@@ -622,9 +658,9 @@ const XENO_CITATIONS: XenoCitationCard[] = [
     href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
-  // xc-008 — Temporal Instrumentation & Nanobrain
+  // xc-009 — Temporal Instrumentation & Nanobrain
   {
-    id: "xc-008",
+    id: "xc-009",
     name: "Anirban Bandyopadhyay",
     era: "present",
     coreIdea:
@@ -636,9 +672,9 @@ const XENO_CITATIONS: XenoCitationCard[] = [
     href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
-  // xc-009 — Boundary Correspondence / Celestial Holography
+  // xc-010 — Boundary Correspondence / Celestial Holography
   {
-    id: "xc-009",
+    id: "xc-010",
     name: "Sabrina Pasterski",
     era: "2010s – present",
     coreIdea:
@@ -650,9 +686,9 @@ const XENO_CITATIONS: XenoCitationCard[] = [
     href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
-  // xc-010 — Frontier Interface: Field Propulsion Discourse
+  // xc-011 — Frontier Interface: Field Propulsion Discourse
   {
-    id: "xc-010",
+    id: "xc-011",
     name: "Salvatore Pais",
     era: "1990s – present",
     coreIdea:
@@ -664,9 +700,9 @@ const XENO_CITATIONS: XenoCitationCard[] = [
     href: "https://en.wikipedia.org/wiki/Salvatore_Pais",
     complete: false,
   },
-  // xc-011 — Frontier Interface: Anomaly Investigation Culture
+  // xc-012 — Frontier Interface: Anomaly Investigation Culture
   {
-    id: "xc-011",
+    id: "xc-012",
     name: "Ashton Forbes",
     era: "2010s – present",
     coreIdea:
@@ -759,7 +795,7 @@ function XenoCitationSection() {
           moves outward toward instrumentation, correspondence frameworks, and boundary correspondence.
         </p>
         <p className="mt-3 max-w-2xl rounded-sm border border-border/20 bg-secondary/15 px-3 py-2 text-xs italic text-muted-foreground/40">
-          Frontier-interface entries (xc-010, xc-011) represent contemporary aerospace discourse
+          Frontier-interface entries (xc-011, xc-012) represent contemporary aerospace discourse
           and anomaly-analysis culture. Inclusion reflects conceptual resonance and public
           transport-language investigation — not endorsement or validation of extraordinary claims.
         </p>
