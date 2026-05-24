@@ -19,6 +19,11 @@ export default function Auth() {
 
   const handleGitHub = async () => {
     setSigningIn(true);
+    // Persist destination so AuthRedirectHandler can restore it after the
+    // OAuth round-trip destroys React Router location state.
+    if (from && from !== "/") {
+      sessionStorage.setItem("auth:redirect_after", from);
+    }
     // Redirect back to SPA root — GitHub Pages always serves it, no 404 risk.
     // Supabase detectSessionInUrl picks up the ?code= param wherever we land.
     const redirectTo = `${window.location.origin}${import.meta.env.BASE_URL}`;

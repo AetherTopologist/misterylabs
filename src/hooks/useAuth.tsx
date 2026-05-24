@@ -19,7 +19,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set up listener BEFORE getSession to avoid missed events
     const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
-      setLoading(false);
     });
 
     supabase.auth.getSession().then(({ data }) => {

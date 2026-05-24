@@ -52,7 +52,7 @@ const ProjectDetail = () => {
         <div className="container py-20 text-center">
           <h2 className="text-2xl font-semibold">Project not found</h2>
           <p className="mt-2 text-muted-foreground">It may have been deleted.</p>
-          <Button asChild className="mt-6"><Link to="/">Back to dashboard</Link></Button>
+          <Button asChild className="mt-6"><Link to="/mission">Back to dashboard</Link></Button>
         </div>
       </div>
     );
@@ -73,7 +73,7 @@ const ProjectDetail = () => {
   function handleDelete() {
     projectStore.remove(project.id);
     toast.success("Project removed.");
-    navigate("/");
+    navigate("/mission");
   }
 
   function addEvidence() {
@@ -97,7 +97,7 @@ const ProjectDetail = () => {
       <div className="sticky top-16 z-30 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="container flex h-14 items-center justify-between gap-3">
           <Button asChild variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground">
-            <Link to="/"><ArrowLeft className="h-4 w-4" /> Dashboard</Link>
+            <Link to="/mission"><ArrowLeft className="h-4 w-4" /> Dashboard</Link>
           </Button>
           <div className="flex items-center gap-2">
             <span className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground sm:inline">
