@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => ({
   },
   // This is the most important line
   base: '/misterylabs/',
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
