@@ -325,8 +325,35 @@ const Index = () => {
             ))}
           </div>
 
+          {/* Latest measurement strip */}
+          <div className="mt-8 rounded-sm border border-border/25 bg-card/15 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.35em] text-muted-foreground/35">
+                  Latest measurement · offaxis_observe_delta
+                </div>
+                <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                  <span className="font-mono text-2xl font-bold text-cyan-400/75">23.8%</span>
+                  <span className="text-sm text-muted-foreground/60">classification redistribution</span>
+                </div>
+                <div className="mt-1.5 font-mono text-[9px] text-muted-foreground/30">
+                  <span className="text-cyan-400/50">geom_hit</span>
+                  <span className="mx-1.5 text-muted-foreground/20">→</span>
+                  <span className="text-amber-400/40">escaped_no_hit</span>
+                  <span className="ml-2">· 27,619 px · 480×270</span>
+                </div>
+              </div>
+              <Link
+                to="/atlas"
+                className="inline-flex items-center gap-1.5 self-start rounded-sm border border-border/35 px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground/50 transition-base hover:border-cyan-500/30 hover:text-cyan-400/70"
+              >
+                View cutsheet →
+              </Link>
+            </div>
+          </div>
+
           {/* Release status row */}
-          <div className="mt-8 border-t border-border/25 pt-6">
+          <div className="mt-6 border-t border-border/25 pt-6">
             <div className="mb-4 flex items-center gap-3">
               <span className="font-mono text-[9px] uppercase tracking-[0.35em] text-muted-foreground/45">
                 Release Status

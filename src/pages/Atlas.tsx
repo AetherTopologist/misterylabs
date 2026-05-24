@@ -862,6 +862,25 @@ function ObservatoryHeroSection() {
           renderer classification redistribution.
         </p>
 
+        {/* Geodesic equation strip */}
+        <div className="mt-7 flex flex-wrap items-start gap-x-6 gap-y-3 border-l-2 border-cyan-500/20 pl-4">
+          <div>
+            <span className="block font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/25 mb-1.5">
+              null-geodesic integration
+            </span>
+            <div className="flex items-baseline gap-3 font-mono text-sm tracking-wide text-foreground/55">
+              <span>∂ẋ&nbsp;=&nbsp;p/n(x)</span>
+              <span className="text-muted-foreground/20">·</span>
+              <span>∂ṗ&nbsp;=&nbsp;∇n(x)</span>
+            </div>
+          </div>
+          <div className="hidden w-px self-stretch bg-border/15 sm:block" />
+          <p className="max-w-xs text-xs leading-relaxed text-muted-foreground/35">
+            Position and momentum integrated per step through the GRIN field gradient.
+            Curvature emerges from n(x) — no metric perturbation required.
+          </p>
+        </div>
+
         {/* Metrics strip */}
         <div className="mt-8 flex flex-wrap items-center gap-2">
           <MetricChip label="Resolution" value="480×270" variant="neutral" />
@@ -879,8 +898,31 @@ function ObservatoryHeroSection() {
           <span className="ml-2 text-muted-foreground/20">· 27,619 pixels</span>
         </p>
 
+        {/* Panel reading guide */}
+        <div className="mt-10 rounded-sm border border-border/20 bg-card/8 px-5 py-4">
+          <div className="mb-4 font-mono text-[8px] uppercase tracking-[0.35em] text-muted-foreground/30">
+            Reading the cutsheet — 7 panels
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+            {[
+              { n: "01", label: "Straight beauty",   color: "text-muted-foreground/45" },
+              { n: "02", label: "GRIN beauty",        color: "text-cyan-400/60" },
+              { n: "03", label: "Straight classify",  color: "text-muted-foreground/45" },
+              { n: "04", label: "GRIN classify",      color: "text-cyan-400/60" },
+              { n: "05", label: "Delta mask",         color: "text-amber-400/55" },
+              { n: "06", label: "Delta contours",     color: "text-amber-400/55" },
+              { n: "07", label: "Metrics",            color: "text-muted-foreground/35" },
+            ].map((p) => (
+              <div key={p.n} className="flex flex-col gap-1">
+                <span className="font-mono text-[8px] text-muted-foreground/25">{p.n}</span>
+                <span className={`font-mono text-[9px] uppercase tracking-[0.12em] leading-snug ${p.color}`}>{p.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Hero cutsheet */}
-        <div className="mt-12 overflow-hidden rounded-sm border border-border/30 bg-[#030407]">
+        <div className="mt-4 overflow-hidden rounded-sm border border-border/30 bg-[#030407]">
           <img
             src={`${BASE}assets/offaxis_observe_delta/observability_cutsheet.png`}
             alt="7-panel observability cutsheet comparing straight and GRIN curved transport terminal classifications, delta mask, and contours"
@@ -902,6 +944,24 @@ function ObservatoryHeroSection() {
           </span>
         </div>
 
+        {/* What to look for */}
+        <div className="mt-5 flex items-start gap-4 rounded-sm border border-amber-500/15 bg-amber-950/10 p-4">
+          <div className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400/50" />
+          <div>
+            <div className="mb-1.5 font-mono text-[8px] uppercase tracking-[0.3em] text-amber-400/50">
+              What to look for
+            </div>
+            <p className="text-xs leading-relaxed text-muted-foreground/55">
+              Panel 5 (delta mask): the bright boundary layer tracing the geometry edge —
+              where <span className="font-mono text-cyan-400/70">geom_hit</span> transitions
+              to <span className="font-mono text-amber-400/60">escaped_no_hit</span> under
+              GRIN curvature. Panel 6 isolates the same boundary at single-pixel contour
+              precision. Both captures used identical transport, scheduler, traversal order,
+              and oracle — only the field index function n(x) differs.
+            </p>
+          </div>
+        </div>
+
         {/* Panel breakdown */}
         <div className="mt-14">
           <div className="flex items-center gap-3">
@@ -921,38 +981,37 @@ function ObservatoryHeroSection() {
           </div>
         </div>
 
-        {/* Transition callout */}
+        {/* Measurement report */}
         <div className="mt-8 rounded-sm border border-border/20 bg-card/10 p-5">
-          <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
+          <div className="mb-4 font-mono text-[8px] uppercase tracking-[0.35em] text-muted-foreground/30">
+            Measurement record · offaxis_observe_delta
+          </div>
+          <div className="grid gap-5 sm:grid-cols-3">
             <div>
-              <div className="font-mono text-[8px] uppercase tracking-[0.35em] text-muted-foreground/30 mb-1.5">
-                dominant transition
-              </div>
-              <div className="flex items-center gap-2 font-mono text-sm text-foreground/70">
+              <div className="font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/25 mb-1">Dominant transition</div>
+              <div className="flex items-center gap-1.5 font-mono text-sm text-foreground/65">
                 <span className="text-cyan-400/70">geom_hit</span>
-                <span className="text-muted-foreground/30">→</span>
+                <span className="text-muted-foreground/25">→</span>
                 <span className="text-amber-400/60">escaped_no_hit</span>
               </div>
+              <div className="mt-1 font-mono text-[9px] text-muted-foreground/30">27,619 pixels</div>
             </div>
-            <div className="w-px self-stretch bg-border/15 hidden sm:block" />
-            <div className="flex-1 min-w-0">
-              <div className="font-mono text-[8px] uppercase tracking-[0.35em] text-muted-foreground/30 mb-1.5">
-                interpretation
+            <div>
+              <div className="font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/25 mb-1">Classification shift</div>
+              <div className="font-mono text-sm font-semibold text-cyan-400/75">23.8%</div>
+              <div className="mt-1 font-mono text-[9px] text-muted-foreground/30">of 129,600 total px</div>
+            </div>
+            <div>
+              <div className="font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/25 mb-1">Controls held fixed</div>
+              <div className="mt-1 space-y-0.5 font-mono text-[9px] text-muted-foreground/35">
+                <div>transport · unchanged</div>
+                <div>scheduler · unchanged</div>
+                <div>oracle · unchanged</div>
+                <div className="text-cyan-400/40">n(x) gradient · varied</div>
               </div>
-              <p className="text-xs leading-relaxed text-muted-foreground/50">
-                27,619 pixels redistributed from geometry-hit to escaped-no-hit in the curved GRIN capture.
-                Terminal evidence shifted away from geometry classification — observable as the boundary layer
-                in the delta mask. Observability artifact only: no transport changes between captures.
-              </p>
             </div>
           </div>
         </div>
-
-        {/* Guardrails note */}
-        <p className="mt-4 text-[10px] italic leading-relaxed text-muted-foreground/25 max-w-2xl">
-          Measured outputs only. No transport, scheduler, traversal-order, hit-selection, or oracle changes between captures.
-          Hermetic observatory remains the export sanity gate.
-        </p>
       </div>
     </section>
   );
