@@ -4,43 +4,39 @@ import { Beaker, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { lovable } from "@/integrations/lovable";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-type OAuthProvider = "github" | "google";
 
 export default function Auth() {
   const { session, loading } = useAuth();
   const location = useLocation();
-  const [signingIn, setSigningIn] = useState<OAuthProvider | null>(null);
+  const [signingIn, setSigningIn] = useState(false);
   const from = (location.state as { from?: string } | null)?.from ?? "/";
 
   if (!loading && session) {
     return <Navigate to={from} replace />;
   }
 
-  const handleOAuth = async (provider: OAuthProvider) => {
-    setSigningIn(provider);
-    const redirectUri = `${window.location.origin}${import.meta.env.BASE_URL}auth`;
-    const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: redirectUri,
+  const handleGitHub = async () => {
+    setSigningIn(true);
+    // Redirect back to SPA root — GitHub Pages always serves it, no 404 risk.
+    // Supabase detectSessionInUrl picks up the ?code= param wherever we land.
+    const redirectTo = `${window.location.origin}${import.meta.env.BASE_URL}`;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "github",
+      options: { redirectTo },
     });
-    if (result.error) {
-      toast.error("Sign-in failed", { description: result.error.message });
-      setSigningIn(null);
-      return;
+    if (error) {
+      toast.error("Sign-in failed", { description: error.message });
+      setSigningIn(false);
     }
-    if (result.redirected) {
-      return;
-    }
-    setSigningIn(null);
+    // On success the browser navigates away; no cleanup needed.
   };
-
-  const busy = signingIn !== null || loading;
 
   return (
     <main className="grid min-h-screen place-items-center bg-background px-4">
-      <div className="w-full max-w-md space-y-6 animate-fade-in">
+      <div className="w-full max-w-sm space-y-6">
+        {/* Logo + title */}
         <div className="flex flex-col items-center gap-3 text-center">
           <span className="relative grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary-glow shadow-glow">
             <Beaker className="h-5 w-5 text-primary-foreground" strokeWidth={2.5} />
@@ -48,51 +44,55 @@ export default function Auth() {
           </span>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
-              xPRIME <span className="text-gradient">Lab</span>
+              MisterY <span className="text-gradient">Labs</span>
             </h1>
             <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
-              Mission control · Sign in
+              Observatory · Sign in
             </p>
           </div>
         </div>
 
         <Card className="border-border/60">
-          <CardHeader className="space-y-1.5">
-            <CardTitle className="text-lg">Sign in to edit</CardTitle>
-            <CardDescription className="text-xs">
-              Sign in to access Mission Control, add evidence, and run GitHub repository scans.
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-base">Sign in to edit</CardTitle>
+            <CardDescription className="text-xs leading-relaxed">
+              Required for Mission Control, adding evidence, and running repository scans.
               The public observatory is always open without an account.
             </CardDescription>
           </CardHeader>
+
           <CardContent className="space-y-3">
-            {/* GitHub */}
+            {/* GitHub — primary, direct Supabase OAuth */}
             <Button
-              onClick={() => handleOAuth("github")}
-              disabled={busy}
-              variant="outline"
-              className="w-full border-border/70 bg-[#24292e] text-white hover:bg-[#2f3439] hover:text-white"
+              onClick={handleGitHub}
+              disabled={signingIn || loading}
+              className="w-full bg-[#24292e] text-white hover:bg-[#2f3439] border-0"
               size="lg"
             >
-              <GitHubIcon className="mr-2 h-4 w-4" />
-              {signingIn === "github" ? "Redirecting…" : "Continue with GitHub"}
+              <GitHubIcon className="mr-2 h-4 w-4 shrink-0" />
+              {signingIn ? "Redirecting…" : "Continue with GitHub"}
             </Button>
 
-            {/* Google */}
-            <Button
-              onClick={() => handleOAuth("google")}
-              disabled={busy}
-              variant="outline"
-              className="w-full border-border/70 bg-white text-[#1f1f1f] hover:bg-gray-50 hover:text-[#1f1f1f]"
-              size="lg"
-            >
-              <GoogleIcon className="mr-2 h-4 w-4" />
-              {signingIn === "google" ? "Redirecting…" : "Continue with Google"}
-            </Button>
+            {/* Google — disabled, coming soon */}
+            <div className="relative">
+              <Button
+                disabled
+                variant="outline"
+                className="w-full border-border/40 bg-white/5 text-muted-foreground/50 cursor-not-allowed"
+                size="lg"
+              >
+                <GoogleIcon className="mr-2 h-4 w-4 shrink-0 opacity-40" />
+                Continue with Google
+              </Button>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-border/50 bg-muted px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-muted-foreground/60">
+                Soon
+              </span>
+            </div>
 
-            <div className="flex items-start gap-2 rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground">
-              <ShieldCheck className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary-glow" />
+            <div className="flex items-start gap-2 rounded-md border border-border/50 bg-muted/20 p-3 text-[11px] leading-relaxed text-muted-foreground">
+              <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary/70" />
               <p>
-                Your GitHub token is never exposed to the browser — repository scans run server-side
+                GitHub tokens are never stored in the browser — repository scans run server-side
                 and require an authenticated session.
               </p>
             </div>
