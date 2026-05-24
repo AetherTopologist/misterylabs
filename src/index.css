@@ -162,6 +162,26 @@
     background-size: auto, auto, 56px 56px, 56px 56px;
   }
 
+  /* Hero sphere section — dark graphite + 50px ghost grid (used by TransportSphereViz hero) */
+  .hero-sphere-section {
+    background-color: #0c0d12;
+    background-image:
+      repeating-linear-gradient(0deg,  rgba(255,255,255,0.012) 0 1px, transparent 1px 50px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 50px);
+    min-height: 91vh;
+  }
+
+  /* Gradient overlay that fades the sphere into the hero text area */
+  .hero-sphere-fade {
+    height: 62%;
+    background: linear-gradient(to top, #0c0d12 28%, rgba(12,13,18,0.88) 54%, transparent);
+  }
+
+  /* Featured artifact section — one step lighter than hero */
+  .bg-featured-artifact {
+    background-color: #12131a;
+  }
+
   .glow-ring {
     box-shadow: 0 0 0 1px hsl(var(--primary) / 0.4), 0 0 30px -4px hsl(var(--primary) / 0.5);
   }
