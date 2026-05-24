@@ -11,7 +11,7 @@ export function SiteFooter() {
         </div>
         <div className="mt-3 flex items-center gap-3 border-t border-border/20 pt-3">
           <img
-            src="/assets/xPRIMEray_Logo_Research_256.png"
+            src={`${import.meta.env.BASE_URL}assets/xPRIMEray_Logo_Research_256.png`}
             alt="xPRIMEray Observatory"
             aria-hidden
             className="h-5 w-auto opacity-[0.12]"

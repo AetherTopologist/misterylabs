@@ -756,6 +756,8 @@ const TIER_BADGE: Record<InspirationTier, { label: string; cls: string } | null>
 
 // ── Cutsheet panel data ────────────────────────────────────
 
+const BASE = import.meta.env.BASE_URL;
+
 type PanelType = "curved" | "straight" | "delta";
 
 interface ObsPanel {
@@ -767,37 +769,37 @@ interface ObsPanel {
 
 const OFFAXIS_PANELS: ObsPanel[] = [
   {
-    src: "/assets/offaxis_observe_delta/straight_offaxis_observe_beauty.png",
+    src: `${BASE}assets/offaxis_observe_delta/straight_offaxis_observe_beauty.png`,
     label: "Straight Transport",
     sublabel: "Beauty frame · resolved film",
     type: "straight",
   },
   {
-    src: "/assets/offaxis_observe_delta/grin_offaxis_observe_beauty.png",
+    src: `${BASE}assets/offaxis_observe_delta/grin_offaxis_observe_beauty.png`,
     label: "Curved GRIN Transport",
     sublabel: "Beauty frame · resolved film",
     type: "curved",
   },
   {
-    src: "/assets/offaxis_observe_delta/straight_offaxis_observe_transport_classification.png",
+    src: `${BASE}assets/offaxis_observe_delta/straight_offaxis_observe_transport_classification.png`,
     label: "Straight Classification",
     sublabel: "Terminal transport labels",
     type: "straight",
   },
   {
-    src: "/assets/offaxis_observe_delta/grin_offaxis_observe_transport_classification.png",
+    src: `${BASE}assets/offaxis_observe_delta/grin_offaxis_observe_transport_classification.png`,
     label: "Curved Classification",
     sublabel: "Terminal transport labels",
     type: "curved",
   },
   {
-    src: "/assets/offaxis_observe_delta/classification_delta.png",
+    src: `${BASE}assets/offaxis_observe_delta/classification_delta.png`,
     label: "Classification Delta",
     sublabel: "Changed pixel mask · 30,839 px",
     type: "delta",
   },
   {
-    src: "/assets/offaxis_observe_delta/classification_delta_contours.png",
+    src: `${BASE}assets/offaxis_observe_delta/classification_delta_contours.png`,
     label: "Delta Contours",
     sublabel: "Boundary structure overlay",
     type: "delta",
@@ -880,7 +882,7 @@ function ObservatoryHeroSection() {
         {/* Hero cutsheet */}
         <div className="mt-12 overflow-hidden rounded-sm border border-border/30 bg-[#030407]">
           <img
-            src="/assets/offaxis_observe_delta/observability_cutsheet.png"
+            src={`${BASE}assets/offaxis_observe_delta/observability_cutsheet.png`}
             alt="7-panel observability cutsheet comparing straight and GRIN curved transport terminal classifications, delta mask, and contours"
             className="w-full object-contain"
             loading="eager"

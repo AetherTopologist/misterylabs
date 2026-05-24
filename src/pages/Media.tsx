@@ -8,6 +8,8 @@ import { SiteFooter } from "@/components/SiteFooter";
 
 // ── Gallery Data ──────────────────────────────────────────
 
+const BASE = import.meta.env.BASE_URL;
+
 type GalleryCategory = "All" | "Overview" | "Cathedral Probe" | "Transport Islands" | "Curved Field Validation";
 
 interface GalleryItem {
@@ -22,70 +24,70 @@ interface GalleryItem {
 const GALLERY_ITEMS: GalleryItem[] = [
   {
     id: "g01", index: "#01",
-    src: "/assets/overview/wormhole_structure_contact_sheet.png",
+    src: `${BASE}assets/overview/wormhole_structure_contact_sheet.png`,
     system: "Overview",
     title: "Wormhole Structure Contact Sheet",
     desc: "Multi-panel contact sheet tracing wormhole geometry and seam topology across traversal states.",
   },
   {
     id: "g02", index: "#02",
-    src: "/assets/overview/atomic_orbital_contact_sheet.png",
+    src: `${BASE}assets/overview/atomic_orbital_contact_sheet.png`,
     system: "Overview",
     title: "Atomic Orbital Contact Sheet",
     desc: "Curved transport paths rendered through orbital-like field structures across a series of probe steps.",
   },
   {
     id: "g03", index: "#03",
-    src: "/assets/cathedral_probe/cathedral_probe_contact_sheet_row_0015.png",
+    src: `${BASE}assets/cathedral_probe/cathedral_probe_contact_sheet_row_0015.png`,
     system: "Cathedral Probe",
     title: "Cathedral Probe Diagnostic Stack",
     desc: "Six-layer contact sheet: beauty, wireframe, transport ownership, risk markers, transport diagram, continuity vectors.",
   },
   {
     id: "g04", index: "#04",
-    src: "/assets/cathedral_probe/traversal_contact_sheet_4mode_0015.png",
+    src: `${BASE}assets/cathedral_probe/traversal_contact_sheet_4mode_0015.png`,
     system: "Cathedral Probe",
     title: "Four-Mode Traversal Comparison",
     desc: "Row, column, tile, and checkerboard traversal modes compared at step_length=0.015. Scheduler decorrelation effect visible.",
   },
   {
     id: "g05", index: "#05",
-    src: "/assets/cathedral_probe/scheduler_resonance_stride_heatmap.png",
+    src: `${BASE}assets/cathedral_probe/scheduler_resonance_stride_heatmap.png`,
     system: "Cathedral Probe",
     title: "Scheduler Resonance Stride Heatmap",
     desc: "Band pixel count by row-modulo-stride class across a 56-cell DOE. Traversal cadence confirmed as primary artifact amplifier.",
   },
   {
     id: "g06", index: "#06",
-    src: "/assets/cathedral_probe/doe_step_sensitivity_band_plot.png",
+    src: `${BASE}assets/cathedral_probe/doe_step_sensitivity_band_plot.png`,
     system: "Cathedral Probe",
     title: "Step-Length Sensitivity DOE",
     desc: "Band percentage vs step length across a full overnight DOE. Finer steps expose more transport boundary structure.",
   },
   {
     id: "g07", index: "#07",
-    src: "/assets/transport_islands/island_parent_trajectory_contact_sheet.png",
+    src: `${BASE}assets/transport_islands/island_parent_trajectory_contact_sheet.png`,
     system: "Transport Islands",
     title: "Transport Island Oracle Trajectories",
     desc: "Oracle parent trajectories for 289 island samples. Null-geodesic paths colored by termination and step count.",
   },
   {
     id: "g08", index: "#08",
-    src: "/assets/transport_islands/island_diagnostic_contact_sheet.png",
+    src: `${BASE}assets/transport_islands/island_diagnostic_contact_sheet.png`,
     system: "Transport Islands",
     title: "Island Microscopy Diagnostic Sheet",
     desc: "Six-layer diagnostic overlay for the corner island patch. Bounded transport anomaly mapped at oracle precision.",
   },
   {
     id: "g09", index: "#09",
-    src: "/assets/curved_field_validation_ladder/curved_vs_control_storyboard.png",
+    src: `${BASE}assets/curved_field_validation_ladder/curved_vs_control_storyboard.png`,
     system: "Curved Field Validation",
     title: "Curved vs Control Storyboard",
     desc: "Side-by-side comparison: control render, curved-transport render, hit normals, ownership seams, and graph lineage.",
   },
   {
     id: "g10", index: "#10",
-    src: "/assets/curved_field_validation_ladder/curved_field_validation_quad_panel.png",
+    src: `${BASE}assets/curved_field_validation_ladder/curved_field_validation_quad_panel.png`,
     system: "Curved Field Validation",
     title: "Curved Field Validation Quad Panel",
     desc: "Four-panel layout: rendered frame, hit-normal overlay, cross-section minimap, and transport/field overlay.",
@@ -195,7 +197,7 @@ export default function MediaPage() {
       <section id="observatory-gallery" className="relative border-t border-border/35">
         {/* Section watermark */}
         <img
-          src="/assets/xPRIMEray_Logo_Research_256.png"
+          src={`${BASE}assets/xPRIMEray_Logo_Research_256.png`}
           alt=""
           aria-hidden
           className="pointer-events-none absolute right-6 top-8 h-16 w-auto opacity-[0.055] select-none"
@@ -311,7 +313,7 @@ function GalleryCard({ item, provenanceLabel }: { item: GalleryItem; provenanceL
             {item.system}
           </span>
           <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-sm bg-background/60 px-1.5 py-0.5 backdrop-blur-sm">
-            <img src="/assets/xprimeray-icon.svg" alt="" aria-hidden className="h-2.5 w-2.5 opacity-40" />
+            <img src={`${BASE}assets/xprimeray-icon.svg`} alt="" aria-hidden className="h-2.5 w-2.5 opacity-40" />
             <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-foreground/30">
               {provenanceLabel}
             </span>
