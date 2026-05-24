@@ -19,8 +19,11 @@ export default function Auth() {
 
   const handleGoogle = async () => {
     setSigningIn(true);
+    // Use the full base-path URL so the callback lands on the SPA, not the GitHub
+    // Pages root. BASE_URL is '/misterylabs/' in production and '/' in dev.
+    const redirectUri = `${window.location.origin}${import.meta.env.BASE_URL}auth`;
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: redirectUri,
     });
     if (result.error) {
       toast.error("Sign-in failed", { description: result.error.message });
