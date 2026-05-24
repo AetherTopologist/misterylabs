@@ -21,7 +21,7 @@ npm run dev        # http://localhost:8080
 Requires a `.env` file (not committed — see `.env` locally or ask the project owner):
 
 ```
-VITE_SUPABASE_URL=https://gddwvfgqramefrrreto.supabase.co
+VITE_SUPABASE_URL=https://gddwvfgraqmefrrreto.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=<anon key from Supabase dashboard>
 ```
 
