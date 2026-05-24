@@ -754,6 +754,56 @@ const TIER_BADGE: Record<InspirationTier, { label: string; cls: string } | null>
   mirror: null,
 };
 
+// ── Cutsheet panel data ────────────────────────────────────
+
+type PanelType = "curved" | "straight" | "delta";
+
+interface ObsPanel {
+  src: string;
+  label: string;
+  sublabel: string;
+  type: PanelType;
+}
+
+const OFFAXIS_PANELS: ObsPanel[] = [
+  {
+    src: "/assets/offaxis_observe_delta/straight_offaxis_observe_beauty.png",
+    label: "Straight Transport",
+    sublabel: "Beauty frame · resolved film",
+    type: "straight",
+  },
+  {
+    src: "/assets/offaxis_observe_delta/grin_offaxis_observe_beauty.png",
+    label: "Curved GRIN Transport",
+    sublabel: "Beauty frame · resolved film",
+    type: "curved",
+  },
+  {
+    src: "/assets/offaxis_observe_delta/straight_offaxis_observe_transport_classification.png",
+    label: "Straight Classification",
+    sublabel: "Terminal transport labels",
+    type: "straight",
+  },
+  {
+    src: "/assets/offaxis_observe_delta/grin_offaxis_observe_transport_classification.png",
+    label: "Curved Classification",
+    sublabel: "Terminal transport labels",
+    type: "curved",
+  },
+  {
+    src: "/assets/offaxis_observe_delta/classification_delta.png",
+    label: "Classification Delta",
+    sublabel: "Changed pixel mask · 30,839 px",
+    type: "delta",
+  },
+  {
+    src: "/assets/offaxis_observe_delta/classification_delta_contours.png",
+    label: "Delta Contours",
+    sublabel: "Boundary structure overlay",
+    type: "delta",
+  },
+];
+
 // ── Page ──────────────────────────────────────────────────
 
 export default function AtlasPage() {
@@ -761,6 +811,7 @@ export default function AtlasPage() {
     <div className="min-h-screen">
       <AppHeader />
       <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/25 to-transparent" aria-hidden />
+      <ObservatoryHeroSection />
       <FractalInspirationAtlas />
       <XenoCitationSection />
       <SignalsSection />
@@ -769,7 +820,143 @@ export default function AtlasPage() {
   );
 }
 
-// ── Sub-components ────────────────────────────────────────
+// ── Observatory Hero ──────────────────────────────────────
+
+function ObservatoryHeroSection() {
+  return (
+    <section
+      id="observatory-hero"
+      className="relative border-t border-border/60"
+      style={{
+        background: "#05060c",
+        backgroundImage:
+          "repeating-linear-gradient(0deg, rgba(255,255,255,0.016) 0 1px, transparent 1px 40px), repeating-linear-gradient(90deg, rgba(255,255,255,0.016) 0 1px, transparent 1px 40px)",
+      }}
+    >
+      <div className="container py-20 md:py-28">
+        {/* Observatory identifier row */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <span className="font-mono text-[8px] uppercase tracking-[0.45em] text-muted-foreground/30">
+            SYS // 03
+          </span>
+          <div className="h-px w-8 bg-border/25" />
+          <span className="font-mono text-[8px] uppercase tracking-[0.35em] text-cyan-400/50">
+            Observer Disagreement
+          </span>
+          <div className="h-px flex-1 bg-border/15 hidden sm:block" />
+          <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/25">
+            offaxis_observe_delta
+          </span>
+        </div>
+
+        {/* Headline */}
+        <h1 className="mt-8 max-w-3xl text-4xl font-bold tracking-tight text-foreground md:text-5xl lg:text-6xl">
+          Light doesn't always<br className="hidden md:block" /> travel straight.
+        </h1>
+
+        {/* Subheadline */}
+        <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground/70">
+          Measured observability cutsheets for native geodesic ray tracing and
+          renderer classification redistribution.
+        </p>
+
+        {/* Metrics strip */}
+        <div className="mt-8 flex flex-wrap items-center gap-2">
+          <MetricChip label="Resolution" value="480×270" variant="neutral" />
+          <MetricChip label="Changed pixels" value="30,839" variant="transport" />
+          <MetricChip label="Changed ratio" value="23.8%" variant="transport" />
+          <MetricChip label="Unresolved" value="39.5%" variant="field" />
+        </div>
+
+        {/* Dominant transition note */}
+        <p className="mt-4 font-mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground/30">
+          dominant transition:&nbsp;
+          <span className="text-cyan-400/50">geom_hit</span>
+          <span className="mx-1.5 text-muted-foreground/20">→</span>
+          <span className="text-amber-400/40">escaped_no_hit</span>
+          <span className="ml-2 text-muted-foreground/20">· 27,619 pixels</span>
+        </p>
+
+        {/* Hero cutsheet */}
+        <div className="mt-12 overflow-hidden rounded-sm border border-border/30 bg-[#030407]">
+          <img
+            src="/assets/offaxis_observe_delta/observability_cutsheet.png"
+            alt="7-panel observability cutsheet comparing straight and GRIN curved transport terminal classifications, delta mask, and contours"
+            className="w-full object-contain"
+            loading="eager"
+          />
+        </div>
+
+        {/* Cutsheet caption */}
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-cyan-400/40" />
+            <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/35">
+              7-panel observability cutsheet · offaxis_observe_delta
+            </span>
+          </div>
+          <span className="font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/25">
+            GRIN vs straight · terminal classification comparison
+          </span>
+        </div>
+
+        {/* Panel breakdown */}
+        <div className="mt-14">
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[8px] uppercase tracking-[0.4em] text-muted-foreground/30">
+              Panel breakdown
+            </span>
+            <div className="h-px flex-1 bg-border/15" />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground/40">
+            Individual frames from the observability packet — beauty renders, terminal classifications, and the measured delta between transport assumptions.
+          </p>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {OFFAXIS_PANELS.map((panel) => (
+              <ObsPanel key={panel.src} panel={panel} />
+            ))}
+          </div>
+        </div>
+
+        {/* Transition callout */}
+        <div className="mt-8 rounded-sm border border-border/20 bg-card/10 p-5">
+          <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
+            <div>
+              <div className="font-mono text-[8px] uppercase tracking-[0.35em] text-muted-foreground/30 mb-1.5">
+                dominant transition
+              </div>
+              <div className="flex items-center gap-2 font-mono text-sm text-foreground/70">
+                <span className="text-cyan-400/70">geom_hit</span>
+                <span className="text-muted-foreground/30">→</span>
+                <span className="text-amber-400/60">escaped_no_hit</span>
+              </div>
+            </div>
+            <div className="w-px self-stretch bg-border/15 hidden sm:block" />
+            <div className="flex-1 min-w-0">
+              <div className="font-mono text-[8px] uppercase tracking-[0.35em] text-muted-foreground/30 mb-1.5">
+                interpretation
+              </div>
+              <p className="text-xs leading-relaxed text-muted-foreground/50">
+                27,619 pixels redistributed from geometry-hit to escaped-no-hit in the curved GRIN capture.
+                Terminal evidence shifted away from geometry classification — observable as the boundary layer
+                in the delta mask. Observability artifact only: no transport changes between captures.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Guardrails note */}
+        <p className="mt-4 text-[10px] italic leading-relaxed text-muted-foreground/25 max-w-2xl">
+          Measured outputs only. No transport, scheduler, traversal-order, hit-selection, or oracle changes between captures.
+          Hermetic observatory remains the export sanity gate.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ── XenoCitations ─────────────────────────────────────────
 
 function XenoCitationSection() {
   return (
@@ -865,6 +1052,8 @@ function XenoCitationCardView({ card }: { card: XenoCitationCard }) {
     </div>
   );
 }
+
+// ── Signals (Inspiration cards) ───────────────────────────
 
 function InspirationCard({ node }: { node: InspirationNode }) {
   const badge = TIER_BADGE[node.tier];
@@ -980,5 +1169,76 @@ function SignalsSection() {
         </div>
       </div>
     </section>
+  );
+}
+
+// ── Shared sub-components ─────────────────────────────────
+
+function MetricChip({
+  label,
+  value,
+  variant = "neutral",
+}: {
+  label: string;
+  value: string;
+  variant?: "transport" | "field" | "neutral";
+}) {
+  const cls =
+    variant === "transport"
+      ? "border-cyan-500/25 bg-cyan-950/20 text-cyan-400/80"
+      : variant === "field"
+        ? "border-amber-500/20 bg-amber-950/20 text-amber-400/70"
+        : "border-border/30 bg-card/20 text-muted-foreground/60";
+
+  return (
+    <div className={`flex items-center gap-2 rounded-sm border px-2.5 py-1.5 ${cls}`}>
+      <span className="font-mono text-[8px] uppercase tracking-[0.2em] opacity-60">{label}</span>
+      <span className="font-mono text-[10px] font-semibold">{value}</span>
+    </div>
+  );
+}
+
+function ObsPanel({ panel }: { panel: ObsPanel }) {
+  const labelCls =
+    panel.type === "curved"
+      ? "text-cyan-400/70 border-cyan-500/20 bg-cyan-950/40"
+      : panel.type === "straight"
+        ? "text-amber-400/60 border-amber-500/20 bg-amber-950/30"
+        : "text-muted-foreground/50 border-border/25 bg-background/50";
+
+  const dotCls =
+    panel.type === "curved"
+      ? "bg-cyan-400/50"
+      : panel.type === "straight"
+        ? "bg-amber-400/40"
+        : "bg-muted-foreground/30";
+
+  const typeLabel =
+    panel.type === "curved" ? "GRIN · curved" : panel.type === "straight" ? "straight" : "delta";
+
+  return (
+    <div className="group overflow-hidden rounded-sm border border-border/25 bg-[#030407] transition-base hover:border-border/40">
+      <div className="relative overflow-hidden bg-[#020305]">
+        <img
+          src={panel.src}
+          alt={panel.label}
+          loading="lazy"
+          className="w-full object-contain"
+          style={{ imageRendering: "pixelated" }}
+        />
+        <div
+          className={`absolute left-2 top-2 flex items-center gap-1.5 rounded-sm border px-1.5 py-0.5 backdrop-blur-sm ${labelCls}`}
+        >
+          <span className={`h-1 w-1 rounded-full ${dotCls}`} />
+          <span className="font-mono text-[7px] uppercase tracking-[0.25em]">{typeLabel}</span>
+        </div>
+      </div>
+      <div className="border-t border-border/15 px-3 py-2.5">
+        <div className="text-[11px] font-medium text-foreground/65">{panel.label}</div>
+        <div className="mt-0.5 font-mono text-[8px] uppercase tracking-[0.15em] text-muted-foreground/35">
+          {panel.sublabel}
+        </div>
+      </div>
+    </div>
   );
 }
