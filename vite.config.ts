@@ -1,5 +1,6 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
@@ -12,7 +13,8 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  base: "/misterylabs/",
+  // This is the most important line
+  base: '/misterylabs/',
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
@@ -27,4 +29,9 @@ export default defineConfig(({ mode }) => ({
       "@tanstack/query-core",
     ],
   },
+
+  build: {
+    outDir: 'dist',
+  },
+
 }));
