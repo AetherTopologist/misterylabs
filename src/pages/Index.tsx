@@ -68,10 +68,10 @@ const Index = () => {
 
       {/* ── HERO ──────────────────────────────────────────── */}
       {/*
-        Full-viewport sphere visualization. The TransportSphereViz SVG fills the
-        section absolutely; a bottom gradient fades it into the text overlay.
-        Matches the reference: dark graphite, split straight/curved transport,
-        headline bottom-left, amber CTA.
+        Full-viewport (100svh) sphere visualization. SVG fills section absolutely;
+        a bottom gradient fades the lower portion for text readability.
+        Reference: dark graphite grid, split sphere, headline bottom-left, amber CTA.
+        Removed the operational status badge — cleaner match to reference aesthetic.
       */}
       <section className="hero-sphere-section relative flex flex-col overflow-hidden">
         {/* Sphere — fills the entire hero */}
@@ -85,25 +85,13 @@ const Index = () => {
           aria-hidden
         />
 
-        {/* Text overlay — anchored to bottom */}
-        <div className="container relative mt-auto pb-14 pt-56">
-          {/* Observatory status badge */}
-          <div className="mb-5 flex items-center gap-2.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-success animate-signal-pulse" />
-            <span className="font-mono text-[8px] uppercase tracking-[0.4em] text-success/70">
-              MYL-OBS-001 · Active
-            </span>
-            <div className="h-px w-5 bg-border/30" />
-            <span className="font-mono text-[8px] uppercase tracking-[0.35em] text-muted-foreground/30">
-              offaxis_observe_delta
-            </span>
-          </div>
-
-          <h1 className="max-w-2xl text-5xl font-bold leading-[1.06] tracking-tight text-foreground md:text-6xl lg:text-[4.75rem]">
+        {/* Text overlay — anchored to bottom-left */}
+        <div className="container relative mt-auto pb-16 pt-10">
+          <h1 className="max-w-2xl text-6xl font-bold leading-[1.05] tracking-tight text-foreground md:text-7xl lg:text-[5.25rem]">
             Light doesn't always<br className="hidden sm:block" /> travel straight.
           </h1>
 
-          <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.28em] text-amber-400/65">
+          <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.28em] text-amber-400/70">
             Measured observability cutsheets for native geodesic ray tracing.
           </p>
 
@@ -134,57 +122,86 @@ const Index = () => {
 
       {/* ── FEATURED ARTIFACT ─────────────────────────────── */}
       {/*
-        Showcases the offaxis_observe_delta as the flagship measurement.
-        Lighter background creates contrast break from the dark hero.
-        4-panel grid mirrors the reference's diagnostic panel layout.
+        All 8 available offaxis_observe_delta diagnostic panels in a 2×4 grid.
+        Reference image shows exactly this layout. Slightly lighter background
+        creates a clean contrast break from the dark hero.
       */}
       <section className="bg-featured-artifact border-t border-border/20">
-        <div className="container py-16">
+        <div className="container py-16 lg:py-20">
+          {/* Section heading — larger and more prominent than before */}
           <div className="mb-10 text-center">
-            <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.45em] text-muted-foreground/30">
+            <div className="mb-3 font-mono text-[9px] uppercase tracking-[0.45em] text-muted-foreground/35">
               Featured Artifact
             </div>
-            <h2 className="text-xl font-semibold tracking-tight text-foreground/80">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground/90 md:text-3xl">
               Off-Axis Observer Disagreement
             </h2>
-            <p className="mt-2 text-sm text-muted-foreground/45">
+            <p className="mt-2.5 font-mono text-[10px] text-muted-foreground/40">
               23.8% classification redistribution · 27,619 px · 480×270
             </p>
           </div>
 
-          {/* 4 diagnostic panels — 2×2 on mobile, 4-wide on sm+ */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {/*
+            8-panel diagnostic grid: 2 columns on mobile, 4 on sm+.
+            Row 1: beauty frames + transport classification
+            Row 2: delta analysis + observability summary
+          */}
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
             {[
               {
                 src: `${BASE}assets/offaxis_observe_delta/straight_offaxis_observe_beauty.png`,
                 label: "Beauty frame",
                 sub: "Straight transport",
-                accent: "text-muted-foreground/45",
+                accent: "text-muted-foreground/50",
               },
               {
                 src: `${BASE}assets/offaxis_observe_delta/grin_offaxis_observe_beauty.png`,
                 label: "Beauty frame",
                 sub: "GRIN transport",
-                accent: "text-cyan-400/55",
+                accent: "text-cyan-400/60",
+              },
+              {
+                src: `${BASE}assets/offaxis_observe_delta/straight_offaxis_observe_transport_classification.png`,
+                label: "Classification",
+                sub: "Straight transport",
+                accent: "text-muted-foreground/50",
+              },
+              {
+                src: `${BASE}assets/offaxis_observe_delta/grin_offaxis_observe_transport_classification.png`,
+                label: "Classification",
+                sub: "GRIN transport",
+                accent: "text-cyan-400/60",
               },
               {
                 src: `${BASE}assets/offaxis_observe_delta/classification_delta.png`,
-                label: "Delta mask",
+                label: "Δ-mask",
                 sub: "23.8% redistributed",
-                accent: "text-amber-400/55",
+                accent: "text-amber-400/60",
               },
               {
                 src: `${BASE}assets/offaxis_observe_delta/classification_delta_contours.png`,
                 label: "Contour overlay",
                 sub: "Boundary structure",
-                accent: "text-amber-400/55",
+                accent: "text-amber-400/60",
+              },
+              {
+                src: `${BASE}assets/offaxis_observe_delta/contact_sheet.png`,
+                label: "Contact sheet",
+                sub: "Multi-pass composite",
+                accent: "text-muted-foreground/50",
+              },
+              {
+                src: `${BASE}assets/offaxis_observe_delta/observability_cutsheet.png`,
+                label: "Observability cutsheet",
+                sub: "Full diagnostic summary",
+                accent: "text-primary/50",
               },
             ].map((panel) => (
               <div
                 key={panel.src}
-                className="overflow-hidden rounded-sm border border-border/20 bg-card/15"
+                className="overflow-hidden rounded border border-border/25 bg-black/30 transition-base hover:border-border/45"
               >
-                <div className="aspect-[4/3] overflow-hidden bg-black/50">
+                <div className="aspect-square overflow-hidden bg-black/60">
                   <img
                     src={panel.src}
                     alt={panel.label}
@@ -192,9 +209,9 @@ const Index = () => {
                     loading="lazy"
                   />
                 </div>
-                <div className="px-3 py-2.5">
-                  <div className="text-xs font-medium text-foreground/60">{panel.label}</div>
-                  <div className={`mt-0.5 font-mono text-[8px] uppercase tracking-[0.15em] ${panel.accent}`}>
+                <div className="px-3 py-2">
+                  <div className="text-[11px] font-medium text-foreground/70">{panel.label}</div>
+                  <div className={`mt-0.5 font-mono text-[8px] uppercase tracking-[0.18em] ${panel.accent}`}>
                     {panel.sub}
                   </div>
                 </div>

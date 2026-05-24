@@ -168,13 +168,14 @@
     background-image:
       repeating-linear-gradient(0deg,  rgba(255,255,255,0.012) 0 1px, transparent 1px 50px),
       repeating-linear-gradient(90deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 50px);
-    min-height: 91vh;
+    min-height: 100svh; /* full-screen: sphere dominates the first viewport */
   }
 
-  /* Gradient overlay that fades the sphere into the hero text area */
+  /* Gradient overlay that fades the sphere into the hero text area.
+     Shallower than before so more sphere remains visible above the headline. */
   .hero-sphere-fade {
-    height: 62%;
-    background: linear-gradient(to top, #0c0d12 28%, rgba(12,13,18,0.88) 54%, transparent);
+    height: 52%;
+    background: linear-gradient(to top, #0c0d12 24%, rgba(12,13,18,0.80) 52%, transparent);
   }
 
   /* Featured artifact section — one step lighter than hero */
