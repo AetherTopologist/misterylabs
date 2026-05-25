@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Github, MessageSquare, BookOpen } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { FractalInspirationAtlas } from "@/components/FractalInspirationAtlas";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -817,6 +817,7 @@ export default function AtlasPage() {
       <FractalInspirationAtlas />
       <XenoCitationSection />
       <SignalsSection />
+      <GetInvolvedSection />
       <SiteFooter />
     </div>
   );
@@ -826,15 +827,21 @@ export default function AtlasPage() {
 
 function ObservatoryHeroSection() {
   return (
-    <section
-      id="observatory-hero"
-      className="relative border-t border-border/60"
-      style={{
-        background: "#05060c",
-        backgroundImage:
-          "repeating-linear-gradient(0deg, rgba(255,255,255,0.016) 0 1px, transparent 1px 40px), repeating-linear-gradient(90deg, rgba(255,255,255,0.016) 0 1px, transparent 1px 40px)",
-      }}
-    >
+    <section id="observatory-hero" className="bg-atlas-hero relative border-t border-border/60">
+      {/* Faint transport arc — visual echo of homepage sphere */}
+      <svg
+        className="pointer-events-none absolute right-0 top-0 h-72 w-[28rem] opacity-[0.065]"
+        viewBox="0 0 450 290"
+        preserveAspectRatio="xMaxYMin slice"
+        aria-hidden
+      >
+        <circle cx="370" cy="-30" r="220" fill="none" stroke="hsl(186,84%,56%)" strokeWidth="0.7" />
+        <circle cx="370" cy="-30" r="185" fill="none" stroke="hsl(245,90%,66%)" strokeWidth="0.5" />
+        <path d="M 200 0 Q 300 90 380 200 T 450 290" fill="none" stroke="hsl(186,84%,56%)" strokeWidth="1.2" />
+        <path d="M 260 0 Q 340 70 410 180" fill="none" stroke="hsl(245,90%,72%)" strokeWidth="0.7" />
+        <circle cx="380" cy="200" r="3" fill="none" stroke="hsl(186,84%,56%)" strokeWidth="1" />
+        <circle cx="300" cy="130" r="2" fill="hsl(245,90%,72%)" />
+      </svg>
       <div className="container py-20 md:py-28">
         {/* Observatory identifier row */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
@@ -1035,18 +1042,20 @@ function XenoCitationSection() {
           </span>
           <div className="h-px flex-1 bg-border/35" />
         </div>
-        <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">XenoCitations</h2>
+        <div className="mt-2 flex flex-wrap items-baseline gap-3">
+          <h2 className="text-2xl font-bold tracking-tight md:text-3xl">XenoCitations</h2>
+          <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-primary/45">
+            Conceptual Validation Council
+          </span>
+        </div>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
           xPRIMEray draws conceptual lineage from mathematical physics — not as endorsement or
-          claimed derivation, but as resonance. These thinkers shaped the vocabulary the observatory
-          uses to see.
+          claimed derivation, but as resonance. These are the thinkers whose frameworks give the
+          observatory its vocabulary and its rigor.
         </p>
-        <p className="mt-1 max-w-2xl text-xs text-muted-foreground/55">
-          "Inspired by" and "resonates with" — not "proves" or "derives from."
-        </p>
-        <p className="mt-2 max-w-2xl text-xs italic text-muted-foreground/40">
-          The sequence begins with established optical-transport and geometric foundations, then
-          moves outward toward instrumentation, correspondence frameworks, and boundary correspondence.
+        <p className="mt-1.5 max-w-2xl text-xs text-muted-foreground/55">
+          "Inspired by" and "resonates with" — not "proves" or "derives from." Sequence runs
+          from optical-transport foundations outward toward instrumentation and boundary correspondence.
         </p>
         <p className="mt-3 max-w-2xl rounded-sm border border-border/20 bg-secondary/15 px-3 py-2 text-xs italic text-muted-foreground/40">
           Frontier-interface entries (xc-011, xc-012) represent contemporary aerospace discourse
@@ -1092,7 +1101,7 @@ function XenoCitationCardView({ card }: { card: XenoCitationCard }) {
         <a
           href={card.href}
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           className="shrink-0 text-muted-foreground/30 transition-base hover:text-primary"
           aria-label={`Feature link for ${card.name}`}
         >
@@ -1149,7 +1158,7 @@ function InspirationCard({ node }: { node: InspirationNode }) {
           <a
             href={node.href}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="shrink-0 text-muted-foreground/30 transition-base hover:text-primary"
             aria-label={`External link for ${node.name}`}
           >
@@ -1239,6 +1248,117 @@ function SignalsSection() {
   );
 }
 
+// ── Get Involved ──────────────────────────────────────────
+
+function GetInvolvedSection() {
+  return (
+    <section id="get-involved" className="border-t border-border/35">
+      <div className="container py-14">
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
+            Community
+          </span>
+          <div className="h-px flex-1 bg-border/35" />
+        </div>
+        <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">Get Involved</h2>
+
+        <div className="mt-6 grid gap-8 lg:grid-cols-2">
+          {/* Why This Matters */}
+          <div>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              xPRIMEray is open research — every probe, measurement, and heatmap is reproducible.
+              We are looking for people who want to build better instruments for seeing what is
+              usually hidden: transport seams, convergence behavior, observer pathways.
+            </p>
+            <div className="mt-5 rounded-sm border border-primary/20 bg-primary/[0.04] px-4 py-4">
+              <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.3em] text-primary/60">
+                Why This Matters
+              </div>
+              <p className="text-xs leading-relaxed text-foreground/70">
+                Curved optical transport is invoked in discussions ranging from atmospheric lensing
+                to renderer boundary artifacts — yet no open reference implementation existed for
+                systematic visual study. xPRIMEray builds that foundation in public: reproducible
+                experiments, measurable results, and tooling that researchers and builders can run
+                themselves.
+              </p>
+            </div>
+            <div className="mt-4 rounded-sm border border-border/20 bg-card/10 px-4 py-3">
+              <div className="mb-1 font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/35">
+                Contribution Paths
+              </div>
+              <ul className="space-y-1 text-xs text-muted-foreground/60">
+                <li>· Run existing experiments locally and share results</li>
+                <li>· Propose new overlay designs or diagnostic instruments</li>
+                <li>· Review measurement logs and flag anomalies</li>
+                <li>· Improve documentation and feature indexing</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Contrib cards */}
+          <div className="grid gap-3">
+            <ContribCard
+              icon={Github}
+              title="GitHub Repository"
+              desc="Source code, open issues, and pull requests. The observatory's primary build artifact."
+              href="https://github.com/AetherTopologist/GD_xPRIMEray"
+              cta="Open Repository"
+            />
+            <ContribCard
+              icon={MessageSquare}
+              title="GitHub Discussions"
+              desc="Ask questions, propose experiments, and discuss transport phenomena with the community."
+              href="https://github.com/AetherTopologist/GD_xPRIMEray/discussions"
+              cta="Join Discussion"
+            />
+            <ContribCard
+              icon={BookOpen}
+              title="Feature Index"
+              desc="Browse all 16 ship-ready features, 4 in-progress, and 13 proposed overlays."
+              href="https://aethertopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/"
+              cta="Browse Features"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ContribCard({
+  icon: Icon,
+  title,
+  desc,
+  href,
+  cta,
+}: {
+  icon: React.ElementType;
+  title: string;
+  desc: string;
+  href: string;
+  cta: string;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex items-start gap-3 rounded-sm border border-border/35 bg-card/25 p-4 transition-base hover:border-primary/30 hover:bg-card/40"
+    >
+      <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-sm bg-secondary/60 ring-1 ring-inset ring-border/40">
+        <Icon className="h-3.5 w-3.5 text-primary-glow/70" />
+      </div>
+      <div className="min-w-0">
+        <div className="text-sm font-semibold tracking-tight">{title}</div>
+        <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{desc}</div>
+        <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground/35 transition-base group-hover:text-primary/60">
+          {cta} →
+        </div>
+      </div>
+    </a>
+  );
+}
+
 // ── Shared sub-components ─────────────────────────────────
 
 function MetricChip({
@@ -1290,8 +1410,7 @@ function ObsPanel({ panel }: { panel: ObsPanel }) {
           src={panel.src}
           alt={panel.label}
           loading="lazy"
-          className="w-full object-contain"
-          style={{ imageRendering: "pixelated" }}
+          className="img-pixelated w-full object-contain"
         />
         <div
           className={`absolute left-2 top-2 flex items-center gap-1.5 rounded-sm border px-1.5 py-0.5 backdrop-blur-sm ${labelCls}`}

@@ -9,6 +9,7 @@ import {
   CircleDot,
   ExternalLink,
   Microscope,
+  MessageSquare,
 } from "lucide-react";
 import { KleinBottleSVG } from "@/components/KleinBottleSVG";
 import { Button } from "@/components/ui/button";
@@ -482,6 +483,90 @@ const Index = () => {
               </div>
               <div className="hidden md:block shrink-0 text-primary/20 mt-1">
                 <KleinBottleSVG size={84} animated />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── GET INVOLVED ──────────────────────────────────── */}
+      <section className="border-t border-border/25">
+        <div className="container py-12">
+          <div className="mx-auto max-w-3xl">
+            <div className="mb-6 flex items-center gap-3">
+              <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/40">
+                Open Research
+              </span>
+              <div className="h-px flex-1 bg-border/25" />
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight md:text-2xl">
+                  Built in public.<br className="hidden sm:block" /> Reproducible by design.
+                </h2>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground/70">
+                  Every experiment, heatmap, and measurement log is open. We are looking for
+                  people who want to build better instruments for seeing what is usually hidden.
+                </p>
+                <div className="mt-4 rounded-sm border border-primary/15 bg-primary/[0.03] px-3 py-2.5">
+                  <div className="mb-1 font-mono text-[8px] uppercase tracking-[0.3em] text-primary/50">
+                    Why This Matters
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-foreground/60">
+                    No open reference implementation existed for systematic visual study of curved
+                    optical transport. xPRIMEray builds that foundation — reproducible experiments,
+                    measurable results, tooling you can run yourself.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2.5">
+                <a
+                  href="https://github.com/AetherTopologist/GD_xPRIMEray"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-3 rounded-sm border border-border/35 bg-card/25 px-4 py-3 transition-base hover:border-primary/30 hover:bg-card/40"
+                >
+                  <Github className="h-4 w-4 shrink-0 text-muted-foreground/50 group-hover:text-primary" />
+                  <div>
+                    <div className="text-sm font-medium">GitHub Repository</div>
+                    <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground/40">
+                      Source · Issues · PRs
+                    </div>
+                  </div>
+                  <ExternalLink className="ml-auto h-3 w-3 shrink-0 text-muted-foreground/25 group-hover:text-muted-foreground/50" />
+                </a>
+                <a
+                  href="https://github.com/AetherTopologist/GD_xPRIMEray/discussions"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-3 rounded-sm border border-border/35 bg-card/25 px-4 py-3 transition-base hover:border-primary/30 hover:bg-card/40"
+                >
+                  <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground/50 group-hover:text-primary" />
+                  <div>
+                    <div className="text-sm font-medium">GitHub Discussions</div>
+                    <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground/40">
+                      Questions · Experiments · Ideas
+                    </div>
+                  </div>
+                  <ExternalLink className="ml-auto h-3 w-3 shrink-0 text-muted-foreground/25 group-hover:text-muted-foreground/50" />
+                </a>
+                <a
+                  href="https://aethertopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-3 rounded-sm border border-border/35 bg-card/25 px-4 py-3 transition-base hover:border-primary/30 hover:bg-card/40"
+                >
+                  <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground/50 group-hover:text-primary" />
+                  <div>
+                    <div className="text-sm font-medium">Feature Index</div>
+                    <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground/40">
+                      16 ship-ready · 4 in progress · 13 proposed
+                    </div>
+                  </div>
+                  <ExternalLink className="ml-auto h-3 w-3 shrink-0 text-muted-foreground/25 group-hover:text-muted-foreground/50" />
+                </a>
               </div>
             </div>
           </div>

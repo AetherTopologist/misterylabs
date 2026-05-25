@@ -162,6 +162,14 @@
     background-size: auto, auto, 56px 56px, 56px 56px;
   }
 
+  /* Atlas observatory hero: dark graphite + 40px technical grid */
+  .bg-atlas-hero {
+    background-color: #05060c;
+    background-image:
+      repeating-linear-gradient(0deg,  rgba(255,255,255,0.016) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.016) 0 1px, transparent 1px 40px);
+  }
+
   /* Hero sphere section — dark graphite + 50px ghost grid (used by TransportSphereViz hero) */
   .hero-sphere-section {
     background-color: #0c0d12;
@@ -307,6 +315,8 @@
 }
 
 @layer utilities {
+  .img-pixelated { image-rendering: pixelated; }
+
   .text-gradient {
     background: var(--gradient-accent);
     -webkit-background-clip: text;
