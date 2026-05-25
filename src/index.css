@@ -321,11 +321,19 @@
 }
 
 /* Quaternion Explorer slider thumb glows — one class per component */
+/* CubeNetExplorer face swatches in legend */
 @layer components {
   .q-thumb-x { box-shadow: 0 0 8px hsl(186 88% 58% / 0.5); }
   .q-thumb-y { box-shadow: 0 0 8px hsl(140 70% 55% / 0.5); }
   .q-thumb-z { box-shadow: 0 0 8px hsl(280 72% 68% / 0.5); }
   .q-thumb-w { box-shadow: 0 0 8px hsl(35  88% 58% / 0.5); }
+
+  .cn-face-0 { background: rgba(34,211,238,0.82);  }
+  .cn-face-1 { background: rgba(167,139,250,0.82); }
+  .cn-face-2 { background: rgba(251,191,36,0.82);  }
+  .cn-face-3 { background: rgba(99,102,241,0.82);  }
+  .cn-face-4 { background: rgba(74,222,128,0.82);  }
+  .cn-face-5 { background: rgba(251,113,133,0.82); }
 }
 
 @layer utilities {

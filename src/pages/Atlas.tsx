@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { ExternalLink, Github, MessageSquare } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { FractalInspirationAtlas } from "@/components/FractalInspirationAtlas";
+import { CubeNetExplorer } from "@/components/CubeNetExplorer";
 import { QuaternionExplorer } from "@/components/QuaternionExplorer";
+import { TesseractExplorer } from "@/components/TesseractExplorer";
 import { TransportSphereViz } from "@/components/TransportSphereViz";
 import { SiteFooter } from "@/components/SiteFooter";
 
@@ -818,6 +820,7 @@ export default function AtlasPage() {
       <ObservatoryHeroSection />
       <FractalInspirationAtlas />
       <QuaternionExplorerSection />
+      <HigherDimensionalSection />
       <XenoCitationSection />
       <SignalsSection />
       <GetInvolvedSection />
@@ -1073,6 +1076,65 @@ function QuaternionExplorerSection() {
         {/* Spectral accent bar */}
         <div className="spectral-bar mb-6" aria-hidden />
         <QuaternionExplorer />
+      </div>
+    </section>
+  );
+}
+
+// ── Higher-Dimensional Transport ──────────────────────────
+
+function HigherDimensionalSection() {
+  return (
+    <section id="higher-dimensional" className="bg-atlas-hero border-t border-border/25">
+      <div className="container py-14">
+
+        {/* Section header */}
+        <div className="mb-3">
+          <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.3em] text-violet-400/50">
+            SYS // OBS-HD · Topology & Projection
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
+            Higher-Dimensional Transport
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground/60">
+            Curved transport in xPRIMEray operates in a field that connects naturally to
+            higher-dimensional geometry. These instruments let you explore how 3D cubes
+            unfold into 2D nets — and how a 4D tesseract projects into our observable space.
+          </p>
+        </div>
+        <div className="spectral-bar mb-10" aria-hidden />
+
+        {/* Cube Net Explorer */}
+        <div className="mb-10">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-cyan-400/55">
+              Instrument A · Net Topology
+            </span>
+            <div className="h-px flex-1 bg-border/20" />
+          </div>
+          <p className="mb-4 max-w-xl text-xs leading-relaxed text-muted-foreground/50">
+            A cube has exactly 11 distinct 2D nets — flat unfoldings that fold back into a cube without
+            overlap. Hover a colored cell to highlight the matching face in the 3D view.
+          </p>
+          <CubeNetExplorer />
+        </div>
+
+        {/* Tesseract Explorer */}
+        <div>
+          <div className="mb-4 flex items-center gap-3">
+            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-violet-400/55">
+              Instrument B · 4D Projection
+            </span>
+            <div className="h-px flex-1 bg-border/20" />
+          </div>
+          <p className="mb-4 max-w-xl text-xs leading-relaxed text-muted-foreground/50">
+            A tesseract is the 4D analogue of a cube — 16 vertices, 32 edges, 8 cubic cells.
+            Two successive perspective projections (4D→3D→2D) produce the nested-cube appearance.
+            The XW rotation plane is the "extra" dimension beyond familiar 3D space.
+          </p>
+          <TesseractExplorer />
+        </div>
+
       </div>
     </section>
   );
