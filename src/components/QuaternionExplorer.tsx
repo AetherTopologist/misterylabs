@@ -14,6 +14,18 @@ function quatNorm(q: Quat): Quat {
   return [x / len, y / len, z / len, w / len];
 }
 
+// Quaternion product (Hamilton product)
+function quatMul(a: Quat, b: Quat): Quat {
+  const [ax, ay, az, aw] = a;
+  const [bx, by, bz, bw] = b;
+  return [
+    aw*bx + ax*bw + ay*bz - az*by,
+    aw*by - ax*bz + ay*bw + az*bx,
+    aw*bz + ax*by - ay*bx + az*bw,
+    aw*bw - ax*bx - ay*by - az*bz,
+  ];
+}
+
 // Rodrigues' rotation formula — fastest sandwich product
 function quatRotate(v: Vec3, q: Quat): Vec3 {
   const [qx, qy, qz, qw] = q;
@@ -74,10 +86,10 @@ function drawScene(
   ctx.fillStyle = "#05060c";
   ctx.fillRect(0, 0, W, H);
 
-  // Subtle grid
-  ctx.strokeStyle = "rgba(255,255,255,0.022)";
+  // Fine technical grid (matches atlas-hero background)
+  ctx.strokeStyle = "rgba(255,255,255,0.016)";
   ctx.lineWidth = 0.5 * dpr;
-  const gridStep = 32 * dpr;
+  const gridStep = 40 * dpr;
   for (let x = 0; x < W; x += gridStep) {
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
   }
@@ -85,74 +97,115 @@ function drawScene(
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
   }
 
-  // Rotate + scale cube verts
   const sc = scalePx * dpr;
+
+  // ── Ghost sphere (world-space reference, not rotated) ─────
+  const ghostR = sc * 1.55;
+  // Ambient glow behind sphere
+  const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, ghostR);
+  grd.addColorStop(0,    "rgba(34,211,238,0.045)");
+  grd.addColorStop(0.55, "rgba(34,211,238,0.018)");
+  grd.addColorStop(1,    "rgba(0,0,0,0)");
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+
+  // Latitude ellipses (flat ovals — world-space reference frame)
+  for (const t of [-0.64, -0.38, 0, 0.38, 0.64]) {
+    const latR  = Math.sqrt(Math.max(0, 1 - t * t)) * ghostR;
+    const latY  = cy + t * ghostR;
+    ctx.strokeStyle = t === 0 ? "rgba(255,255,255,0.055)" : "rgba(255,255,255,0.028)";
+    ctx.lineWidth   = 0.4 * dpr;
+    ctx.beginPath();
+    ctx.ellipse(cx, latY, latR, latR * 0.19, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Center meridian (vertical dashed)
+  ctx.strokeStyle = "rgba(255,255,255,0.055)";
+  ctx.lineWidth   = 0.45 * dpr;
+  ctx.setLineDash([3 * dpr, 4 * dpr]);
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - ghostR);
+  ctx.lineTo(cx, cy + ghostR);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Sphere boundary circle
+  ctx.strokeStyle = "rgba(255,255,255,0.10)";
+  ctx.lineWidth   = 0.8 * dpr;
+  ctx.beginPath();
+  ctx.arc(cx, cy, ghostR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // ── Cube ─────────────────────────────────────────────────
   const rotVerts = CUBE_VERTS.map(v => {
     const r = quatRotate(v, q);
     return [r[0] * sc, r[1] * sc, r[2] * sc] as Vec3;
   });
-
-  // Project to 2D
   const proj = rotVerts.map(v => perspProject(v, cx, cy, fov, dist));
 
-  // Sort edges back-to-front for correct overlap
+  // Sort edges back-to-front
   const sortedEdges = [...CUBE_EDGES].sort((a, b) => {
     const za = (proj[a[0]][2] + proj[a[1]][2]) / 2;
     const zb = (proj[b[0]][2] + proj[b[1]][2]) / 2;
     return za - zb;
   });
 
-  // Draw edges
+  // Draw edges with depth-based color shift (front=cyan, back=violet)
   for (const [a, b] of sortedEdges) {
     const [ax, ay, az] = proj[a];
     const [bx, by, bz] = proj[b];
     const avgZ = (az + bz) / 2;
     const t = Math.max(0, Math.min(1, (avgZ + sc) / (2 * sc)));
-    const alpha = (0.15 + t * 0.72).toFixed(2);
-    ctx.strokeStyle = `rgba(34,211,238,${alpha})`;
-    ctx.lineWidth = (0.85 + t * 0.65) * dpr;
+    // Front face: bright cyan; rear: muted violet-tinted
+    const r = Math.round(34  + (1 - t) * 90);
+    const g = Math.round(211 * t + 100 * (1 - t));
+    const bl = Math.round(238 * t + 180 * (1 - t));
+    const alpha = (0.18 + t * 0.70).toFixed(2);
+    ctx.strokeStyle = `rgba(${r},${g},${bl},${alpha})`;
+    ctx.lineWidth = (0.9 + t * 0.7) * dpr;
     ctx.beginPath();
     ctx.moveTo(ax, ay);
     ctx.lineTo(bx, by);
     ctx.stroke();
   }
 
-  // Draw cube vertices
+  // Vertices with depth-based sizing
   for (const [px, py, pz] of proj) {
     const t = Math.max(0, Math.min(1, (pz + sc) / (2 * sc)));
-    const alpha = (0.35 + t * 0.6).toFixed(2);
+    const alpha = (0.4 + t * 0.55).toFixed(2);
     ctx.fillStyle = `rgba(34,211,238,${alpha})`;
     ctx.beginPath();
-    ctx.arc(px, py, 2.5 * dpr, 0, Math.PI * 2);
+    ctx.arc(px, py, (1.8 + t * 1.4) * dpr, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // Draw rotation axis arrow (amber dashed)
+  // ── Rotation axis arrow (amber dashed) ───────────────────
   const [ax, ay, az] = axis;
-  const arrowLen = sc * 1.65;
-  const tailLen = sc * 0.35;
+  const arrowLen = ghostR * 1.05;
+  const tailLen  = ghostR * 0.22;
   const arrowEnd   = perspProject([ax * arrowLen, ay * arrowLen, az * arrowLen], cx, cy, fov, dist);
   const arrowStart = perspProject([-ax * tailLen, -ay * tailLen, -az * tailLen], cx, cy, fov, dist);
 
-  ctx.strokeStyle = "rgba(251,191,36,0.80)";
-  ctx.lineWidth = 1.5 * dpr;
-  ctx.setLineDash([4 * dpr, 3 * dpr]);
+  ctx.strokeStyle = "rgba(251,191,36,0.85)";
+  ctx.lineWidth   = 1.5 * dpr;
+  ctx.setLineDash([5 * dpr, 4 * dpr]);
   ctx.beginPath();
   ctx.moveTo(arrowStart[0], arrowStart[1]);
-  ctx.lineTo(arrowEnd[0], arrowEnd[1]);
+  ctx.lineTo(arrowEnd[0],   arrowEnd[1]);
   ctx.stroke();
   ctx.setLineDash([]);
 
   // Arrowhead
-  const dx = arrowEnd[0] - arrowStart[0];
-  const dy = arrowEnd[1] - arrowStart[1];
-  const d2 = Math.sqrt(dx * dx + dy * dy);
+  const dx  = arrowEnd[0] - arrowStart[0];
+  const dy  = arrowEnd[1] - arrowStart[1];
+  const d2  = Math.sqrt(dx * dx + dy * dy);
   if (d2 > 8 * dpr) {
-    const ux = dx / d2;
-    const uy = dy / d2;
-    const ahl = 10 * dpr;
+    const ux  = dx / d2;
+    const uy  = dy / d2;
+    const ahl = 11 * dpr;
     const ahw = 5 * dpr;
-    ctx.fillStyle = "rgba(251,191,36,0.80)";
+    ctx.fillStyle = "rgba(251,191,36,0.85)";
     ctx.beginPath();
     ctx.moveTo(arrowEnd[0], arrowEnd[1]);
     ctx.lineTo(arrowEnd[0] - ahl * ux + ahw * (-uy), arrowEnd[1] - ahl * uy + ahw * ux);
@@ -161,18 +214,24 @@ function drawScene(
     ctx.fill();
   }
 
-  // Corner diagnostic marks
-  const m = 14 * dpr;
-  const ml = 9 * dpr;
-  ctx.strokeStyle = "rgba(34,211,238,0.28)";
-  ctx.lineWidth = 0.75 * dpr;
+  // Axis tail dot
+  ctx.fillStyle = "rgba(251,191,36,0.55)";
+  ctx.beginPath();
+  ctx.arc(arrowStart[0], arrowStart[1], 2.5 * dpr, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── Diagnostic frame ──────────────────────────────────────
+  const m  = 14 * dpr;
+  const ml = 10 * dpr;
+  ctx.strokeStyle = "rgba(34,211,238,0.32)";
+  ctx.lineWidth   = 0.8 * dpr;
   ctx.beginPath();
   ctx.moveTo(m, m + ml); ctx.lineTo(m, m); ctx.lineTo(m + ml, m);
   ctx.stroke();
   ctx.beginPath();
   ctx.moveTo(W - m, H - m - ml); ctx.lineTo(W - m, H - m); ctx.lineTo(W - m - ml, H - m);
   ctx.stroke();
-  ctx.strokeStyle = "rgba(251,191,36,0.18)";
+  ctx.strokeStyle = "rgba(251,191,36,0.22)";
   ctx.beginPath();
   ctx.moveTo(m, H - m - ml); ctx.lineTo(m, H - m); ctx.lineTo(m + ml, H - m);
   ctx.stroke();
@@ -180,11 +239,17 @@ function drawScene(
   ctx.moveTo(W - m, m + ml); ctx.lineTo(W - m, m); ctx.lineTo(W - m - ml, m);
   ctx.stroke();
 
-  // System label bottom-left
-  ctx.fillStyle = "rgba(255,255,255,0.14)";
-  ctx.font = `${9 * dpr}px "JetBrains Mono",ui-monospace,monospace`;
-  ctx.letterSpacing = `${1.8 * dpr}px`;
-  ctx.fillText("QUATERNION · 3D ROTATION", m + 2, H - m - 4 * dpr);
+  // Label: top-center
+  ctx.fillStyle  = "rgba(255,255,255,0.18)";
+  ctx.font       = `${8 * dpr}px "JetBrains Mono",ui-monospace,monospace`;
+  ctx.textAlign  = "center";
+  ctx.letterSpacing = `${2 * dpr}px`;
+  ctx.fillText("UNIT QUATERNION · ROTATION FIELD", cx, m + 10 * dpr);
+  // Label: bottom-right (angle readout)
+  ctx.textAlign  = "right";
+  ctx.fillStyle  = "rgba(251,191,36,0.45)";
+  ctx.fillText("AXIS · ANGLE ENCODING", W - m - 2, H - m - 4 * dpr);
+  ctx.textAlign  = "left";
   ctx.letterSpacing = "0px";
 }
 
@@ -313,14 +378,19 @@ export function QuaternionExplorer() {
     function frame() {
       let q: Quat;
       if (autoSpinRef.current) {
-        spinRef.current += 0.012;
+        spinRef.current += 0.007; // slow cinematic pan
         const a = spinRef.current;
-        // Slow figure-eight-style orbit so all faces are visible
-        const ax = Math.sin(a * 0.41) * 0.3;
-        const ay = Math.cos(a * 0.27);
-        const az = Math.sin(a * 0.17) * 0.2;
-        const aw = Math.cos(a * 0.5);
-        q = quatNorm([ax, ay, az, aw]);
+        // Primary Y-axis pan (globe-like rotation)
+        const yh = a / 2;
+        const qY: Quat = [0, Math.sin(yh), 0, Math.cos(yh)];
+        // Gentle X-axis tilt wobble (nod, period ~20s)
+        const ph = Math.sin(a * 0.28) * 0.38 / 2;
+        const qX: Quat = [Math.sin(ph), 0, 0, Math.cos(ph)];
+        // Tiny Z roll for atmosphere
+        const rh = Math.sin(a * 0.13) * 0.12 / 2;
+        const qZ: Quat = [0, 0, Math.sin(rh), Math.cos(rh)];
+        // Compose: Z → Y → X (applied right-to-left)
+        q = quatNorm(quatMul(qX, quatMul(qY, qZ)));
       } else {
         q = quatNorm(rawRef.current);
       }
@@ -363,10 +433,10 @@ export function QuaternionExplorer() {
   const angleDeg = (2 * Math.atan2(sinHalf, Math.abs(qw)) * (180 / Math.PI));
 
   return (
-    <div className="flex flex-col gap-0 overflow-hidden rounded-sm border border-border/40 bg-card/10 lg:flex-row">
+    <div className="flex flex-col gap-0 overflow-hidden border border-border/35 bg-black/30 lg:flex-row">
 
       {/* ── Canvas panel ─────────────────────────────── */}
-      <div className="relative flex-1 min-h-[320px] lg:min-h-[440px]">
+      <div className="relative flex-1 min-h-[300px] sm:min-h-[380px] lg:min-h-[500px]">
         <canvas
           ref={canvasRef}
           className="h-full w-full"

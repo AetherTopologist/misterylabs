@@ -490,31 +490,32 @@ const Index = () => {
       </section>
 
       {/* ── JOIN THE OBSERVATORY ──────────────────────────── */}
-      <section className="border-t border-border/25">
-        <div className="container py-14">
-          <div className="mx-auto max-w-2xl rounded-sm border border-border/40 bg-card/20 px-8 py-12 text-center">
-            <div className="mb-3 font-mono text-[9px] uppercase tracking-[0.4em] text-amber-400/65">
-              Get Involved
+      <section className="border-t border-border/20 bg-[#05060c]">
+        <div className="container py-20">
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="mb-5 text-3xl text-amber-400/55 select-none" aria-hidden>✦</div>
+            <div className="mb-3 font-mono text-[8px] uppercase tracking-[0.45em] text-amber-400/50">
+              Open Research
             </div>
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+            <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
               Join the Observatory
             </h2>
-            <p className="mt-3 max-w-sm mx-auto text-sm leading-relaxed text-muted-foreground/70">
-              Every experiment, discussion, and pull request advances the frontier.
-              Open research. Public code. Reproducible results.
+            <p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-muted-foreground/65">
+              The observatory thrives on collective attention. Whether you're a renderer engineer,
+              curious physicist, or anomaly hunter — your perspective sharpens the signal.
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:justify-center">
               <a
                 href="https://github.com/AetherTopologist/GD_xPRIMEray"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 rounded-sm border border-border/50 bg-secondary/40 px-6 py-4 transition-base hover:border-border hover:bg-secondary/70"
+                className="flex flex-1 items-center gap-3.5 border border-border/50 bg-white/4 px-7 py-5 transition-base hover:border-border/80 hover:bg-white/8 sm:flex-none"
               >
-                <Github className="h-5 w-5 shrink-0 text-foreground/60" />
+                <Github className="h-5 w-5 shrink-0 text-foreground/65" />
                 <div className="text-left">
                   <div className="text-sm font-semibold">Star on GitHub</div>
-                  <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground/50">
+                  <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground/45">
                     Source · Issues · PRs
                   </div>
                 </div>
@@ -523,21 +524,23 @@ const Index = () => {
                 href="https://github.com/AetherTopologist/GD_xPRIMEray/discussions"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 rounded-sm border border-cyan-500/35 bg-cyan-950/25 px-6 py-4 transition-base hover:border-cyan-500/60 hover:bg-cyan-950/40"
+                className="flex flex-1 items-center gap-3.5 border border-amber-500/30 bg-amber-950/20 px-7 py-5 transition-base hover:border-amber-500/55 hover:bg-amber-950/35 sm:flex-none"
               >
-                <MessageSquare className="h-5 w-5 shrink-0 text-cyan-400/70" />
+                <MessageSquare className="h-5 w-5 shrink-0 text-amber-400/70" />
                 <div className="text-left">
-                  <div className="text-sm font-semibold text-cyan-200/80">Open Discussions</div>
-                  <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-cyan-400/45">
+                  <div className="text-sm font-semibold text-amber-200/85">Open Discussions</div>
+                  <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-amber-400/45">
                     Questions · Experiments · Ideas
                   </div>
                 </div>
               </a>
             </div>
 
-            <p className="mt-6 text-xs text-muted-foreground/35">
-              You don't need a physics degree to contribute — if you can run a renderer,
-              you can map the field.
+            <p className="mt-7 font-mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground/30">
+              Open research · Public code · Reproducible results
+            </p>
+            <p className="mt-3 text-xs text-muted-foreground/25">
+              The sky belongs to everyone who looks up.
             </p>
           </div>
         </div>
