@@ -3,7 +3,9 @@ import { ExternalLink, Github, MessageSquare } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { FractalInspirationAtlas } from "@/components/FractalInspirationAtlas";
 import { CubeNetExplorer } from "@/components/CubeNetExplorer";
+import { HollowMaskIllusion } from "@/components/HollowMaskIllusion";
 import { QuaternionExplorer } from "@/components/QuaternionExplorer";
+import { SpinningDancer } from "@/components/SpinningDancer";
 import { TesseractExplorer } from "@/components/TesseractExplorer";
 import { TransportSphereViz } from "@/components/TransportSphereViz";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -1091,15 +1093,16 @@ function HigherDimensionalSection() {
         {/* Section header */}
         <div className="mb-3">
           <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.3em] text-violet-400/50">
-            SYS // OBS-HD · Topology & Projection
+            SYS // OBS-HD · Topology, Projection & Perception
           </div>
           <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-            Higher-Dimensional Transport
+            Higher-Dimensional Transport &amp; Perception
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground/60">
-            Curved transport in xPRIMEray operates in a field that connects naturally to
-            higher-dimensional geometry. These instruments let you explore how 3D cubes
-            unfold into 2D nets — and how a 4D tesseract projects into our observable space.
+            Curved transport operates in a field that connects to higher-dimensional geometry
+            and to the limits of observer perception. These instruments explore how topology
+            unfolds, how 4D structure projects, and how two observers can look at the same
+            boundary and disagree on its curvature.
           </p>
         </div>
         <div className="spectral-bar mb-10" aria-hidden />
@@ -1120,7 +1123,7 @@ function HigherDimensionalSection() {
         </div>
 
         {/* Tesseract Explorer */}
-        <div>
+        <div className="mb-10">
           <div className="mb-4 flex items-center gap-3">
             <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-violet-400/55">
               Instrument B · 4D Projection
@@ -1133,6 +1136,40 @@ function HigherDimensionalSection() {
             The XW rotation plane is the "extra" dimension beyond familiar 3D space.
           </p>
           <TesseractExplorer />
+        </div>
+
+        {/* Hollow Mask Illusion */}
+        <div className="mb-10">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-amber-400/55">
+              Instrument C · Depth Inversion
+            </span>
+            <div className="h-px flex-1 bg-border/20" />
+          </div>
+          <p className="mb-4 max-w-xl text-xs leading-relaxed text-muted-foreground/50">
+            A concave hollow mask rotates. Despite correct physics, the brain overrides the
+            concave depth cues and perceives a convex face — demonstrating that an observer's
+            prior assumptions can override geometric evidence. Toggle between the brain's
+            interpretation and the true concave geometry.
+          </p>
+          <HollowMaskIllusion />
+        </div>
+
+        {/* Spinning Dancer */}
+        <div>
+          <div className="mb-4 flex items-center gap-3">
+            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-violet-400/55">
+              Instrument D · Bistable Rotation
+            </span>
+            <div className="h-px flex-1 bg-border/20" />
+          </div>
+          <p className="mb-4 max-w-xl text-xs leading-relaxed text-muted-foreground/50">
+            A silhouette has no stereo depth cue — both clockwise and counter-clockwise
+            rotations project to an identical 2D path. Two observers assign opposite 3D
+            interpretations and are equally correct. This mirrors how two transport rays
+            entering a curved boundary from opposite sides can disagree on interior vs exterior.
+          </p>
+          <SpinningDancer />
         </div>
 
       </div>
