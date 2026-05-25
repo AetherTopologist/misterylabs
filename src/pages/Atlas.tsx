@@ -5,6 +5,7 @@ import { FractalInspirationAtlas } from "@/components/FractalInspirationAtlas";
 import { CubeNetExplorer } from "@/components/CubeNetExplorer";
 import { HollowMaskIllusion } from "@/components/HollowMaskIllusion";
 import { QuaternionExplorer } from "@/components/QuaternionExplorer";
+import { PoissonDotAndNegativeIOR } from "@/components/PoissonDotAndNegativeIOR";
 import { SpinningDancer } from "@/components/SpinningDancer";
 import { TesseractExplorer } from "@/components/TesseractExplorer";
 import { TransportSphereViz } from "@/components/TransportSphereViz";
@@ -1156,7 +1157,7 @@ function HigherDimensionalSection() {
         </div>
 
         {/* Spinning Dancer */}
-        <div>
+        <div className="mb-10">
           <div className="mb-4 flex items-center gap-3">
             <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-violet-400/55">
               Instrument D · Bistable Rotation
@@ -1170,6 +1171,24 @@ function HigherDimensionalSection() {
             entering a curved boundary from opposite sides can disagree on interior vs exterior.
           </p>
           <SpinningDancer />
+        </div>
+
+        {/* Poisson Dot & Negative IOR */}
+        <div>
+          <div className="mb-4 flex items-center gap-3">
+            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-rose-400/55">
+              Instrument E · Optical Transport
+            </span>
+            <div className="h-px flex-1 bg-border/20" />
+          </div>
+          <p className="mb-4 max-w-xl text-xs leading-relaxed text-muted-foreground/50">
+            A point source emits circular waves into a layered medium. Drag the index of
+            refraction into negative territory — phase velocity reverses, transmitted waves
+            bend backward, and a flat-lens focal point reconstructs the source below the
+            membrane. This models the boundary conditions xPRIMEray's GRIN field traversal
+            encounters near wormhole seam and curved-transport inversion zones.
+          </p>
+          <PoissonDotAndNegativeIOR />
         </div>
 
       </div>
