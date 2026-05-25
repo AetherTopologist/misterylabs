@@ -31,7 +31,7 @@ function buildPaths(step: number): { left: LeftRay[]; right: RightRay[] } {
     const rx    = CX + sq;
     const normY = dy / R;            // –1 … +1
     const absN  = Math.abs(normY);
-    const op    = 0.2 + absN * 0.32; // fainter at equator, stronger near poles
+    const op    = 0.28 + absN * 0.42; // stronger near poles, more readable
 
     // ── Left: straight horizontal ray ──────────────────────
     left.push({ d: `M ${lx.toFixed(1)},${y} L ${CX},${y}`, op });
@@ -45,7 +45,7 @@ function buildPaths(step: number): { left: LeftRay[]; right: RightRay[] } {
     const cp2x = (CX + span * 0.68).toFixed(1);
     const cp2y = (y + def * 0.62  ).toFixed(1);
     const endY = (y + def          ).toFixed(1);
-    const col  = absN > 0.55 ? "hsl(292,50%,63%)" : "hsl(186,84%,56%)";
+    const col  = absN > 0.52 ? "hsl(292,58%,66%)" : "hsl(186,88%,58%)";
 
     right.push({
       d: `M ${CX},${y} C ${cp1x},${cp1y} ${cp2x},${cp2y} ${rx.toFixed(1)},${endY}`,
@@ -57,7 +57,7 @@ function buildPaths(step: number): { left: LeftRay[]; right: RightRay[] } {
 }
 
 export function TransportSphereViz({ className }: { className?: string }) {
-  const { left, right } = useMemo(() => buildPaths(15), []);
+  const { left, right } = useMemo(() => buildPaths(11), []);
 
   return (
     <svg
@@ -74,20 +74,26 @@ export function TransportSphereViz({ className }: { className?: string }) {
 
         {/* Subtle grid tile */}
         <pattern id="tsv-grid" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
-          <path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(255,255,255,0.016)" strokeWidth="0.5" />
+          <path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(255,255,255,0.018)" strokeWidth="0.5" />
         </pattern>
 
         {/* Amber GRIN-field glow — positioned lower-right of sphere */}
         <radialGradient id="tsv-amber" cx={CX + 72} cy={CY + 98} r="215" gradientUnits="userSpaceOnUse">
-          <stop offset="0%"   stopColor="hsl(35,88%,58%)"  stopOpacity="0.52" />
-          <stop offset="45%"  stopColor="hsl(26,76%,38%)"  stopOpacity="0.16" />
+          <stop offset="0%"   stopColor="hsl(35,88%,58%)"  stopOpacity="0.65" />
+          <stop offset="45%"  stopColor="hsl(26,76%,38%)"  stopOpacity="0.20" />
+          <stop offset="100%" stopColor="transparent"       stopOpacity="0"    />
+        </radialGradient>
+
+        {/* Cyan focal convergence zone — right half center */}
+        <radialGradient id="tsv-focal" cx={CX + 30} cy={CY} r="110" gradientUnits="userSpaceOnUse">
+          <stop offset="0%"   stopColor="hsl(186,90%,58%)" stopOpacity="0.15" />
           <stop offset="100%" stopColor="transparent"       stopOpacity="0"    />
         </radialGradient>
 
         {/* Edge vignette (darkens sphere perimeter) */}
         <radialGradient id="tsv-vig" cx={CX} cy={CY} r={R} gradientUnits="userSpaceOnUse">
-          <stop offset="72%"  stopColor="transparent"         stopOpacity="0" />
-          <stop offset="100%" stopColor="rgba(4,5,11,0.45)"   stopOpacity="1" />
+          <stop offset="68%"  stopColor="transparent"         stopOpacity="0" />
+          <stop offset="100%" stopColor="rgba(4,5,11,0.55)"   stopOpacity="1" />
         </radialGradient>
       </defs>
 
@@ -101,8 +107,8 @@ export function TransportSphereViz({ className }: { className?: string }) {
             key={i}
             d={p.d}
             fill="none"
-            stroke="hsl(210,68%,58%)"
-            strokeWidth="0.65"
+            stroke="hsl(210,72%,62%)"
+            strokeWidth="0.9"
             strokeOpacity={p.op}
           />
         ))}
@@ -116,7 +122,7 @@ export function TransportSphereViz({ className }: { className?: string }) {
             d={p.d}
             fill="none"
             stroke={p.col}
-            strokeWidth="0.7"
+            strokeWidth="0.9"
             strokeOpacity={p.op}
           />
         ))}
@@ -125,8 +131,11 @@ export function TransportSphereViz({ className }: { className?: string }) {
       {/* ── Amber GRIN-field glow (inside sphere) ─────────── */}
       <circle cx={CX} cy={CY} r={R} fill="url(#tsv-amber)" clipPath="url(#tsv-full)" />
 
+      {/* ── Cyan focal zone glow (convergence point) ──────── */}
+      <circle cx={CX + 30} cy={CY} r="110" fill="url(#tsv-focal)" clipPath="url(#tsv-right)" />
+
       {/* ── Wireframe latitude ellipses (very faint) ─────── */}
-      <g clipPath="url(#tsv-full)" fill="none" stroke="rgba(255,255,255,0.052)" strokeWidth="0.4">
+      <g clipPath="url(#tsv-full)" fill="none" stroke="rgba(255,255,255,0.055)" strokeWidth="0.4">
         {([-0.64, -0.38, -0.13, 0.13, 0.38, 0.64] as const).map((t) => {
           const latR = Math.sqrt(1 - t * t) * R;
           return (
@@ -145,35 +154,35 @@ export function TransportSphereViz({ className }: { className?: string }) {
       <circle cx={CX} cy={CY} r={R} fill="url(#tsv-vig)" clipPath="url(#tsv-full)" />
 
       {/* ── Sphere boundary circle ────────────────────────── */}
-      <circle cx={CX} cy={CY} r={R} fill="none" stroke="rgba(255,255,255,0.13)" strokeWidth="0.9" />
+      <circle cx={CX} cy={CY} r={R} fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="1.1" />
 
       {/* ── Center divider (straight vs curved boundary) ─── */}
       <line
         x1={CX} y1={TOP}
         x2={CX} y2={BOT}
-        stroke="rgba(255,255,255,0.22)"
-        strokeWidth="0.6"
+        stroke="rgba(255,255,255,0.32)"
+        strokeWidth="0.7"
         strokeDasharray="4 5"
       />
 
       {/* ── Crosshair at optical axis ─────────────────────── */}
-      <g stroke="rgba(255,255,255,0.18)" strokeWidth="0.75" fill="none">
-        <line x1={CX - 13} y1={CY} x2={CX + 13} y2={CY} />
-        <line x1={CX}      y1={CY - 13} x2={CX} y2={CY + 13} />
-        <circle cx={CX} cy={CY} r={3.5} />
+      <g stroke="rgba(255,255,255,0.22)" strokeWidth="0.85" fill="none">
+        <line x1={CX - 14} y1={CY} x2={CX + 14} y2={CY} />
+        <line x1={CX}      y1={CY - 14} x2={CX} y2={CY + 14} />
+        <circle cx={CX} cy={CY} r={4} />
       </g>
 
       {/* ── Quadrant labels ───────────────────────────────── */}
-      <text x={CX - 132} y={TOP + 26} textAnchor="middle" fontFamily={MONO} fontSize="9"  fill="rgba(255,255,255,0.22)" letterSpacing={2.5}>STRAIGHT TRANSPORT</text>
-      <text x={CX - 132} y={TOP + 39} textAnchor="middle" fontFamily={MONO} fontSize="8"  fill="rgba(148,163,184,0.18)" letterSpacing={1.5}>Reference Reality</text>
-      <text x={CX + 132} y={TOP + 26} textAnchor="middle" fontFamily={MONO} fontSize="9"  fill="rgba(34,211,238,0.3)"  letterSpacing={2.5}>CURVED TRANSPORT</text>
-      <text x={CX + 132} y={TOP + 39} textAnchor="middle" fontFamily={MONO} fontSize="8"  fill="rgba(148,163,184,0.18)" letterSpacing={1.5}>GRIN Field Reality</text>
+      <text x={CX - 132} y={TOP + 26} textAnchor="middle" fontFamily={MONO} fontSize="9"  fill="rgba(255,255,255,0.28)" letterSpacing={2.5}>STRAIGHT TRANSPORT</text>
+      <text x={CX - 132} y={TOP + 39} textAnchor="middle" fontFamily={MONO} fontSize="8"  fill="rgba(148,163,184,0.22)" letterSpacing={1.5}>Reference Reality</text>
+      <text x={CX + 132} y={TOP + 26} textAnchor="middle" fontFamily={MONO} fontSize="9"  fill="rgba(34,211,238,0.38)" letterSpacing={2.5}>CURVED TRANSPORT</text>
+      <text x={CX + 132} y={TOP + 39} textAnchor="middle" fontFamily={MONO} fontSize="8"  fill="rgba(148,163,184,0.22)" letterSpacing={1.5}>GRIN Field Reality</text>
 
       {/* ── Axis annotations ──────────────────────────────── */}
-      <text x={CX - R - 14} y={CY + 4} textAnchor="end"    fontFamily={MONO} fontSize="9"  fill="rgba(255,255,255,0.2)"  letterSpacing={1.5}>n(x)</text>
-      <text x={CX + R + 14} y={CY + 4} textAnchor="start"  fontFamily={MONO} fontSize="9"  fill="rgba(34,211,238,0.3)"  letterSpacing={1.5}>n(0)</text>
-      <text x={CX}          y={TOP - 14} textAnchor="middle" fontFamily={MONO} fontSize="8"  fill="rgba(255,255,255,0.14)" letterSpacing={2}>xPRIMEray · 1.0</text>
-      <text x={CX}          y={BOT + 22} textAnchor="middle" fontFamily={MONO} fontSize="8"  fill="rgba(251,191,36,0.28)" letterSpacing={1.5}>Δε / transport boundary</text>
+      <text x={CX - R - 14} y={CY + 4} textAnchor="end"    fontFamily={MONO} fontSize="9"  fill="rgba(255,255,255,0.24)" letterSpacing={1.5}>n(x)</text>
+      <text x={CX + R + 14} y={CY + 4} textAnchor="start"  fontFamily={MONO} fontSize="9"  fill="rgba(34,211,238,0.38)" letterSpacing={1.5}>n(0)</text>
+      <text x={CX}          y={TOP - 14} textAnchor="middle" fontFamily={MONO} fontSize="8"  fill="rgba(255,255,255,0.18)" letterSpacing={2}>xPRIMEray · 1.0</text>
+      <text x={CX}          y={BOT + 22} textAnchor="middle" fontFamily={MONO} fontSize="8"  fill="rgba(251,191,36,0.35)" letterSpacing={1.5}>Δε / transport boundary</text>
     </svg>
   );
 }

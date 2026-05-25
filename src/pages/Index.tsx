@@ -86,17 +86,17 @@ const Index = () => {
           aria-hidden
         />
 
-        {/* Text overlay — anchored to bottom-left */}
-        <div className="container relative mt-auto pb-16 pt-10">
-          <h1 className="max-w-2xl text-6xl font-bold leading-[1.05] tracking-tight text-foreground md:text-7xl lg:text-[5.25rem]">
-            Light doesn't always<br className="hidden sm:block" /> travel straight.
+        {/* Text overlay — bottom center */}
+        <div className="container relative mt-auto pb-16 pt-10 text-center">
+          <h1 className="mx-auto max-w-2xl text-5xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-[5.25rem]">
+            Light doesn't always<br /> travel straight.
           </h1>
 
           <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.28em] text-amber-400/70">
             Measured observability cutsheets for native geodesic ray tracing.
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Button
               variant="outline"
               asChild
@@ -489,86 +489,56 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ── GET INVOLVED ──────────────────────────────────── */}
+      {/* ── JOIN THE OBSERVATORY ──────────────────────────── */}
       <section className="border-t border-border/25">
-        <div className="container py-12">
-          <div className="mx-auto max-w-3xl">
-            <div className="mb-6 flex items-center gap-3">
-              <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/40">
-                Open Research
-              </span>
-              <div className="h-px flex-1 bg-border/25" />
+        <div className="container py-14">
+          <div className="mx-auto max-w-2xl rounded-sm border border-border/40 bg-card/20 px-8 py-12 text-center">
+            <div className="mb-3 font-mono text-[9px] uppercase tracking-[0.4em] text-amber-400/65">
+              Get Involved
             </div>
+            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+              Join the Observatory
+            </h2>
+            <p className="mt-3 max-w-sm mx-auto text-sm leading-relaxed text-muted-foreground/70">
+              Every experiment, discussion, and pull request advances the frontier.
+              Open research. Public code. Reproducible results.
+            </p>
 
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div>
-                <h2 className="text-xl font-bold tracking-tight md:text-2xl">
-                  Built in public.<br className="hidden sm:block" /> Reproducible by design.
-                </h2>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground/70">
-                  Every experiment, heatmap, and measurement log is open. We are looking for
-                  people who want to build better instruments for seeing what is usually hidden.
-                </p>
-                <div className="mt-4 rounded-sm border border-primary/15 bg-primary/[0.03] px-3 py-2.5">
-                  <div className="mb-1 font-mono text-[8px] uppercase tracking-[0.3em] text-primary/50">
-                    Why This Matters
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <a
+                href="https://github.com/AetherTopologist/GD_xPRIMEray"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 rounded-sm border border-border/50 bg-secondary/40 px-6 py-4 transition-base hover:border-border hover:bg-secondary/70"
+              >
+                <Github className="h-5 w-5 shrink-0 text-foreground/60" />
+                <div className="text-left">
+                  <div className="text-sm font-semibold">Star on GitHub</div>
+                  <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground/50">
+                    Source · Issues · PRs
                   </div>
-                  <p className="text-[11px] leading-relaxed text-foreground/60">
-                    No open reference implementation existed for systematic visual study of curved
-                    optical transport. xPRIMEray builds that foundation — reproducible experiments,
-                    measurable results, tooling you can run yourself.
-                  </p>
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-2.5">
-                <a
-                  href="https://github.com/AetherTopologist/GD_xPRIMEray"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center gap-3 rounded-sm border border-border/35 bg-card/25 px-4 py-3 transition-base hover:border-primary/30 hover:bg-card/40"
-                >
-                  <Github className="h-4 w-4 shrink-0 text-muted-foreground/50 group-hover:text-primary" />
-                  <div>
-                    <div className="text-sm font-medium">GitHub Repository</div>
-                    <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground/40">
-                      Source · Issues · PRs
-                    </div>
+              </a>
+              <a
+                href="https://github.com/AetherTopologist/GD_xPRIMEray/discussions"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 rounded-sm border border-cyan-500/35 bg-cyan-950/25 px-6 py-4 transition-base hover:border-cyan-500/60 hover:bg-cyan-950/40"
+              >
+                <MessageSquare className="h-5 w-5 shrink-0 text-cyan-400/70" />
+                <div className="text-left">
+                  <div className="text-sm font-semibold text-cyan-200/80">Open Discussions</div>
+                  <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-cyan-400/45">
+                    Questions · Experiments · Ideas
                   </div>
-                  <ExternalLink className="ml-auto h-3 w-3 shrink-0 text-muted-foreground/25 group-hover:text-muted-foreground/50" />
-                </a>
-                <a
-                  href="https://github.com/AetherTopologist/GD_xPRIMEray/discussions"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center gap-3 rounded-sm border border-border/35 bg-card/25 px-4 py-3 transition-base hover:border-primary/30 hover:bg-card/40"
-                >
-                  <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground/50 group-hover:text-primary" />
-                  <div>
-                    <div className="text-sm font-medium">GitHub Discussions</div>
-                    <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground/40">
-                      Questions · Experiments · Ideas
-                    </div>
-                  </div>
-                  <ExternalLink className="ml-auto h-3 w-3 shrink-0 text-muted-foreground/25 group-hover:text-muted-foreground/50" />
-                </a>
-                <a
-                  href="https://aethertopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center gap-3 rounded-sm border border-border/35 bg-card/25 px-4 py-3 transition-base hover:border-primary/30 hover:bg-card/40"
-                >
-                  <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground/50 group-hover:text-primary" />
-                  <div>
-                    <div className="text-sm font-medium">Feature Index</div>
-                    <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground/40">
-                      16 ship-ready · 4 in progress · 13 proposed
-                    </div>
-                  </div>
-                  <ExternalLink className="ml-auto h-3 w-3 shrink-0 text-muted-foreground/25 group-hover:text-muted-foreground/50" />
-                </a>
-              </div>
+                </div>
+              </a>
             </div>
+
+            <p className="mt-6 text-xs text-muted-foreground/35">
+              You don't need a physics degree to contribute — if you can run a renderer,
+              you can map the field.
+            </p>
           </div>
         </div>
       </section>

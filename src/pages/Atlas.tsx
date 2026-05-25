@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { ExternalLink, Github, MessageSquare, BookOpen } from "lucide-react";
+import { ExternalLink, Github, MessageSquare } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { FractalInspirationAtlas } from "@/components/FractalInspirationAtlas";
+import { TransportSphereViz } from "@/components/TransportSphereViz";
 import { SiteFooter } from "@/components/SiteFooter";
 
 // ── Types ─────────────────────────────────────────────────
@@ -828,21 +829,30 @@ export default function AtlasPage() {
 function ObservatoryHeroSection() {
   return (
     <section id="observatory-hero" className="bg-atlas-hero relative border-t border-border/60">
-      {/* Faint transport arc — visual echo of homepage sphere */}
-      <svg
-        className="pointer-events-none absolute right-0 top-0 h-72 w-[28rem] opacity-[0.065]"
-        viewBox="0 0 450 290"
-        preserveAspectRatio="xMaxYMin slice"
-        aria-hidden
-      >
-        <circle cx="370" cy="-30" r="220" fill="none" stroke="hsl(186,84%,56%)" strokeWidth="0.7" />
-        <circle cx="370" cy="-30" r="185" fill="none" stroke="hsl(245,90%,66%)" strokeWidth="0.5" />
-        <path d="M 200 0 Q 300 90 380 200 T 450 290" fill="none" stroke="hsl(186,84%,56%)" strokeWidth="1.2" />
-        <path d="M 260 0 Q 340 70 410 180" fill="none" stroke="hsl(245,90%,72%)" strokeWidth="0.7" />
-        <circle cx="380" cy="200" r="3" fill="none" stroke="hsl(186,84%,56%)" strokeWidth="1" />
-        <circle cx="300" cy="130" r="2" fill="hsl(245,90%,72%)" />
-      </svg>
-      <div className="container py-20 md:py-28">
+      {/* ── Full-width sphere visualization ───────────────── */}
+      <div className="relative overflow-hidden">
+        {/* Flanking transport labels — outside the sphere, vertically centered */}
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-between px-5 md:px-10">
+          <div>
+            <div className="font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/25">n(x) = 1</div>
+            <div className="mt-1 text-base font-semibold tracking-tight text-foreground/55 md:text-lg lg:text-xl">Straight</div>
+            <div className="text-base font-semibold tracking-tight text-foreground/55 md:text-lg lg:text-xl">Transport</div>
+          </div>
+          <div className="text-right">
+            <div className="font-mono text-[8px] uppercase tracking-[0.3em] text-cyan-400/35">n(x) = gradient</div>
+            <div className="mt-1 text-base font-semibold tracking-tight text-cyan-300/65 md:text-lg lg:text-xl">Curved</div>
+            <div className="text-base font-semibold tracking-tight text-cyan-300/65 md:text-lg lg:text-xl">Transport</div>
+          </div>
+        </div>
+
+        {/* Sphere */}
+        <TransportSphereViz className="h-[52vh] w-full md:h-[58vh]" />
+
+        {/* Fade into content below */}
+        <div className="atlas-sphere-fade pointer-events-none absolute bottom-0 left-0 right-0" aria-hidden />
+      </div>
+
+      <div className="container py-10 md:py-14">
         {/* Observatory identifier row */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <img
@@ -1218,6 +1228,7 @@ function SignalsSection() {
           {SIGNAL_CATEGORIES.map((cat) => (
             <button
               key={cat}
+              type="button"
               onClick={() => setActive(cat)}
               className={`rounded-sm border px-3 py-1 font-mono text-[9px] uppercase tracking-[0.2em] transition-base ${
                 active === cat
@@ -1252,110 +1263,63 @@ function SignalsSection() {
 
 function GetInvolvedSection() {
   return (
-    <section id="get-involved" className="border-t border-border/35">
+    <section id="get-involved" className="border-t border-border/25">
       <div className="container py-14">
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
-            Community
-          </span>
-          <div className="h-px flex-1 bg-border/35" />
-        </div>
-        <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">Get Involved</h2>
-
-        <div className="mt-6 grid gap-8 lg:grid-cols-2">
-          {/* Why This Matters */}
-          <div>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              xPRIMEray is open research — every probe, measurement, and heatmap is reproducible.
-              We are looking for people who want to build better instruments for seeing what is
-              usually hidden: transport seams, convergence behavior, observer pathways.
-            </p>
-            <div className="mt-5 rounded-sm border border-primary/20 bg-primary/[0.04] px-4 py-4">
-              <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.3em] text-primary/60">
-                Why This Matters
-              </div>
-              <p className="text-xs leading-relaxed text-foreground/70">
-                Curved optical transport is invoked in discussions ranging from atmospheric lensing
-                to renderer boundary artifacts — yet no open reference implementation existed for
-                systematic visual study. xPRIMEray builds that foundation in public: reproducible
-                experiments, measurable results, and tooling that researchers and builders can run
-                themselves.
-              </p>
-            </div>
-            <div className="mt-4 rounded-sm border border-border/20 bg-card/10 px-4 py-3">
-              <div className="mb-1 font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/35">
-                Contribution Paths
-              </div>
-              <ul className="space-y-1 text-xs text-muted-foreground/60">
-                <li>· Run existing experiments locally and share results</li>
-                <li>· Propose new overlay designs or diagnostic instruments</li>
-                <li>· Review measurement logs and flag anomalies</li>
-                <li>· Improve documentation and feature indexing</li>
-              </ul>
-            </div>
+        <div className="mx-auto max-w-2xl rounded-sm border border-border/40 bg-card/20 px-8 py-12 text-center">
+          <div className="mb-3 font-mono text-[9px] uppercase tracking-[0.4em] text-amber-400/65">
+            Get Involved
           </div>
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+            Join the Observatory
+          </h2>
+          <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground/70">
+            Every experiment, discussion, and pull request advances the frontier.
+            Open research. Public code. Reproducible results.
+          </p>
 
-          {/* Contrib cards */}
-          <div className="grid gap-3">
-            <ContribCard
-              icon={Github}
-              title="GitHub Repository"
-              desc="Source code, open issues, and pull requests. The observatory's primary build artifact."
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <a
               href="https://github.com/AetherTopologist/GD_xPRIMEray"
-              cta="Open Repository"
-            />
-            <ContribCard
-              icon={MessageSquare}
-              title="GitHub Discussions"
-              desc="Ask questions, propose experiments, and discuss transport phenomena with the community."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-sm border border-border/50 bg-secondary/40 px-6 py-4 transition-base hover:border-border hover:bg-secondary/70"
+            >
+              <Github className="h-5 w-5 shrink-0 text-foreground/60" />
+              <div className="text-left">
+                <div className="text-sm font-semibold">Star on GitHub</div>
+                <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground/50">
+                  Source · Issues · PRs
+                </div>
+              </div>
+            </a>
+            <a
               href="https://github.com/AetherTopologist/GD_xPRIMEray/discussions"
-              cta="Join Discussion"
-            />
-            <ContribCard
-              icon={BookOpen}
-              title="Feature Index"
-              desc="Browse all 16 ship-ready features, 4 in-progress, and 13 proposed overlays."
-              href="https://aethertopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/"
-              cta="Browse Features"
-            />
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-sm border border-cyan-500/35 bg-cyan-950/25 px-6 py-4 transition-base hover:border-cyan-500/60 hover:bg-cyan-950/40"
+            >
+              <MessageSquare className="h-5 w-5 shrink-0 text-cyan-400/70" />
+              <div className="text-left">
+                <div className="text-sm font-semibold text-cyan-200/80">Open Discussions</div>
+                <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-cyan-400/45">
+                  Questions · Experiments · Ideas
+                </div>
+              </div>
+            </a>
           </div>
+
+          <div className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground/35">
+            <span>· Run experiments locally and share results</span>
+            <span>· Propose new overlays or diagnostic instruments</span>
+            <span>· Flag anomalies in measurement logs</span>
+          </div>
+
+          <p className="mt-4 text-xs text-muted-foreground/30">
+            You don't need a physics degree — if you can run a renderer, you can map the field.
+          </p>
         </div>
       </div>
     </section>
-  );
-}
-
-function ContribCard({
-  icon: Icon,
-  title,
-  desc,
-  href,
-  cta,
-}: {
-  icon: React.ElementType;
-  title: string;
-  desc: string;
-  href: string;
-  cta: string;
-}) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group flex items-start gap-3 rounded-sm border border-border/35 bg-card/25 p-4 transition-base hover:border-primary/30 hover:bg-card/40"
-    >
-      <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-sm bg-secondary/60 ring-1 ring-inset ring-border/40">
-        <Icon className="h-3.5 w-3.5 text-primary-glow/70" />
-      </div>
-      <div className="min-w-0">
-        <div className="text-sm font-semibold tracking-tight">{title}</div>
-        <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{desc}</div>
-        <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground/35 transition-base group-hover:text-primary/60">
-          {cta} →
-        </div>
-      </div>
-    </a>
   );
 }
 
