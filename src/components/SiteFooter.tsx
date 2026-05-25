@@ -14,7 +14,7 @@ export function SiteFooter() {
             src={`${import.meta.env.BASE_URL}assets/xPRIMEray_Logo_Research_256.png`}
             alt="xPRIMEray Observatory"
             aria-hidden
-            className="h-5 w-auto opacity-[0.12]"
+            className="h-6 w-auto opacity-20"
           />
           <span className="font-mono text-[7px] uppercase tracking-[0.3em] text-muted-foreground/25">
             Curved transport diagnostics powered by xPRIMEray Observatory

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Orbit, LogOut, ExternalLink, Menu, X } from "lucide-react";
+import { LogOut, ExternalLink, Menu, X } from "lucide-react";
+
+const BASE = import.meta.env.BASE_URL;
 import { Button } from "@/components/ui/button";
 import { QuickCreateDialog } from "./QuickCreateDialog";
 import { useAuth } from "@/hooks/useAuth";
@@ -38,13 +40,14 @@ export function AppHeader() {
     <>
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="container flex h-16 items-center justify-between gap-4">
-          {/* Logo */}
-          <Link to="/" className="group flex items-center gap-2.5" onClick={closeMobile}>
-            <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-glow">
-              <Orbit className="h-4.5 w-4.5 text-primary-foreground" strokeWidth={2.5} />
-              <span className="absolute inset-0 rounded-xl ring-1 ring-inset ring-primary-foreground/20" />
-            </span>
-            <div className="leading-none">
+          {/* Logo — official xPRIMEray mark + MisterY Labs wordmark */}
+          <Link to="/" className="group flex items-center gap-3" onClick={closeMobile}>
+            <img
+              src={`${BASE}assets/xPRIMEray_Logo_Official_256.png`}
+              alt="xPRIMEray"
+              className="h-8 w-auto opacity-90 transition-opacity group-hover:opacity-100 md:h-9"
+            />
+            <div className="hidden leading-none sm:block">
               <div className="text-sm font-bold tracking-tight">
                 MisterY <span className="text-gradient">Labs</span>
               </div>

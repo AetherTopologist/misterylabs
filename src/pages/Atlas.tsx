@@ -838,6 +838,12 @@ function ObservatoryHeroSection() {
       <div className="container py-20 md:py-28">
         {/* Observatory identifier row */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <img
+            src={`${BASE}assets/xPRIMEray_Logo_Research_256.png`}
+            alt=""
+            aria-hidden
+            className="h-4 w-auto opacity-25"
+          />
           <span className="font-mono text-[8px] uppercase tracking-[0.45em] text-muted-foreground/30">
             SYS // 03
           </span>
