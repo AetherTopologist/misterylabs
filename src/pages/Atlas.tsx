@@ -813,12 +813,48 @@ const OFFAXIS_PANELS: ObsPanel[] = [
   },
 ];
 
+// ── Atlas Instrument Nav ──────────────────────────────────
+
+const ATLAS_NAV = [
+  { href: "#observatory-hero",   label: "Observatory" },
+  { href: "#quaternion-explorer", label: "Quaternion" },
+  { href: "#higher-dimensional",  label: "Instruments" },
+  { href: "#xeno-citations",      label: "XenoCitations" },
+  { href: "#signals",             label: "Lineage" },
+  { href: "#get-involved",        label: "Get Involved" },
+] as const;
+
+function AtlasInstrumentNav() {
+  return (
+    <nav
+      aria-label="Atlas sections"
+      className="sticky top-16 z-30 border-b border-border/40 bg-background/90 backdrop-blur-xl"
+    >
+      <div className="container flex h-9 items-center gap-0.5 overflow-x-auto scrollbar-none">
+        <span className="mr-3 shrink-0 font-mono text-[7px] uppercase tracking-[0.4em] text-muted-foreground/30">
+          Atlas
+        </span>
+        {ATLAS_NAV.map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            className="shrink-0 rounded px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground/50 transition-base hover:bg-secondary/50 hover:text-foreground"
+          >
+            {item.label}
+          </a>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────
 
 export default function AtlasPage() {
   return (
     <div className="min-h-screen">
       <AppHeader />
+      <AtlasInstrumentNav />
       <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/25 to-transparent" aria-hidden />
       <ObservatoryHeroSection />
       <FractalInspirationAtlas />

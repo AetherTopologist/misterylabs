@@ -15,6 +15,7 @@ function fresnelR(n1: number, n2: number): number {
 
 // Wave amplitude at simulation pixel (px, py)
 // Upper half n=1 air: incident + reflected
+// Membrane: eigenmode standing wave (Fabry-Perot resonator)
 // Lower half n=n2: transmitted forward (+IOR) or converging (-IOR)
 function waveField(
   px: number, py: number, t: number,
@@ -51,15 +52,24 @@ function waveField(
     }
   }
 
-  return 0; // inside membrane
+  // Inside membrane: Fabry-Perot eigenmode standing wave
+  // kInside = K0*|n2|; nodes at yLocal = m*pi/kInside
+  const yLocal = py - (memY - halfH);
+  const kInside = K0 * Math.abs(n2);
+  return 0.38 * amp * Math.sin(kInside * yLocal) * Math.cos(omega * t);
 }
 
 // Map wave amplitude to RGB (dark base, cyan positive, magenta negative)
+// inMemb: use a darker tinted palette to distinguish the resonator cavity
 function waveToRgb(u: number, inMemb: boolean): [number, number, number] {
-  if (inMemb) return [16, 30, 42];
   const c = Math.max(-1.8, Math.min(1.8, u));
   const n = c / 1.8;
   const I = Math.pow(Math.abs(n), 0.58);
+  if (inMemb) {
+    // Dimmer amber-tinted standing wave inside membrane
+    if (n > 0) return [Math.floor(14 + 40 * I), Math.floor(22 + 55 * I), Math.floor(30 + 60 * I)];
+    return [Math.floor(14 + 55 * I), Math.floor(18 + 20 * I), Math.floor(26 + 38 * I)];
+  }
   if (n > 0) {
     return [Math.floor(5 + 12 * I), Math.floor(5 + 165 * I), Math.floor(8 + 200 * I)];
   }
@@ -88,6 +98,7 @@ export function PoissonDotAndNegativeIOR() {
   const freqRef      = useRef(0.9);
   const ampRef       = useRef(1.0);
   const membRef      = useRef(14);
+  const nearResRef   = useRef(false);
 
   // React state — for UI re-renders only
   const [ior,       setIorState]   = useState(1.5);
@@ -138,13 +149,34 @@ export function PoissonDotAndNegativeIOR() {
       for (let py = 0; py < SIM_H; py++) {
         const inMemb = py >= memY - hH && py <= memY + hH;
         for (let px = 0; px < SIM_W; px++) {
-          const u = inMemb ? 0 : waveField(px, py, t, srcX, srcY, memY, hH, n2, am, fq);
+          const u = waveField(px, py, t, srcX, srcY, memY, hH, n2, am, fq);
           const [r, g, b] = waveToRgb(u, inMemb);
           const i = (py * SIM_W + px) * 4;
           d[i] = r; d[i + 1] = g; d[i + 2] = b; d[i + 3] = 255;
         }
       }
       ctx.putImageData(imgData, 0, 0);
+
+      // ── Resonance membrane glow ───────────────────────────
+      if (nearResRef.current) {
+        const pulse = 0.5 + 0.5 * Math.sin(t * 7.5);
+        const alpha = (0.07 + 0.10 * pulse).toFixed(3);
+        ctx.fillStyle = `rgba(251,170,30,${alpha})`;
+        ctx.fillRect(0, memY - hH - 1, SIM_W, hH * 2 + 2);
+      }
+
+      // ── Locus line: source → focal point when n2 < 0 ─────
+      if (n2 < -0.1) {
+        const fy = 2 * memY - srcY;
+        ctx.setLineDash([3, 5]);
+        ctx.strokeStyle = "rgba(200,70,160,0.18)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(srcX, srcY + 6);
+        ctx.lineTo(srcX, fy - 6);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
 
       // ── Overlay: source glow ──────────────────────────
       const sgrd = ctx.createRadialGradient(srcX, srcY, 0, srcX, srcY, 22);
@@ -181,6 +213,13 @@ export function PoissonDotAndNegativeIOR() {
         ctx.setLineDash([]);
       }
 
+      // ── Overlay: resonance lock label ──────────────────────
+      if (nearResRef.current) {
+        ctx.font = "bold 10px 'JetBrains Mono', monospace";
+        ctx.fillStyle = "rgba(251,191,36,0.78)";
+        ctx.fillText("↑ RESONANCE LOCK", 8, memY - hH - 4);
+      }
+
       // ── Overlay: region labels ─────────────────────────
       ctx.font = "10px 'JetBrains Mono', monospace";
       ctx.fillStyle = "rgba(155,185,200,0.32)";
@@ -201,6 +240,9 @@ export function PoissonDotAndNegativeIOR() {
   const isNeg = ior < 0;
   const resonanceN = (2 * membThick * Math.abs(ior)) / LAMBDA;
   const nearRes = Math.abs(resonanceN - Math.round(resonanceN)) < 0.12 && Math.abs(ior) > 0.1;
+  const Q = T > 0.001 ? R / T : 99;
+  // Sync resonance state into ref so RAF loop can read it without stale closure
+  nearResRef.current = nearRes;
 
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
@@ -390,6 +432,14 @@ export function PoissonDotAndNegativeIOR() {
               <div className={`readout text-xs font-semibold tabular-nums ${nearRes ? "text-amber-400" : "text-muted-foreground/55"}`}>
                 {resonanceN.toFixed(2)}
                 {nearRes && " ≈ m"}
+              </div>
+            </div>
+            <div>
+              <div className="mb-1 font-mono text-[8px] uppercase tracking-[0.2em] text-muted-foreground/38">
+                Q = R/T
+              </div>
+              <div className={`readout text-xs font-semibold tabular-nums ${nearRes ? "text-amber-400" : "text-muted-foreground/55"}`}>
+                {Q > 50 ? ">50" : Q.toFixed(1)}
               </div>
             </div>
           </div>

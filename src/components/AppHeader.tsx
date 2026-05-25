@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, ExternalLink, Menu, X } from "lucide-react";
+import { LogOut, ExternalLink, Menu, X, Sun, Moon } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL;
 import { Button } from "@/components/ui/button";
 import { QuickCreateDialog } from "./QuickCreateDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 
 const NAV_LINKS = [
   { to: "/", label: "Home", exact: true },
@@ -20,6 +21,7 @@ export function AppHeader() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -121,6 +123,21 @@ export function AppHeader() {
                 <Link to="/auth">Sign in</Link>
               </Button>
             )}
+
+            {/* Theme toggle */}
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={toggleTheme}
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {theme === "dark"
+                ? <Sun className="h-4 w-4" />
+                : <Moon className="h-4 w-4" />
+              }
+            </Button>
 
             {/* Hamburger — mobile only */}
             <Button
