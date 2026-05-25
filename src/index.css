@@ -320,6 +320,14 @@
   to   { opacity: 1; }
 }
 
+/* Quaternion Explorer slider thumb glows — one class per component */
+@layer components {
+  .q-thumb-x { box-shadow: 0 0 8px hsl(186 88% 58% / 0.5); }
+  .q-thumb-y { box-shadow: 0 0 8px hsl(140 70% 55% / 0.5); }
+  .q-thumb-z { box-shadow: 0 0 8px hsl(280 72% 68% / 0.5); }
+  .q-thumb-w { box-shadow: 0 0 8px hsl(35  88% 58% / 0.5); }
+}
+
 @layer utilities {
   .img-pixelated { image-rendering: pixelated; }
 

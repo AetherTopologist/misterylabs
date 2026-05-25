@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ExternalLink, Github, MessageSquare } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { FractalInspirationAtlas } from "@/components/FractalInspirationAtlas";
+import { QuaternionExplorer } from "@/components/QuaternionExplorer";
 import { TransportSphereViz } from "@/components/TransportSphereViz";
 import { SiteFooter } from "@/components/SiteFooter";
 
@@ -816,6 +817,7 @@ export default function AtlasPage() {
       <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/25 to-transparent" aria-hidden />
       <ObservatoryHeroSection />
       <FractalInspirationAtlas />
+      <QuaternionExplorerSection />
       <XenoCitationSection />
       <SignalsSection />
       <GetInvolvedSection />
@@ -1035,6 +1037,31 @@ function ObservatoryHeroSection() {
             </div>
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Quaternion Explorer Section ────────────────────────────
+
+function QuaternionExplorerSection() {
+  return (
+    <section id="quaternion-explorer" className="border-t border-border/35">
+      <div className="container py-14">
+        <div className="mb-8">
+          <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/45">
+            SYS // OBS-QX · Higher-Dimensional Transport
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
+            Quaternion Field Explorer
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground/65">
+            Every 3D rotation in xPRIMEray's curved-transport field is encoded as a unit quaternion — four numbers
+            that compress axis and angle into a single algebraic object. Drag the sliders to explore how
+            the (x, y, z, w) components map to physical orientation.
+          </p>
+        </div>
+        <QuaternionExplorer />
       </div>
     </section>
   );
