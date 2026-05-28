@@ -71,10 +71,10 @@ All routes are registered in `src/App.tsx`. The `*` catch-all renders `NotFound.
 
 | URL | Status | Note |
 |---|---|---|
-| `https://aethertopologist.github.io/GD_xPRIMEray/` | Verified live | xPRIMEray main docs — used in hero, nav, xPRIMEray section, portals |
-| `https://aethertopologist.github.io/GD_xPRIMEray/Research/transport_island_microscopy/` | Verified live | Transport Island Microscopy portal |
-| `https://aethertopologist.github.io/GD_xPRIMEray/Research/cathedral_probe_architecture/` | **Unverified** | Cathedral Probe Architecture — page may not exist yet |
-| `https://aethertopologist.github.io/GD_xPRIMEray/#current-milestone-curved-field-validation-ladder` | **Unverified** | Hash anchor on live site — depends on section presence |
+| `https://xprimeray.github.io/GD_xPRIMEray/` | Verified live | xPRIMEray main docs — used in hero, nav, xPRIMEray section, portals |
+| `https://xprimeray.github.io/GD_xPRIMEray/Research/transport_island_microscopy/` | Verified live | Transport Island Microscopy portal |
+| `https://xprimeray.github.io/GD_xPRIMEray/Research/cathedral_probe_architecture/` | **Unverified** | Cathedral Probe Architecture — page may not exist yet |
+| `https://xprimeray.github.io/GD_xPRIMEray/#current-milestone-curved-field-validation-ladder` | **Unverified** | Hash anchor on live site — depends on section presence |
 | `https://github.com/AetherTopologist/GD_xPRIMEray` | Likely live | GitHub repository — used in hero, nav, xPRIMEray section, media lab |
 
 ### Inspiration nodes (Wikipedia + personal sites)
@@ -153,7 +153,7 @@ These are placeholder URLs used for development seeding. Not real destinations.
 
 ## Recommended next fixes
 
-1. **Cathedral Probe portal card** — The URL `https://aethertopologist.github.io/GD_xPRIMEray/Research/cathedral_probe_architecture/` is unverified. Consider changing the portal status to `"coming-soon"` until the page is confirmed live, or remove the `href` until then.
+1. **Cathedral Probe portal card** — The URL `https://xprimeray.github.io/GD_xPRIMEray/Research/cathedral_probe_architecture/` is unverified. Consider changing the portal status to `"coming-soon"` until the page is confirmed live, or remove the `href` until then.
 
 2. **OG image CDN** — Replace the Lovable CDN OG image with a self-hosted file in `public/og-image.jpg` when one is available. Update `index.html` meta tags to point to the self-hosted path.
 

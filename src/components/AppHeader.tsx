@@ -71,7 +71,7 @@ export function AppHeader() {
               </HeaderLink>
             ))}
             <a
-              href="https://aethertopologist.github.io/GD_xPRIMEray/"
+              href="https://xprimeray.github.io/GD_xPRIMEray/"
               target="_blank"
               rel="noreferrer"
               title="Curved Transport Observatory"
@@ -174,7 +174,7 @@ export function AppHeader() {
               </Link>
             ))}
             <a
-              href="https://aethertopologist.github.io/GD_xPRIMEray/"
+              href="https://xprimeray.github.io/GD_xPRIMEray/"
               target="_blank"
               rel="noreferrer"
               onClick={closeMobile}

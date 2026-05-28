@@ -313,7 +313,7 @@ const Index = () => {
               className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-none"
             >
               <a
-                href="https://aethertopologist.github.io/GD_xPRIMEray/"
+                href="https://xprimeray.github.io/GD_xPRIMEray/"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -406,21 +406,21 @@ const Index = () => {
                 label="Ship-Ready Features"
                 sublabel="Core transport, GRIN fields, validation, overlays"
                 variant="success"
-                href="https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/"
+                href="https://xprimeray.github.io/GD_xPRIMEray/FEATURE_INDEX/"
               />
               <ObsMetric
                 value={4}
                 label="In Progress"
                 sublabel="TestBench recipe, wormhole rig, atomic orbital fixtures"
                 variant="warning"
-                href="https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/"
+                href="https://xprimeray.github.io/GD_xPRIMEray/FEATURE_INDEX/"
               />
               <ObsMetric
                 value={13}
                 label="Proposed Overlays"
                 sublabel="Celestial Boundary, Curvature Domain Map, Transport Memory..."
                 variant="info"
-                href="https://AetherTopologist.github.io/GD_xPRIMEray/Observatory/OVERLAY_MASTER_LIST/"
+                href="https://xprimeray.github.io/GD_xPRIMEray/Observatory/OVERLAY_MASTER_LIST/"
               />
             </div>
           </div>

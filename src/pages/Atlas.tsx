@@ -564,7 +564,7 @@ const XENO_CITATIONS: XenoCitationCard[] = [
       "Directly inspired the GRIN field rendering pipeline — curved transport through gradient-index media is the computational descendant of Maxwell's fish-eye lens. The refractive index field is the field xPRIMEray navigates.",
     feature: "GRINFieldRenderer · LuxCoreGRIN · CurvedFieldTraversal",
     motifLabel: "GRIN Optics",
-    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    href: "https://xprimeray.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: true,
   },
   // xc-002 — Differential Geometry & Curvature
@@ -578,7 +578,7 @@ const XENO_CITATIONS: XenoCitationCard[] = [
       "The curved null-geodesic traversal at the heart of xPRIMEray follows paths that Gauss and Riemann first gave language to. Each ray is a geodesic through a field-warped medium.",
     feature: "CurvedFieldTraversal · GeodesicPath",
     motifLabel: "Differential Geometry",
-    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    href: "https://xprimeray.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
   // xc-003 — Hamiltonian / Quaternion Transport
@@ -592,7 +592,7 @@ const XENO_CITATIONS: XenoCitationCard[] = [
       "Phase-space transport intuition underpins xPRIMEray's traversal model: each ray state is position plus direction, propagated through the field's Hamiltonian structure. Quaternion algebra also informs orientation handling in curved traversal.",
     feature: "PhaseSpaceTransport · CurvedFieldTraversal",
     motifLabel: "Hamiltonian / Quaternion Transport",
-    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    href: "https://xprimeray.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
   // xc-004 — Effective Optical Metric / GRIN Analogy
@@ -620,7 +620,7 @@ const XENO_CITATIONS: XenoCitationCard[] = [
       "Resonates with the transport diagnostic language: field ownership, curvature domain maps, and boundary behavior all echo MTW's geometric vocabulary.",
     feature: "CurvatureDomainMap · TransportDiagnostics",
     motifLabel: "Metric Tensor Language",
-    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    href: "https://xprimeray.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
   // xc-006 — Observer Geometry & Causal Structure
@@ -634,7 +634,7 @@ const XENO_CITATIONS: XenoCitationCard[] = [
       "Transport ownership maps and curved traversal diagnostics resonate with Penrose-style optical geometry: the path is not just a line, but a statement about the field it crosses. Observer geometry and causal structure inform how xPRIMEray assigns boundary ownership.",
     feature: "TransportOwnershipOverlay · CausalStructureDiagnostics",
     motifLabel: "Observer Geometry",
-    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    href: "https://xprimeray.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
   // xc-007 — Symmetry & Invariants
@@ -648,7 +648,7 @@ const XENO_CITATIONS: XenoCitationCard[] = [
       "Resonates with the xPRIMEray field symmetry diagnostics — transport invariants under traversal mode changes echo Noether's deep link between symmetry and conservation.",
     feature: "FieldSymmetryDiagnostics",
     motifLabel: "Field Symmetry",
-    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    href: "https://xprimeray.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
   // xc-008 — Multi-Path / Quantum Transport Intuition
@@ -662,7 +662,7 @@ const XENO_CITATIONS: XenoCitationCard[] = [
       "Inspired the oracle path architecture — the oracle traces all candidate geodesic paths to determine which transport boundary a pixel truly belongs to.",
     feature: "OraclePathTracer · IslandMicroscopy",
     motifLabel: "Path Integral",
-    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    href: "https://xprimeray.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
   // xc-009 — Temporal Instrumentation & Nanobrain
@@ -676,7 +676,7 @@ const XENO_CITATIONS: XenoCitationCard[] = [
       "xPRIMEray borrows this instrumentation metaphor: each diagnostic frame becomes a sampled transport field, each pixel a possible time-series witness to hidden curvature structure. Treated as research-facing aesthetic and instrumentation inspiration, not as a proven framework.",
     feature: "TemporalFieldSampling · DiagnosticInstrumentationModel",
     motifLabel: "Temporal Instrumentation",
-    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    href: "https://xprimeray.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
   // xc-010 — Boundary Correspondence / Celestial Holography
@@ -690,7 +690,7 @@ const XENO_CITATIONS: XenoCitationCard[] = [
       "The observatory's transport ownership mapping resonates with Pasterski's celestial sphere framing: every ray path carries a latent topology, and the boundary of the transport field is where geometry speaks most clearly.",
     feature: "CelestialHolographyInspiration · TransportOwnershipOverlay",
     motifLabel: "Celestial Holography",
-    href: "https://AetherTopologist.github.io/GD_xPRIMEray/FEATURE_INDEX/",
+    href: "https://xprimeray.github.io/GD_xPRIMEray/FEATURE_INDEX/",
     complete: false,
   },
   // xc-011 — Frontier Interface: Field Propulsion Discourse

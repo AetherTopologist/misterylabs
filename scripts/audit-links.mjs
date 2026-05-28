@@ -182,10 +182,10 @@ ${fmt(findings.externalUrls)}
 
 | URL | Status | Note |
 |---|---|---|
-| \`https://aethertopologist.github.io/GD_xPRIMEray/\` | Verified live | xPRIMEray main docs |
-| \`https://aethertopologist.github.io/GD_xPRIMEray/Research/transport_island_microscopy/\` | Verified live | Transport Island Microscopy |
-| \`https://aethertopologist.github.io/GD_xPRIMEray/Research/cathedral_probe_architecture/\` | **Unverified** | Cathedral Probe Architecture — page may not exist yet |
-| \`https://aethertopologist.github.io/GD_xPRIMEray/#current-milestone-curved-field-validation-ladder\` | **Unverified** | Hash anchor on live site — depends on section existence |
+| \`https://xprimeray.github.io/GD_xPRIMEray/\` | Verified live | xPRIMEray main docs |
+| \`https://xprimeray.github.io/GD_xPRIMEray/Research/transport_island_microscopy/\` | Verified live | Transport Island Microscopy |
+| \`https://xprimeray.github.io/GD_xPRIMEray/Research/cathedral_probe_architecture/\` | **Unverified** | Cathedral Probe Architecture — page may not exist yet |
+| \`https://xprimeray.github.io/GD_xPRIMEray/#current-milestone-curved-field-validation-ladder\` | **Unverified** | Hash anchor on live site — depends on section existence |
 | \`https://github.com/AetherTopologist/GD_xPRIMEray\` | Likely live | GitHub repository |
 | \`https://storage.googleapis.com/gpt-engineer-file-uploads/...\` | **Unverified** | Lovable OG image CDN — may expire |
 | Wikipedia links (×13) | Assumed live | Standard Wikipedia article links |
