@@ -1,0 +1,16 @@
+{
+  "analysis_capture_mode": "transport_classification",
+  "case_id": "hermetic_grin",
+  "classification_path": "output/v0.0-pre/hermetic_grin_transport_classification.png",
+  "coverage": {},
+  "fixture_label": "hermetic GRIN",
+  "schema": "xprimeray.classification_export_coverage.v1",
+  "summary_metrics": {
+    "budget_exhausted_pixels": null,
+    "classified_pixels": null,
+    "escaped_no_hit_pixels": null,
+    "hermetic_rule_satisfied": null,
+    "total_pixels": null
+  },
+  "transport_assumption": "curved_grin"
+}
