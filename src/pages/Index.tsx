@@ -17,6 +17,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { SeeingIsNotOpeningYourEyes } from "@/components/SeeingIsNotOpeningYourEyes";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TransportSphereViz } from "@/components/TransportSphereViz";
+import { FractalAcademia } from "@/components/FractalAcademia";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -426,6 +427,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* ── FRACTAL ACADEMIA ──────────────────────────────── */}
+      <FractalAcademia />
 
       {/* ── MISSION AXIOM ─────────────────────────────────── */}
       <section className="border-t border-border/35">
