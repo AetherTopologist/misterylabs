@@ -18,6 +18,15 @@ dist-ssr
 .env.production
 .env.*.local
 
+# Python virtual environments
+**/.capture-venv/
+**/.venv/
+**/venv/
+
+# Raw transport traces
+assets/xprimeray_outputs/**/*.csv
+assets/xprimeray_outputs/**/*.jsonl
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
