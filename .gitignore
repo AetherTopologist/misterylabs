@@ -28,3 +28,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Generated xPRIMEray heavy data
+assets/xprimeray_outputs/**/*.csv
+assets/xprimeray_outputs/**/*.jsonl
+assets/xprimeray_outputs/**/.capture-venv/**
