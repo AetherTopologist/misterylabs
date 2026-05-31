@@ -222,7 +222,7 @@ export default function MediaPage() {
             storyboards, and comparative panels from the curved transport investigation.
           </p>
 
-          {/* Category filter */}
+          {/* Category filter — observatory archive controls */}
           <div className="mt-6 flex flex-wrap gap-2">
             {GALLERY_CATEGORIES.map((cat) => (
               <button
@@ -231,10 +231,10 @@ export default function MediaPage() {
                   setActiveCategory(cat);
                   closeLightbox();
                 }}
-                className={`rounded-sm border px-3 py-1 font-mono text-[9px] uppercase tracking-[0.2em] transition-base ${
+                className={`rounded-sm border px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.2em] transition-base ${
                   activeCategory === cat
-                    ? "border-primary/50 bg-primary/10 text-primary"
-                    : "border-border/40 text-muted-foreground/50 hover:border-border/70 hover:text-muted-foreground"
+                    ? "border-primary/60 bg-primary/10 text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.15)]"
+                    : "border-border/40 text-muted-foreground/50 hover:border-border/70 hover:text-muted-foreground active:bg-secondary/30"
                 }`}
               >
                 {cat}
@@ -243,7 +243,7 @@ export default function MediaPage() {
           </div>
 
           {/* Result count — observatory archive feel */}
-          <div className="mt-3 flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/40">
+          <div className="mt-4 flex flex-col gap-y-1 sm:flex-row sm:items-center sm:justify-between text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/40">
             <span>
               {visibleItems.length} {visibleItems.length === 1 ? "frame" : "frames"} · {activeCategory === "All" ? "full archive" : activeCategory.toLowerCase()}
             </span>
@@ -355,8 +355,8 @@ function GalleryCard({
       {/* Caption */}
       <div className="flex items-start justify-between gap-2 p-3">
         <div className="min-w-0">
-          <div className="text-xs font-medium leading-snug text-foreground/85">{item.title}</div>
-          <div className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground/60 line-clamp-2">
+          <div className="text-sm font-medium leading-snug text-foreground/90 sm:text-xs">{item.title}</div>
+          <div className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground/65 line-clamp-2 sm:text-[10px]">
             {item.desc}
           </div>
         </div>
@@ -442,18 +442,28 @@ function ObservatoryLightbox({
 
         {/* Image stage — elegant containment for contact sheets & diagnostic panels */}
         <div className="relative flex max-h-[72vh] md:max-h-[78vh] items-center justify-center bg-[#030407] p-4 md:p-6">
+          {/* Very faint technical grid for cinematic observatory atmosphere */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.035]"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(0deg, rgba(255,255,255,0.6) 0 1px, transparent 1px 28px), repeating-linear-gradient(90deg, rgba(255,255,255,0.6) 0 1px, transparent 1px 28px)",
+            }}
+            aria-hidden
+          />
+
           <img
             src={localItem.src}
             alt={localItem.title}
-            className="max-h-[66vh] md:max-h-[72vh] w-full object-contain"
+            className="max-h-[66vh] md:max-h-[72vh] w-full object-contain relative z-10"
           />
 
           {/* Subtle diagnostic corner marks inside the image well */}
-          <div className="pointer-events-none absolute inset-4 border border-white/5" aria-hidden />
+          <div className="pointer-events-none absolute inset-4 border border-white/5 z-20" aria-hidden />
         </div>
 
         {/* Diagnostic metadata footer */}
-        <div className="border-t border-border/30 bg-card/30 p-5">
+        <div className="border-t border-border/30 bg-card/30 p-4 sm:p-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -484,14 +494,14 @@ function ObservatoryLightbox({
                 <button
                   onClick={() => navigate(-1)}
                   disabled={!hasPrev}
-                  className="inline-flex items-center gap-1.5 rounded-sm border border-border/40 bg-secondary/30 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-base hover:border-primary/40 hover:text-primary disabled:opacity-30 disabled:hover:border-border/40 disabled:hover:text-muted-foreground"
+                  className="inline-flex items-center gap-1.5 rounded-sm border border-border/40 bg-secondary/30 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-base hover:border-primary/40 hover:text-primary active:bg-secondary/50 disabled:opacity-30 disabled:hover:border-border/40 disabled:hover:text-muted-foreground"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" /> Prev
                 </button>
                 <button
                   onClick={() => navigate(1)}
                   disabled={!hasNext}
-                  className="inline-flex items-center gap-1.5 rounded-sm border border-border/40 bg-secondary/30 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-base hover:border-primary/40 hover:text-primary disabled:opacity-30 disabled:hover:border-border/40 disabled:hover:text-muted-foreground"
+                  className="inline-flex items-center gap-1.5 rounded-sm border border-border/40 bg-secondary/30 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-base hover:border-primary/40 hover:text-primary active:bg-secondary/50 disabled:opacity-30 disabled:hover:border-border/40 disabled:hover:text-muted-foreground"
                 >
                   Next <ChevronRight className="h-3.5 w-3.5" />
                 </button>
@@ -501,7 +511,7 @@ function ObservatoryLightbox({
                 href={localItem.src}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-1.5 rounded-sm border border-border/30 bg-secondary/20 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/80 transition-base hover:border-border/60 hover:text-foreground"
+                className="inline-flex items-center justify-center gap-1.5 rounded-sm border border-border/30 bg-secondary/20 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/80 transition-base hover:border-border/60 hover:text-foreground active:bg-secondary/40"
               >
                 <Download className="h-3 w-3" /> Open full frame
               </a>
