@@ -579,6 +579,10 @@ interface AtlasEntry {
   flowSteps: string[] | null;
   statusLabel: string;
   tags: string[];
+  // Optional visual anchor — path relative to public/ (no leading slash, no BASE_URL)
+  imageSrc?: string;
+  imageAlt?: string;
+  imageCaption?: string;
 }
 
 const ATLAS_ENTRIES: AtlasEntry[] = [
@@ -631,6 +635,11 @@ const ATLAS_ENTRIES: AtlasEntry[] = [
       "Observer Disagreement",
       "Unknown Unknowns",
     ],
+    imageSrc: "atlas/self-consistent-elastic-curvature-fields.png",
+    imageAlt:
+      "MisterY Labs Atlas infographic showing elastic curvature fields, polymer chains, FEA mesh, GRIN transport, eigenmode geometry, and observable signatures.",
+    imageCaption:
+      "Self-consistent elastic curvature fields: stable fields become stable perspectives.",
   },
 ];
 
@@ -1491,6 +1500,26 @@ function AtlasEntryCard({ entry }: { entry: AtlasEntry }) {
       </div>
 
       <div className="px-5 py-5">
+
+        {/* ── Visual anchor image ───────────────────── */}
+        {entry.imageSrc && (
+          <div className="mb-6">
+            <div className="overflow-hidden rounded-sm border border-border/25 bg-[#030407]">
+              <img
+                src={`${import.meta.env.BASE_URL}${entry.imageSrc}`}
+                alt={entry.imageAlt ?? entry.title}
+                loading="lazy"
+                className="w-full max-h-72 object-contain"
+              />
+            </div>
+            {entry.imageCaption && (
+              <p className="mt-1.5 font-mono text-[8px] uppercase tracking-[0.2em] text-muted-foreground/38">
+                {entry.imageCaption}
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
 
           {/* ── Left: content ────────────────────────── */}
