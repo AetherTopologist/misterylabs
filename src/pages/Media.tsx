@@ -250,7 +250,8 @@ export default function MediaPage() {
             <span>curated observatory signals</span>
           </div>
 
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Gallery grid — cinematic archive presentation */}
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:rounded-sm lg:border lg:border-border/20 lg:bg-card/5 lg:p-4">
             {visibleItems.map((item) => (
               <GalleryCard
                 key={item.id}
