@@ -552,6 +552,91 @@ interface XenoCitationCard {
   complete: boolean;
 }
 
+// ── Atlas Entry type ─────────────────────────────────────
+// Richer schema for "inspiration nodes" — sources that may be speculative
+// or frontier, valued for generating testable research questions.
+
+interface AtlasSourceLink {
+  label: string;
+  href: string;
+  type: "website" | "social" | "paper" | "github";
+  placeholder?: boolean; // true when the href is a known-unfilled placeholder
+}
+
+interface AtlasEntry {
+  id: string;
+  title: string;
+  primaryPhrase: string;
+  source: {
+    name: string;
+    description: string;
+    links: AtlasSourceLink[];
+  };
+  inspiredConcept: string;
+  researchQuestion: string;
+  body: string; // paragraphs separated by \n\n
+  engineeringBridge: string | null;
+  flowSteps: string[] | null;
+  statusLabel: string;
+  tags: string[];
+}
+
+const ATLAS_ENTRIES: AtlasEntry[] = [
+  // ae-001 — Self-Consistent Elastic Curvature Fields
+  {
+    id: "ae-001",
+    title: "Self-Consistent Elastic Curvature Fields",
+    primaryPhrase:
+      "Self-consistent elastic curvature fields produce stable observable signatures.",
+    source: {
+      name: "ACE Consultancy / Reynolds",
+      description:
+        "Elastic-plenum and field-based interpretations of physical reality.",
+      links: [
+        {
+          label: "ace-consultancy.uk",
+          href: "https://ace-consultancy.uk/",
+          type: "website",
+        },
+        {
+          label: "X / @[REPLACE_WITH_HANDLE]",
+          href: "https://x.com/[REPLACE_WITH_HANDLE]",
+          type: "social",
+          placeholder: true,
+        },
+      ],
+    },
+    inspiredConcept:
+      "Self-consistent field structures, elastic continua, gradient-index transport, eigenmode geometry, and observable optical signatures.",
+    researchQuestion:
+      "Can self-consistent field structures produce recognizable optical transport signatures?",
+    body: "ACE Consultancy explores elastic-plenum and field-based interpretations of physical reality. MisterY Labs does not treat inclusion in the Atlas as endorsement. Instead, this entry marks a useful inspiration node: the idea that stable field configurations may generate repeatable optical signatures.\n\nFor xPRIMEray, the practical question becomes whether structured transport fields can be rendered, compared, and measured through observer disagreement, lensing patterns, apparent geometry shifts, or other image-domain artifacts.",
+    engineeringBridge:
+      "In FEA of amorphous or elastic polymer systems, no single node contains the answer. The result emerges from equilibrium across the mesh: forces distribute, strains redistribute, and a stable solution appears.",
+    flowSteps: [
+      "Field",
+      "Transport Equation",
+      "Stable Solution Family",
+      "Observable Signature",
+      "Comparison to Reality",
+    ],
+    statusLabel: "Inspiration Node · Not a validated result",
+    tags: [
+      "FEA",
+      "Polymer Chains",
+      "Amorphous Materials",
+      "GRIN Transport",
+      "Eigenmodes",
+      "Optical Signatures",
+      "Observer Disagreement",
+      "Unknown Unknowns",
+    ],
+  },
+];
+
+const ATLAS_CHARTER =
+  "The MisterY Labs Atlas is a collection of inspirations, perspectives, and intellectual artifacts that have contributed to questions explored through xPRIMEray and related observatory work. Inclusion does not imply endorsement of conclusions. Many Atlas entries may contain speculative, incomplete, controversial, or evolving ideas. Their value lies in generating testable questions, visual experiments, and measurable signatures that may help transform unknowns into observable phenomena.";
+
 const XENO_CITATIONS: XenoCitationCard[] = [
   // xc-001 — Foundational Optical Transport
   {
@@ -816,10 +901,11 @@ const OFFAXIS_PANELS: ObsPanel[] = [
 // ── Atlas Instrument Nav ──────────────────────────────────
 
 const ATLAS_NAV = [
-  { href: "#observatory-hero",   label: "Observatory" },
+  { href: "#observatory-hero",    label: "Observatory" },
   { href: "#quaternion-explorer", label: "Quaternion" },
   { href: "#higher-dimensional",  label: "Instruments" },
   { href: "#xeno-citations",      label: "XenoCitations" },
+  { href: "#inspiration-atlas",   label: "Atlas" },
   { href: "#signals",             label: "Lineage" },
   { href: "#get-involved",        label: "Get Involved" },
 ] as const;
@@ -861,6 +947,7 @@ export default function AtlasPage() {
       <QuaternionExplorerSection />
       <HigherDimensionalSection />
       <XenoCitationSection />
+      <InspirationAtlasSection />
       <SignalsSection />
       <GetInvolvedSection />
       <SiteFooter />
@@ -1328,6 +1415,226 @@ function XenoCitationCardView({ card }: { card: XenoCitationCard }) {
         </span>
       </div>
     </div>
+  );
+}
+
+// ── Inspiration Atlas ─────────────────────────────────────
+
+function InspirationAtlasSection() {
+  return (
+    <section id="inspiration-atlas" className="border-t border-border/35">
+      <div className="container py-14">
+
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
+            Inspiration Nodes
+          </span>
+          <div className="h-px flex-1 bg-border/35" />
+        </div>
+        <div className="mt-2 flex flex-wrap items-baseline gap-3">
+          <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
+            Inspiration Atlas
+          </h2>
+          <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-400/45">
+            Generative Questions
+          </span>
+        </div>
+
+        {/* Atlas Charter */}
+        <div className="mt-4 rounded-sm border border-amber-500/18 bg-amber-950/10 p-4">
+          <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.35em] text-amber-400/50">
+            Atlas Charter
+          </div>
+          <p className="text-xs leading-relaxed text-muted-foreground/55">
+            {ATLAS_CHARTER}
+          </p>
+        </div>
+
+        {/* Cards */}
+        <div className="mt-8 grid gap-6">
+          {ATLAS_ENTRIES.map((entry) => (
+            <AtlasEntryCard key={entry.id} entry={entry} />
+          ))}
+        </div>
+
+      </div>
+    </section>
+  );
+}
+
+function AtlasEntryCard({ entry }: { entry: AtlasEntry }) {
+  const bodyParagraphs = entry.body.split("\n\n");
+
+  return (
+    <article className="diagnostic-frame rounded-sm border border-amber-500/20 bg-card/22 transition-base hover:border-amber-500/32 hover:bg-card/30">
+
+      {/* ── Card header ──────────────────────────────── */}
+      <div className="border-b border-border/20 px-5 py-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-amber-400/55">
+              {entry.id.toUpperCase()}
+            </span>
+            <span className="h-3 w-px bg-border/30" />
+            <span className="rounded-sm border border-amber-500/22 bg-amber-950/20 px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.2em] text-amber-400/60">
+              {entry.statusLabel}
+            </span>
+          </div>
+        </div>
+        <h3 className="mt-2 text-base font-semibold tracking-tight text-foreground/90">
+          {entry.title}
+        </h3>
+        <blockquote className="mt-2 border-l-2 border-amber-500/28 pl-3 text-xs italic leading-relaxed text-foreground/65">
+          "{entry.primaryPhrase}"
+        </blockquote>
+      </div>
+
+      <div className="px-5 py-5">
+        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+
+          {/* ── Left: content ────────────────────────── */}
+          <div className="space-y-5">
+
+            {/* Source */}
+            <div>
+              <div className="mb-1.5 font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/38">
+                Inspiration Source
+              </div>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span className="text-sm font-medium text-foreground/80">
+                  {entry.source.name}
+                </span>
+                <span className="text-xs text-muted-foreground/45">
+                  {entry.source.description}
+                </span>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {entry.source.links.map((link) =>
+                  link.placeholder ? (
+                    <span
+                      key={link.label}
+                      className="inline-flex items-center gap-1 rounded-sm border border-border/22 bg-secondary/20 px-2 py-0.5 font-mono text-[8px] text-muted-foreground/30"
+                      title="Handle not yet confirmed"
+                    >
+                      {link.label}
+                      <span className="ml-0.5 text-[7px] uppercase tracking-[0.15em] text-amber-400/35">
+                        · pending
+                      </span>
+                    </span>
+                  ) : (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-sm border border-border/30 bg-secondary/25 px-2 py-0.5 font-mono text-[8px] text-muted-foreground/55 transition-base hover:border-border/55 hover:text-foreground"
+                    >
+                      {link.label}
+                      <ExternalLink className="h-2.5 w-2.5 opacity-60" />
+                    </a>
+                  )
+                )}
+              </div>
+            </div>
+
+            {/* Inspired concept */}
+            <div>
+              <div className="mb-1 font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/38">
+                Inspired Concept
+              </div>
+              <p className="text-xs leading-relaxed text-muted-foreground/60">
+                {entry.inspiredConcept}
+              </p>
+            </div>
+
+            {/* Research question — highlighted */}
+            <div className="rounded-sm border border-cyan-500/22 bg-cyan-950/12 px-4 py-3">
+              <div className="mb-1.5 font-mono text-[8px] uppercase tracking-[0.3em] text-cyan-400/50">
+                MisterY Labs Research Question
+              </div>
+              <p className="text-sm font-medium leading-relaxed text-foreground/80">
+                {entry.researchQuestion}
+              </p>
+            </div>
+
+            {/* Body */}
+            <div className="space-y-2.5">
+              {bodyParagraphs.map((para, i) => (
+                <p key={i} className="text-xs leading-relaxed text-muted-foreground/55">
+                  {para}
+                </p>
+              ))}
+            </div>
+
+          </div>
+
+          {/* ── Right: engineering sidebar ───────────── */}
+          <div className="space-y-4">
+
+            {/* Engineering bridge */}
+            {entry.engineeringBridge && (
+              <div className="rounded-sm border border-violet-500/18 bg-violet-950/10 p-4">
+                <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.3em] text-violet-400/45">
+                  Engineering Bridge
+                </div>
+                <p className="text-xs leading-relaxed text-muted-foreground/52">
+                  {entry.engineeringBridge}
+                </p>
+              </div>
+            )}
+
+            {/* Flow diagram */}
+            {entry.flowSteps && (
+              <div className="rounded-sm border border-border/20 bg-card/15 p-4">
+                <div className="mb-3 font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/38">
+                  Concept Flow
+                </div>
+                <div className="flex flex-col gap-1">
+                  {entry.flowSteps.map((step, i) => (
+                    <div key={step} className="flex items-center gap-2">
+                      <span className="shrink-0 font-mono text-[8px] tabular-nums text-muted-foreground/28">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <span className="rounded-sm border border-border/22 bg-secondary/20 px-2 py-0.5 font-mono text-[9px] text-muted-foreground/60">
+                        {step}
+                      </span>
+                      {i < entry.flowSteps!.length - 1 && (
+                        <span className="font-mono text-[9px] text-muted-foreground/25">↓</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Status label */}
+            <div className="rounded-sm border border-border/15 bg-secondary/8 px-3 py-2.5">
+              <div className="mb-1 font-mono text-[7px] uppercase tracking-[0.3em] text-muted-foreground/30">
+                Status
+              </div>
+              <span className="font-mono text-[9px] text-amber-400/55">
+                {entry.statusLabel}
+              </span>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ── Tags footer ──────────────────────────── */}
+        <div className="mt-5 flex flex-wrap gap-1.5 border-t border-border/15 pt-4">
+          {entry.tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-sm border border-border/22 bg-secondary/20 px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.15em] text-muted-foreground/45"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+
+    </article>
   );
 }
 
