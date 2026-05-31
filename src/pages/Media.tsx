@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Github, Film, Camera, Clapperboard, Radio, GitBranch, ExternalLink, Maximize2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Github, Film, Camera, Clapperboard, Radio, GitBranch, ExternalLink, Maximize2, ChevronLeft, ChevronRight, Download, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -142,11 +142,15 @@ const PLANNED_ARTIFACTS = [
 
 export default function MediaPage() {
   const [activeCategory, setActiveCategory] = useState<GalleryCategory>("All");
+  const [lightboxId, setLightboxId] = useState<string | null>(null);
 
   const visibleItems =
     activeCategory === "All"
       ? GALLERY_ITEMS
       : GALLERY_ITEMS.filter((item) => item.system === activeCategory);
+
+  const openLightbox = (id: string) => setLightboxId(id);
+  const closeLightbox = () => setLightboxId(null);
 
   return (
     <div className="min-h-screen">
@@ -223,7 +227,10 @@ export default function MediaPage() {
             {GALLERY_CATEGORIES.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setActiveCategory(cat)}
+                onClick={() => {
+                  setActiveCategory(cat);
+                  closeLightbox();
+                }}
                 className={`rounded-sm border px-3 py-1 font-mono text-[9px] uppercase tracking-[0.2em] transition-base ${
                   activeCategory === cat
                     ? "border-primary/50 bg-primary/10 text-primary"
@@ -235,9 +242,22 @@ export default function MediaPage() {
             ))}
           </div>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Result count — observatory archive feel */}
+          <div className="mt-3 flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/40">
+            <span>
+              {visibleItems.length} {visibleItems.length === 1 ? "frame" : "frames"} · {activeCategory === "All" ? "full archive" : activeCategory.toLowerCase()}
+            </span>
+            <span>curated observatory signals</span>
+          </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visibleItems.map((item) => (
-              <GalleryCard key={item.id} item={item} provenanceLabel={PROVENANCE_LABEL[item.system]} />
+              <GalleryCard
+                key={item.id}
+                item={item}
+                provenanceLabel={PROVENANCE_LABEL[item.system]}
+                onOpen={() => openLightbox(item.id)}
+              />
             ))}
           </div>
         </div>
@@ -282,83 +302,219 @@ export default function MediaPage() {
       </section>
 
       <SiteFooter />
+
+      {/* Shared lightbox — lives at page root for clean portal behavior */}
+      <ObservatoryLightbox
+        items={visibleItems}
+        currentId={lightboxId}
+        onClose={closeLightbox}
+      />
     </div>
   );
 }
 
 // ── Sub-components ────────────────────────────────────────
 
-function GalleryCard({ item, provenanceLabel }: { item: GalleryItem; provenanceLabel: string }) {
-  const [open, setOpen] = useState(false);
-
+function GalleryCard({
+  item,
+  provenanceLabel,
+  onOpen,
+}: {
+  item: GalleryItem;
+  provenanceLabel: string;
+  onOpen: () => void;
+}) {
   return (
-    <>
-      <div
-        className="group cursor-pointer overflow-hidden rounded-sm border border-border/35 bg-card/25 transition-base hover:border-primary/35 hover:bg-card/40"
-        onClick={() => setOpen(true)}
-      >
-        {/* Thumbnail */}
-        <div className="relative aspect-video overflow-hidden bg-secondary/30">
-          <img
-            src={item.src}
-            alt={item.title}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-          />
-          {/* Overlay badges */}
-          <span className="absolute left-2 top-2 rounded-sm bg-background/70 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/60 backdrop-blur-sm">
-            {item.index}
+    <div
+      className="group diagnostic-frame cursor-pointer overflow-hidden rounded-sm border border-border/30 bg-card/20 transition-base hover:border-primary/40 hover:bg-card/35"
+      onClick={onOpen}
+    >
+      {/* Thumbnail */}
+      <div className="relative aspect-video overflow-hidden bg-secondary/30">
+        <img
+          src={item.src}
+          alt={item.title}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+        />
+        {/* Overlay badges — observatory archive language */}
+        <span className="absolute left-2 top-2 rounded-sm bg-background/70 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/60 backdrop-blur-sm">
+          {item.index}
+        </span>
+        <span className="absolute right-2 top-2 rounded-sm bg-background/70 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-primary-glow/80 backdrop-blur-sm">
+          {item.system}
+        </span>
+        <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-sm bg-background/60 px-1.5 py-0.5 backdrop-blur-sm">
+          <img src={`${BASE}assets/xprimeray-icon.svg`} alt="" aria-hidden className="h-2.5 w-2.5 opacity-40" />
+          <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-foreground/30">
+            {provenanceLabel}
           </span>
-          <span className="absolute right-2 top-2 rounded-sm bg-background/70 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-primary-glow/80 backdrop-blur-sm">
-            {item.system}
-          </span>
-          <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-sm bg-background/60 px-1.5 py-0.5 backdrop-blur-sm">
-            <img src={`${BASE}assets/xprimeray-icon.svg`} alt="" aria-hidden className="h-2.5 w-2.5 opacity-40" />
-            <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-foreground/30">
-              {provenanceLabel}
-            </span>
-          </span>
-        </div>
-
-        {/* Caption */}
-        <div className="flex items-start justify-between gap-2 p-3">
-          <div className="min-w-0">
-            <div className="text-xs font-medium leading-snug text-foreground/85">{item.title}</div>
-            <div className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground/60 line-clamp-2">
-              {item.desc}
-            </div>
-          </div>
-          <Maximize2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/30 transition-base group-hover:text-primary/60" />
-        </div>
+        </span>
       </div>
 
-      {/* Lightbox */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-4xl p-0 gap-0 overflow-hidden border-border/50 bg-background/95 backdrop-blur-sm">
-          <DialogTitle className="sr-only">{item.title}</DialogTitle>
+      {/* Caption */}
+      <div className="flex items-start justify-between gap-2 p-3">
+        <div className="min-w-0">
+          <div className="text-xs font-medium leading-snug text-foreground/85">{item.title}</div>
+          <div className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground/60 line-clamp-2">
+            {item.desc}
+          </div>
+        </div>
+        <Maximize2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/30 transition-base group-hover:text-primary/60" />
+      </div>
+    </div>
+  );
+}
+
+// ── Proper Observatory Lightbox (reusable, filter-aware navigation) ──
+function ObservatoryLightbox({
+  items,
+  currentId,
+  onClose,
+}: {
+  items: GalleryItem[];
+  currentId: string | null;
+  onClose: () => void;
+}) {
+  // Robust internal navigation state (arrows + prev/next work smoothly inside the current filtered view)
+  const [localId, setLocalId] = useState<string | null>(currentId);
+
+  // Sync when parent opens a different card or the category filter changes
+  useEffect(() => {
+    setLocalId(currentId);
+  }, [currentId]);
+
+  const localIndex = items.findIndex((i) => i.id === localId);
+  const localItem = localIndex >= 0 ? items[localIndex] : null;
+
+  const hasPrev = localIndex > 0;
+  const hasNext = localIndex >= 0 && localIndex < items.length - 1;
+
+  const navigate = (direction: -1 | 1) => {
+    const nextIndex = localIndex + direction;
+    if (nextIndex < 0 || nextIndex >= items.length) return;
+    setLocalId(items[nextIndex].id);
+  };
+
+  const handleKey = (e: KeyboardEvent) => {
+    if (e.key === "ArrowLeft") navigate(-1);
+    if (e.key === "ArrowRight") navigate(1);
+    if (e.key === "Escape") onClose();
+  };
+
+  useEffect(() => {
+    if (!currentId) return;
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [currentId, localIndex, items]);
+
+  if (!currentId || !localItem) return null;
+
+  const provenance = PROVENANCE_LABEL[localItem.system];
+
+  return (
+    <Dialog open={!!currentId} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-[96vw] md:max-w-5xl p-0 gap-0 overflow-hidden border-border/40 bg-[#05060c] shadow-2xl [&_button[aria-label='Close']]:hidden">
+        <DialogTitle className="sr-only">{localItem.title}</DialogTitle>
+
+        {/* Observatory header bar */}
+        <div className="flex items-center justify-between border-b border-border/30 bg-black/40 px-4 py-2.5">
+          <div className="flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.3em]">
+            <span className="text-muted-foreground/50">xPRIMEray</span>
+            <span className="text-primary-glow/70">Observatory Archive</span>
+            <span className="text-muted-foreground/30">·</span>
+            <span className="text-amber-400/70">{localItem.system}</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[9px] text-muted-foreground/50 tabular-nums">
+              {String(localIndex + 1).padStart(2, "0")} / {String(items.length).padStart(2, "0")}
+            </span>
+            <button
+              onClick={onClose}
+              className="rounded-sm p-1 text-muted-foreground/60 hover:text-foreground transition-base"
+              aria-label="Close lightbox"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Image stage — elegant containment for contact sheets & diagnostic panels */}
+        <div className="relative flex max-h-[72vh] md:max-h-[78vh] items-center justify-center bg-[#030407] p-4 md:p-6">
           <img
-            src={item.src}
-            alt={item.title}
-            className="w-full object-contain"
+            src={localItem.src}
+            alt={localItem.title}
+            className="max-h-[66vh] md:max-h-[72vh] w-full object-contain"
           />
-          <div className="p-4 border-t border-border/30">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground/50">
-                    {item.index}
-                  </span>
-                  <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-primary-glow/70">
-                    {item.system}
-                  </span>
-                </div>
-                <div className="mt-0.5 text-sm font-medium">{item.title}</div>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.desc}</p>
+
+          {/* Subtle diagnostic corner marks inside the image well */}
+          <div className="pointer-events-none absolute inset-4 border border-white/5" aria-hidden />
+        </div>
+
+        {/* Diagnostic metadata footer */}
+        <div className="border-t border-border/30 bg-card/30 p-5">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground/50">
+                  {localItem.index}
+                </span>
+                <span className="h-3 w-px bg-border/30" />
+                <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-primary-glow/70">
+                  {localItem.system}
+                </span>
+                <span className="h-3 w-px bg-border/30" />
+                <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-amber-400/60">
+                  {provenance}
+                </span>
               </div>
+
+              <div className="mt-2 text-base font-medium tracking-tight text-foreground/90">
+                {localItem.title}
+              </div>
+              <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-muted-foreground/75">
+                {localItem.desc}
+              </p>
+            </div>
+
+            {/* Navigation + actions — observatory instrument panel */}
+            <div className="flex shrink-0 flex-col items-stretch gap-2 pt-1 md:items-end md:pt-0">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => navigate(-1)}
+                  disabled={!hasPrev}
+                  className="inline-flex items-center gap-1.5 rounded-sm border border-border/40 bg-secondary/30 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-base hover:border-primary/40 hover:text-primary disabled:opacity-30 disabled:hover:border-border/40 disabled:hover:text-muted-foreground"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" /> Prev
+                </button>
+                <button
+                  onClick={() => navigate(1)}
+                  disabled={!hasNext}
+                  className="inline-flex items-center gap-1.5 rounded-sm border border-border/40 bg-secondary/30 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-base hover:border-primary/40 hover:text-primary disabled:opacity-30 disabled:hover:border-border/40 disabled:hover:text-muted-foreground"
+                >
+                  Next <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              <a
+                href={localItem.src}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-1.5 rounded-sm border border-border/30 bg-secondary/20 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/80 transition-base hover:border-border/60 hover:text-foreground"
+              >
+                <Download className="h-3 w-3" /> Open full frame
+              </a>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-    </>
+
+          {/* Fine print — language guardrail */}
+          <p className="mt-4 border-t border-border/15 pt-3 text-[10px] italic text-muted-foreground/35">
+            Diagnostic capture from the xPRIMEray curved-transport observatory. Presented as observable
+            signature and research instrumentation, not as validated physical result.
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

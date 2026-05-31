@@ -972,7 +972,7 @@ function ObservatoryHeroSection() {
       {/* ── Full-width sphere visualization ───────────────── */}
       <div className="relative overflow-hidden">
         {/* Flanking transport labels — outside the sphere, vertically centered */}
-        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-between px-5 md:px-10">
+        <div className="pointer-events-none absolute inset-0 z-10 hidden items-center justify-between px-5 md:px-10 sm:flex">
           <div>
             <div className="font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/25">n(x) = 1</div>
             <div className="mt-1 text-base font-semibold tracking-tight text-foreground/55 md:text-lg lg:text-xl">Straight</div>
@@ -986,7 +986,7 @@ function ObservatoryHeroSection() {
         </div>
 
         {/* Sphere */}
-        <TransportSphereViz className="h-[52vh] w-full md:h-[58vh]" />
+        <TransportSphereViz className="h-[40vh] min-h-[240px] w-full sm:h-[46vh] md:h-[54vh] lg:h-[58vh]" />
 
         {/* Fade into content below */}
         <div className="atlas-sphere-fade pointer-events-none absolute bottom-0 left-0 right-0" aria-hidden />
@@ -1509,7 +1509,7 @@ function AtlasEntryCard({ entry }: { entry: AtlasEntry }) {
                 src={`${import.meta.env.BASE_URL}${entry.imageSrc}`}
                 alt={entry.imageAlt ?? entry.title}
                 loading="lazy"
-                className="w-full max-h-72 object-contain"
+                className="w-full max-h-48 object-contain sm:max-h-56 md:max-h-64 lg:max-h-72"
               />
             </div>
             {entry.imageCaption && (
@@ -1520,10 +1520,10 @@ function AtlasEntryCard({ entry }: { entry: AtlasEntry }) {
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="grid gap-5 md:gap-6 md:grid-cols-2 lg:grid-cols-[1fr_300px]">
 
           {/* ── Left: content ────────────────────────── */}
-          <div className="space-y-5">
+          <div className="min-w-0 space-y-5">
 
             {/* Source */}
             <div>
@@ -1572,7 +1572,7 @@ function AtlasEntryCard({ entry }: { entry: AtlasEntry }) {
               <div className="mb-1 font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/38">
                 Inspired Concept
               </div>
-              <p className="text-xs leading-relaxed text-muted-foreground/60">
+              <p className="text-sm leading-relaxed text-muted-foreground/65">
                 {entry.inspiredConcept}
               </p>
             </div>
@@ -1590,7 +1590,7 @@ function AtlasEntryCard({ entry }: { entry: AtlasEntry }) {
             {/* Body */}
             <div className="space-y-2.5">
               {bodyParagraphs.map((para, i) => (
-                <p key={i} className="text-xs leading-relaxed text-muted-foreground/55">
+                <p key={i} className="text-sm leading-relaxed text-muted-foreground/60">
                   {para}
                 </p>
               ))}
@@ -1599,15 +1599,15 @@ function AtlasEntryCard({ entry }: { entry: AtlasEntry }) {
           </div>
 
           {/* ── Right: engineering sidebar ───────────── */}
-          <div className="space-y-4">
+          <div className="min-w-0 space-y-4">
 
             {/* Engineering bridge */}
             {entry.engineeringBridge && (
-              <div className="rounded-sm border border-violet-500/18 bg-violet-950/10 p-4">
-                <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.3em] text-violet-400/45">
+              <div className="rounded-sm border border-border/20 bg-card/12 p-4">
+                <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.3em] text-amber-400/45">
                   Engineering Bridge
                 </div>
-                <p className="text-xs leading-relaxed text-muted-foreground/52">
+                <p className="text-sm leading-relaxed text-muted-foreground/60">
                   {entry.engineeringBridge}
                 </p>
               </div>
