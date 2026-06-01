@@ -100,61 +100,81 @@
 
   html.light {
     color-scheme: light;
-    --background: 220 20% 97%;
-    --foreground: 230 22% 12%;
+    /* High-contrast light theme inspired by julia mookai / crisp white-background design systems */
+    --background: 0 0% 99%;
+    --foreground: 230 20% 8%;              /* Very dark for supreme contrast */
+
     --card: 0 0% 100%;
-    --card-foreground: 230 22% 12%;
-    --card-elevated: 220 15% 95%;
+    --card-foreground: 230 20% 8%;
+    --card-elevated: 220 15% 96%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 230 22% 12%;
-    --primary: 245 80% 52%;
+    --popover-foreground: 230 20% 8%;
+
+    /* Keep cyan/amber accents vibrant and saturated for light mode pop */
+    --primary: 245 85% 48%;               /* Stronger, more saturated blue-purple */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 250 90% 62%;
-    --secondary: 220 14% 92%;
-    --secondary-foreground: 230 18% 20%;
-    --muted: 220 14% 90%;
-    --muted-foreground: 220 10% 44%;
-    --accent: 190 75% 40%;
+    --primary-glow: 250 92% 58%;
+
+    --secondary: 220 12% 94%;
+    --secondary-foreground: 230 18% 15%;
+
+    --muted: 220 12% 93%;
+    --muted-foreground: 220 12% 32%;      /* Much darker for readable secondary text */
+
+    --accent: 190 80% 36%;                /* Stronger cyan for light */
     --accent-foreground: 0 0% 100%;
-    --spectral-cool: 188 72% 42%;
-    --spectral-warm: 28 85% 48%;
-    --spectral-violet: 280 65% 52%;
-    --spectral-magenta: 322 72% 50%;
-    --instrument-line: 210 30% 50%;
-    --destructive: 0 72% 50%;
+
+    /* Vibrant spectral colors that don't wash out on white */
+    --spectral-cool: 188 80% 38%;
+    --spectral-warm: 28 88% 44%;
+    --spectral-violet: 280 70% 48%;
+    --spectral-magenta: 322 78% 46%;
+    --instrument-line: 210 25% 45%;
+
+    --destructive: 0 72% 48%;
     --destructive-foreground: 0 0% 100%;
-    --success: 145 55% 38%;
+    --success: 145 60% 32%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 85% 48%;
+    --warning: 38 88% 44%;
     --warning-foreground: 0 0% 100%;
-    --info: 210 80% 48%;
+    --info: 210 82% 42%;
     --info-foreground: 0 0% 100%;
-    --border: 220 12% 85%;
-    --input: 220 14% 90%;
-    --ring: 245 80% 52%;
-    --status-backlog: 220 10% 55%;
-    --status-research: 200 72% 42%;
-    --status-validate: 270 65% 52%;
-    --status-build: 245 80% 52%;
-    --status-blocked: 0 72% 50%;
-    --status-ready: 38 85% 48%;
-    --status-launched: 145 55% 38%;
+
+    /* Stronger borders for clear separation in light */
+    --border: 220 14% 78%;
+    --input: 220 12% 92%;
+    --ring: 245 85% 48%;
+
+    /* Status colors with good contrast */
+    --status-backlog: 220 12% 48%;
+    --status-research: 200 75% 38%;
+    --status-validate: 270 68% 46%;
+    --status-build: 245 85% 48%;
+    --status-blocked: 0 72% 48%;
+    --status-ready: 38 88% 44%;
+    --status-launched: 145 60% 32%;
+
+    /* Light gradients — subtle but present */
     --gradient-hero:
-      radial-gradient(ellipse at top left, hsl(245 80% 50% / 0.08), transparent 55%),
-      radial-gradient(ellipse at bottom right, hsl(190 75% 40% / 0.06), transparent 55%),
-      linear-gradient(135deg, hsl(220 20% 97%), hsl(220 16% 94%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 15% 97%));
-    --shadow-glow: 0 0 40px -8px hsl(var(--primary) / 0.25);
-    --shadow-card: 0 1px 0 hsl(220 25% 100% / 0.9) inset, 0 8px 24px -8px hsl(220 15% 50% / 0.12);
-    --shadow-elevated: 0 1px 0 hsl(220 25% 100% / 0.9) inset, 0 24px 60px -20px hsl(220 15% 50% / 0.18);
-    --sidebar-background: 220 20% 96%;
-    --sidebar-foreground: 230 18% 20%;
-    --sidebar-primary: 245 80% 52%;
+      radial-gradient(ellipse at top left, hsl(245 80% 50% / 0.05), transparent 50%),
+      radial-gradient(ellipse at bottom right, hsl(190 75% 40% / 0.04), transparent 50%),
+      linear-gradient(135deg, hsl(0 0% 99%), hsl(220 12% 96%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 12% 97%));
+
+    /* Lighter but still useful shadows for elevation */
+    --shadow-glow: 0 0 40px -8px hsl(var(--primary) / 0.18);
+    --shadow-card: 0 1px 0 hsl(220 20% 100% / 0.95) inset, 0 4px 16px -4px hsl(220 15% 40% / 0.1);
+    --shadow-elevated: 0 1px 0 hsl(220 20% 100% / 0.95) inset, 0 16px 40px -12px hsl(220 15% 35% / 0.14);
+
+    --sidebar-background: 220 15% 97%;
+    --sidebar-foreground: 230 18% 15%;
+    --sidebar-primary: 245 85% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 92%;
-    --sidebar-accent-foreground: 230 18% 20%;
+    --sidebar-accent: 220 12% 93%;
+    --sidebar-accent-foreground: 230 18% 18%;
     --sidebar-border: 220 12% 85%;
-    --sidebar-ring: 245 80% 52%;
+    --sidebar-ring: 245 85% 48%;
   }
 }
 
@@ -177,9 +197,10 @@
   }
 
   html.light body {
+    /* Cleaner, higher-contrast light background — crisp white with very subtle structure */
     background-image:
-      radial-gradient(circle at 20% 0%, hsl(245 80% 50% / 0.04), transparent 35%),
-      radial-gradient(circle at 80% 100%, hsl(190 75% 40% / 0.03), transparent 35%);
+      radial-gradient(circle at 20% 0%, hsl(245 70% 45% / 0.025), transparent 40%),
+      radial-gradient(circle at 80% 100%, hsl(190 65% 35% / 0.02), transparent 40%);
   }
 
   ::selection {
@@ -323,13 +344,22 @@
   }
   .diagnostic-frame::before {
     top: 0; left: 0;
-    border-top: 1px solid hsl(var(--primary) / 0.35);
-    border-left: 1px solid hsl(var(--primary) / 0.35);
+    border-top: 1px solid hsl(var(--primary) / 0.55);
+    border-left: 1px solid hsl(var(--primary) / 0.55);
   }
   .diagnostic-frame::after {
     bottom: 0; right: 0;
-    border-bottom: 1px solid hsl(var(--primary) / 0.35);
-    border-right: 1px solid hsl(var(--primary) / 0.35);
+    border-bottom: 1px solid hsl(var(--primary) / 0.55);
+    border-right: 1px solid hsl(var(--primary) / 0.55);
+  }
+
+  /* Light mode — even stronger corners for supreme contrast on white */
+  html.light .diagnostic-frame::before,
+  html.light .diagnostic-frame::after {
+    border-top-color: hsl(var(--primary) / 0.7);
+    border-left-color: hsl(var(--primary) / 0.7);
+    border-bottom-color: hsl(var(--primary) / 0.7);
+    border-right-color: hsl(var(--primary) / 0.7);
   }
 
   /* Faint horizontal scanlines used over imagery / panels */

@@ -415,7 +415,7 @@ function ObservatoryLightbox({
 
   return (
     <Dialog open={!!currentId} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-[96vw] md:max-w-5xl p-0 gap-0 overflow-hidden border-border/40 bg-[#05060c] shadow-2xl [&_button[aria-label='Close']]:hidden">
+      <DialogContent className="max-w-[96vw] md:max-w-5xl p-0 gap-0 overflow-hidden border-border/40 bg-background shadow-2xl [&_button[aria-label='Close']]:hidden">
         <DialogTitle className="sr-only">{localItem.title}</DialogTitle>
 
         {/* Observatory header bar */}
@@ -442,7 +442,7 @@ function ObservatoryLightbox({
         </div>
 
         {/* Image stage — elegant containment for contact sheets & diagnostic panels */}
-        <div className="relative flex max-h-[72vh] md:max-h-[78vh] items-center justify-center bg-[#030407] p-4 md:p-6">
+        <div className="relative flex max-h-[72vh] md:max-h-[78vh] items-center justify-center bg-card p-4 md:p-6">
           {/* Very faint technical grid for cinematic observatory atmosphere */}
           <div
             className="pointer-events-none absolute inset-0 opacity-[0.035]"

@@ -170,7 +170,7 @@ export function ObservatoryGraph({ onNodeClick, className = '' }: ObservatoryGra
   }, [selectedId]);
 
   return (
-    <div className={`relative w-full h-full bg-[#05060c] ${className}`}>
+    <div className={`relative w-full h-full bg-background ${className}`}>
       <ForceGraph3D
         ref={fgRef}
         graphData={graphData}

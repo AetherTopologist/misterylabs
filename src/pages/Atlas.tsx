@@ -961,7 +961,7 @@ export default function AtlasPage() {
       <ObservatoryHeroSection />
 
       {/* === NEW PRIMARY ATLAS VISUALIZATION === */}
-      <section id="atlas-graph" className="border-t border-border/35 bg-[#05060c]">
+      <section id="atlas-graph" className="border-t border-border/35 bg-background">
         <div className="container py-8">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
             <div>
@@ -1015,7 +1015,7 @@ export default function AtlasPage() {
               {selectedNode && (
                 <div 
                   className="fixed inset-x-0 bottom-0 md:right-0 md:top-0 md:bottom-0 md:left-auto w-full md:w-[420px] lg:w-[460px] z-[60] 
-                             bg-[#05060c]/96 backdrop-blur-xl border-t md:border-t-0 md:border-l border-border/40 
+                             bg-background/95 backdrop-blur-xl border-t md:border-t-0 md:border-l border-border/40 
                              overflow-auto p-5 md:p-7 shadow-2xl"
                   style={{ maxHeight: '85vh' }} // good mobile experience
                 >
@@ -1940,7 +1940,7 @@ function SignalsSection() {
 
 function GetInvolvedSection() {
   return (
-    <section id="get-involved" className="border-t border-border/20 bg-[#05060c]">
+    <section id="get-involved" className="border-t border-border/20 bg-background">
       <div className="container py-20">
         <div className="mx-auto max-w-2xl text-center">
           {/* Star accent — matches Community seed */}
