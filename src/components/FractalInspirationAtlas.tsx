@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { X, Sparkles, ExternalLink } from "lucide-react";
+import { ResonanceSphere } from "./ResonanceSphere";
 
 /* ============================================================================
    Fractal Inspiration Atlas
@@ -30,6 +31,15 @@ interface AtlasNode {
   // visual
   hue: number; // 0-360
   radius: number;
+  // Resonance media for "Resonance Spheres"
+  media?: Array<{
+    type: 'image' | 'video' | 'youtube';
+    url: string;
+    caption?: string;
+    alt?: string;
+    thumbnail?: string;
+    resonanceNote?: string;
+  }>;
 }
 
 interface AtlasEdge {
@@ -89,6 +99,40 @@ const PRIMARIES: Array<Omit<AtlasNode, "x" | "y" | "vx" | "vy" | "kind" | "radiu
     xprimeConcept: "Null geodesic path tracing and curved transport visualization",
     keywords: ["curved spacetime", "black hole lensing", "temporal perception"],
     hue: 320,
+    media: [
+      {
+        type: "image",
+        url: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800", // placeholder; replace with actual Gargantua render or public asset
+        caption: "Gargantua black hole lensing",
+        alt: "Dramatic curved spacetime visualization of a black hole with accretion disk and gravitational lensing",
+        resonanceNote: "Direct visual ancestor for null-geodesic and GRIN ray deflection in xPRIMEray."
+      }
+    ]
+  },
+  {
+    id: "digital-circus",
+    label: "The Amazing Digital Circus — Trophy Room",
+    subtitle: "Portal Nexus & Glitch Immersion",
+    description: "Caine's curated portal nexus: a ringmaster's collection of worlds accessed through tactile, glitch-inflected portals. Spatial storytelling, observer disorientation, and high-fidelity immersive rendering of non-Euclidean thresholds.",
+    influenced: "Portal topology, multi-realm traversal, the 'trophy room' as living resonance archive, glitch artifacts as transport signatures, and the theatrical framing of observer experience.",
+    xprimeConcept: "Nested portals, bulk-boundary emergence, curated 'inspiration spheres' as observable diagnostic fields, ray-trapped 'audience' perspectives.",
+    keywords: ["portals", "traversal", "glitch", "immersive rendering", "nexus", "curation"],
+    hue: 280,
+    media: [
+      {
+        type: "image",
+        url: "https://picsum.photos/id/1015/800/600", // TODO: replace with actual high-res Trophy Room / portal screenshot from Glitch Productions
+        caption: "Trophy Room portal nexus",
+        alt: "Glitchy, ornate portal room with floating trophies, multiple doorways and curved thresholds to other digital worlds",
+        resonanceNote: "Exceptional alignment with nested portals, event-horizon-like trapping at boundaries, and curated 'bulk' worlds. Strong xPRIMEray portal DNA."
+      },
+      {
+        type: "youtube",
+        url: "https://www.youtube.com/embed/dQw4w9wgccc", // placeholder — replace with actual relevant Digital Circus clip or trailer if available
+        caption: "Portal traversal sequence",
+        resonanceNote: "Observe the tactile portal 'hand-off' and spatial reorientation — mirrors GRIN field boundary crossing."
+      }
+    ]
   },
 ];
 
@@ -466,6 +510,16 @@ export function FractalInspirationAtlas() {
               "radial-gradient(ellipse at center, rgba(99,170,255,0.06), transparent 70%), repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 48px), repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 48px)",
           }}
         >
+          {/* Resonance Sphere backdrop — central textured anchor for the constellation (nodes "orbit" conceptually) */}
+          <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0 opacity-60">
+            <ResonanceSphere
+              size={380}
+              distortion={0.42}
+              textureUrl={selectedNode?.media?.find(m => m.type === 'image')?.url}
+              showRays={true}
+            />
+          </div>
+
           {/* vignette */}
           <div
             className="pointer-events-none absolute inset-0 z-10"
@@ -475,7 +529,7 @@ export function FractalInspirationAtlas() {
 
           <canvas
             ref={canvasRef}
-            className="absolute inset-0 touch-none"
+            className="absolute inset-0 touch-none z-20"
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
@@ -594,6 +648,57 @@ export function FractalInspirationAtlas() {
                 </div>
               )}
 
+              {/* Resonance Spheres media attachments */}
+              {selectedNode.media && selectedNode.media.length > 0 && (
+                <div className="mt-4 border-t border-border/25 pt-3">
+                  <div className="mb-1.5 font-mono text-[8px] uppercase tracking-[0.25em] text-cyan-400/70">
+                    Resonance Media
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {selectedNode.media.map((m, idx) => {
+                      if (m.type === 'image') {
+                        return (
+                          <figure key={idx} className="overflow-hidden rounded border border-border/40 bg-black/30">
+                            <img 
+                              src={m.url} 
+                              alt={m.alt || m.caption || selectedNode.label} 
+                              className="w-full object-cover" 
+                              style={{ maxHeight: '160px' }}
+                              loading="lazy"
+                            />
+                            {m.caption && <figcaption className="px-2 py-1 text-[9px] text-muted-foreground/70 font-mono tracking-tight">{m.caption}</figcaption>}
+                            {m.resonanceNote && <p className="px-2 pb-1 text-[9px] italic text-primary-glow/70">{m.resonanceNote}</p>}
+                          </figure>
+                        );
+                      }
+                      if (m.type === 'youtube') {
+                        const vidId = m.url.includes('embed/') ? m.url.split('embed/')[1]?.split('?')[0] : m.url.split('v=')[1]?.split('&')[0];
+                        return (
+                          <div key={idx} className="overflow-hidden rounded border border-border/40 bg-black/30">
+                            {vidId ? (
+                              <iframe 
+                                width="100%" 
+                                height="160" 
+                                src={`https://www.youtube.com/embed/${vidId}`} 
+                                title={m.caption || "Resonance video"} 
+                                frameBorder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowFullScreen
+                              />
+                            ) : (
+                              <a href={m.url} target="_blank" className="block p-3 text-xs text-primary/80 hover:underline">Watch: {m.caption || m.url}</a>
+                            )}
+                            {m.caption && <div className="px-2 py-1 text-[9px] text-muted-foreground/70 font-mono">{m.caption}</div>}
+                            {m.resonanceNote && <p className="px-2 pb-2 text-[9px] italic text-primary-glow/70">{m.resonanceNote}</p>}
+                          </div>
+                        );
+                      }
+                      return null;
+                    })}
+                  </div>
+                </div>
+              )}
+
               {selectedNode.href && (
                 <a
                   href={selectedNode.href}
@@ -609,6 +714,13 @@ export function FractalInspirationAtlas() {
               {selectedNode.kind === "primary" && (
                 <div className="mt-3 border-t border-border/25 pt-2 font-mono text-[9px] uppercase tracking-[0.2em] text-primary-glow/60">
                   click again to {expanded.has(selectedNode.id) ? "collapse" : "expand"} branch
+                </div>
+              )}
+
+              {/* Curated resonance credit for high-fidelity nodes like Digital Circus */}
+              {selectedNode.id === "digital-circus" && (
+                <div className="mt-2 text-[8px] font-mono tracking-[0.15em] text-amber-400/60">
+                  Resonance Echo — Glitch Productions, The Amazing Digital Circus. Portal nexus aesthetics as xPRIMEray transport kinship.
                 </div>
               )}
             </div>
@@ -824,6 +936,16 @@ function draw(
       ctx.fillStyle = `hsla(${n.hue}, 80%, 75%, ${0.85 * labelDim})`;
       ctx.font = `400 ${n.kind === "core" ? 11 : 10}px ui-monospace, monospace`;
       ctx.fillText(n.subtitle, n.x, n.y + r + 22);
+    }
+
+    // Media indicator (Resonance Sphere attachment)
+    if (n.media && n.media.length > 0) {
+      ctx.fillStyle = `hsla(186, 90%, 70%, ${0.9 * dim})`;
+      ctx.beginPath();
+      ctx.arc(n.x + r * 0.7, n.y - r * 0.7, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = `hsla(186, 90%, 95%, ${dim})`;
+      ctx.fillText("◉", n.x + r * 0.7, n.y - r * 0.75);
     }
   }
 

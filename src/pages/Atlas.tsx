@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ExternalLink, Github, MessageSquare } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { FractalInspirationAtlas } from "@/components/FractalInspirationAtlas";
+import { ResonanceSphere } from "@/components/ResonanceSphere";
 import { ObservatoryGraph } from "@/components/ObservatoryGraph";
 import { CubeNetExplorer } from "@/components/CubeNetExplorer";
 import { HollowMaskIllusion } from "@/components/HollowMaskIllusion";
@@ -1102,7 +1103,46 @@ export default function AtlasPage() {
         </div>
       </section>
 
-      <FractalInspirationAtlas /> {/* Keep for now as additional layer */}
+      <FractalInspirationAtlas /> {/* Enhanced with Resonance Spheres media + textured central sphere */}
+
+      {/* Resonance Spheres feature — central textured anchor for the inspiration constellation */}
+      <section className="border-t border-border/35 bg-[#05060c] py-12">
+        <div className="container">
+          <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
+            <div>
+              <div className="font-mono text-[9px] uppercase tracking-[0.3em] text-cyan-400/60">RESONANCE SPHERES</div>
+              <h3 className="text-2xl font-semibold tracking-tight">Curated Portal Nexus as Living Backdrop</h3>
+            </div>
+            <p className="max-w-md text-xs text-muted-foreground/60">
+              Inspiration nodes orbit a central transport sphere textured dynamically with media. 
+              GRIN refraction + wormhole edge distortion applied in-canvas. Click nodes in the Atlas above to re-texture.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 items-center">
+            <div>
+              <ResonanceSphere 
+                size={360} 
+                distortion={0.48} 
+                textureUrl="https://picsum.photos/id/1015/800/600" 
+                showRays 
+                className="mx-auto shadow-2xl" 
+              />
+              <div className="text-center mt-2 text-[10px] font-mono tracking-widest text-muted-foreground/50">
+                Example texture: Trophy Room portal (placeholder — swap with actual Glitch asset)
+              </div>
+            </div>
+            <div className="text-sm space-y-3 text-muted-foreground/80">
+              <p><strong className="text-foreground">Digital Circus Trophy Room</strong> now lives as a high-resonance primary node in the FractalInspirationAtlas (hue 280, with image + YT media).</p>
+              <p className="text-xs">Strong alignment: nested portals, bulk emergence, curated "inspiration spheres", observer immersion. The ringmaster curation mirrors our own Atlas as a living resonance archive.</p>
+              <div className="pt-2">
+                <a href="#atlas" className="text-cyan-400 hover:underline text-xs font-mono">Explore in the constellation above →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <QuaternionExplorerSection />
       <HigherDimensionalSection />
       <XenoCitationSection />
