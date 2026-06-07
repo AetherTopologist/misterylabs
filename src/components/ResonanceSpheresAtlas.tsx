@@ -42,7 +42,18 @@ export const ResonanceSpheresAtlas: React.FC = () => {
   const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<ExpandedState>({ node: null, mediaIndex: 0 });
 
-  const { spheres, nodes, edges } = resonanceSpheresData;
+  // Safe data load with fallback
+  const data = resonanceSpheresData || { spheres: [], nodes: [], edges: [] };
+  const { spheres = [], nodes = [], edges = [] } = data;
+
+  if (!spheres.length || !nodes.length) {
+    return (
+      <div className="p-4 border border-border rounded bg-muted/20 text-sm text-muted-foreground">
+        Resonance Spheres data unavailable. Using classic Atlas view.
+      </div>
+    );
+  }
+
   const centralSphere = spheres[0];
 
   // Simple ring + jitter positions for "orbiting the sphere" (prototype; real would use d3-force or the Fractal canvas physics)

@@ -4,6 +4,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { FractalInspirationAtlas } from "@/components/FractalInspirationAtlas";
 import { ResonanceSphere } from "@/components/ResonanceSphere";
 import { ResonanceSpheresAtlas } from "@/components/ResonanceSpheresAtlas";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { ObservatoryGraph } from "@/components/ObservatoryGraph";
 import { CubeNetExplorer } from "@/components/CubeNetExplorer";
 import { HollowMaskIllusion } from "@/components/HollowMaskIllusion";
@@ -1107,11 +1108,17 @@ export default function AtlasPage() {
       <FractalInspirationAtlas /> {/* Enhanced with Resonance Spheres media + textured central sphere */}
 
       {/* Full Resonance Spheres Atlas — the immersive flagship (central sphere + orbiting nodes + rich modal media) */}
-      <section id="resonance-spheres" className="border-t border-border/35 bg-[#05060c]">
-        <div className="container py-10">
-          <ResonanceSpheresAtlas />
+      <ErrorBoundary fallback={
+        <div className="container py-8 text-sm text-muted-foreground">
+          Resonance Spheres temporarily unavailable (see console for details). The classic Atlas and Fractal Inspiration view below remain fully functional.
         </div>
-      </section>
+      }>
+        <section id="resonance-spheres" className="border-t border-border/35 bg-background">
+          <div className="container py-10">
+            <ResonanceSpheresAtlas />
+          </div>
+        </section>
+      </ErrorBoundary>
 
       {/* Legacy Resonance Spheres feature teaser (kept for continuity) */}
       <section className="border-t border-border/35 bg-[#05060c] py-8">

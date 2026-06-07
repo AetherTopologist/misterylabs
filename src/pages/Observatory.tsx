@@ -10,6 +10,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { FixtureCard, type Fixture } from "@/components/observatory/FixtureCard";
 import { ResonanceSpheresAtlas } from "@/components/ResonanceSpheresAtlas";
 import { ResonanceSphere } from "@/components/ResonanceSphere";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -323,20 +324,26 @@ const Observatory = () => {
         </div>
       </section>
 
-      {/* RESONANCE SPHERES — Primary immersive exhibit (central textured sphere + orbiting nodes + rich media modals) */}
-      <section className="border-t border-border/30 bg-background py-10">
-        <div className="container">
-          <div className="mb-6">
-            <div className="font-mono text-[9px] uppercase tracking-[0.3em] text-cyan-400/60 dark:text-cyan-400/60">LIVING CONSTELLATION</div>
-            <h2 className="text-3xl font-bold tracking-tight">Resonance Spheres</h2>
-            <p className="text-muted-foreground/80 max-w-2xl mt-1 text-sm">
-              Central Transport Sphere textured with curated portal media (GRIN refraction + wormhole distortion). 
-              Nodes orbit with geodesic springs. Click for media gallery, YT embeds, and deep xPRIMEray "signal resonance" alignment.
-            </p>
-          </div>
-          <ResonanceSpheresAtlas />
+      {/* RESONANCE SPHERES — Primary immersive exhibit (central textured sphere + orbiting nodes + rich modal media) */}
+      <ErrorBoundary fallback={
+        <div className="container py-8 text-sm text-muted-foreground border-t">
+          Resonance Spheres feature encountered an issue. Classic Observatory fixtures and the Optical Transport Illusion demo above are still available. Check browser console.
         </div>
-      </section>
+      }>
+        <section className="border-t border-border/30 bg-background py-10">
+          <div className="container">
+            <div className="mb-6">
+              <div className="font-mono text-[9px] uppercase tracking-[0.3em] text-cyan-400/60 dark:text-cyan-400/60">LIVING CONSTELLATION</div>
+              <h2 className="text-3xl font-bold tracking-tight">Resonance Spheres</h2>
+              <p className="text-muted-foreground/80 max-w-2xl mt-1 text-sm">
+                Central Transport Sphere textured with curated portal media (GRIN refraction + wormhole distortion). 
+                Nodes orbit with geodesic springs. Click for media gallery, YT embeds, and deep xPRIMEray "signal resonance" alignment.
+              </p>
+            </div>
+            <ResonanceSpheresAtlas />
+          </div>
+        </section>
+      </ErrorBoundary>
 
       <SiteFooter />
     </div>
