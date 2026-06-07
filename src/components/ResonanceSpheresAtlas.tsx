@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { ExternalLink, X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { ResonanceSphere } from './ResonanceSphere';
 import { resonanceSpheresData, type InspirationNode, type InspirationMedia } from '@/data/resonance_spheres_data';
+import { useTheme } from '@/hooks/useTheme';
 
 /**
  * ResonanceSpheresAtlas
@@ -35,6 +36,9 @@ interface ExpandedState {
 }
 
 export const ResonanceSpheresAtlas: React.FC = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<ExpandedState>({ node: null, mediaIndex: 0 });
 
@@ -86,7 +90,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
   };
 
   return (
-    <div className="resonance-spheres-atlas bg-[#05060c] text-slate-200">
+    <div className="resonance-spheres-atlas bg-background text-foreground">
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
         {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
@@ -99,7 +103,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
             </h2>
             <p className="mt-2 max-w-2xl text-muted-foreground/90">
               A living canvas of portal echoes, curved spacetime kinship, and observer immersion — 
-              anchored to the xPRIMEray transport observatory. <span className="text-amber-400/80">Coherence-maxxed.</span>
+              anchored to the xPRIMEray transport observatory. <span className="text-amber-600 dark:text-amber-400/80">Coherence-maxxed.</span>
             </p>
           </div>
           <div className="text-xs font-mono text-muted-foreground/60">
@@ -115,6 +119,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
             distortion={0.48}
             textureUrl={centralSphere.textureUrl}
             showRays
+            isDark={isDark}
             className="mx-auto rounded-full shadow-2xl border border-white/10"
             // Pass highlight for pulse / "rotation toward portal" effect
             // (current canvas impl pulses on any highlight; future versions can offset draw for direction)
@@ -134,12 +139,13 @@ export const ResonanceSpheresAtlas: React.FC = () => {
               const tgt = positionedNodes.find(n => n.id === edge.target);
               if (!src || !tgt) return null;
               const isActive = highlightedNodeId === edge.source || highlightedNodeId === edge.target;
+              const lineColor = isDark ? (isActive ? "#67e8f9" : "#64748b") : (isActive ? "#0891b2" : "#475569");
               return (
                 <line
                   key={idx}
                   x1={src.x} y1={src.y} x2={tgt.x} y2={tgt.y}
-                  stroke={isActive ? "#67e8f9" : "#64748b"}
-                  strokeOpacity={isActive ? 0.65 : 0.25}
+                  stroke={lineColor}
+                  strokeOpacity={isActive ? 0.75 : 0.35}
                   strokeWidth={isActive ? 1.5 : 0.8}
                 />
               );
@@ -150,14 +156,21 @@ export const ResonanceSpheresAtlas: React.FC = () => {
               const isCentral = node.id === centralSphere.centerNodeId;
               const isHighlighted = highlightedNodeId === node.id;
               const r = isCentral ? 18 : (node.tier === 1 ? 13 : 9);
+              const fillColor = isHighlighted 
+                ? (isDark ? "#67e8f9" : "#0891b2") 
+                : (isCentral ? (isDark ? "#f59e0b" : "#d97706") : (isDark ? "#0ea5e9" : "#0284c7"));
+              const strokeColor = isDark ? "#0a0c16" : "#e2e8f0";
+              const textColor = isHighlighted 
+                ? (isDark ? "#e0f2fe" : "#0c4a6e") 
+                : (isDark ? "#94a3b8" : "#475569");
               return (
                 <g key={node.id}>
                   <circle
                     cx={node.x}
                     cy={node.y}
                     r={r}
-                    fill={isHighlighted ? "#67e8f9" : (isCentral ? "#f59e0b" : "#0ea5e9")}
-                    stroke="#0a0c16"
+                    fill={fillColor}
+                    stroke={strokeColor}
                     strokeWidth={2}
                     className="cursor-pointer transition-all"
                     onClick={() => openNode(node)}
@@ -171,8 +184,8 @@ export const ResonanceSpheresAtlas: React.FC = () => {
                       cy={node.y}
                       r={r + 6}
                       fill="none"
-                      stroke="#67e8f9"
-                      strokeOpacity={0.4}
+                      stroke={isDark ? "#67e8f9" : "#0891b2"}
+                      strokeOpacity={0.5}
                       strokeWidth={1.5}
                     />
                   )}
@@ -180,7 +193,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
                     x={node.x}
                     y={node.y + r + 14}
                     textAnchor="middle"
-                    fill={isHighlighted ? "#e0f2fe" : "#94a3b8"}
+                    fill={textColor}
                     fontSize={isCentral ? 11 : 9}
                     fontFamily="monospace"
                     className="pointer-events-none select-none"
@@ -192,7 +205,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
             })}
           </svg>
 
-          <div className="text-center mt-2 text-[10px] font-mono tracking-[0.2em] text-muted-foreground/50">
+          <div className="text-center mt-2 text-[10px] font-mono tracking-[0.2em] text-muted-foreground/70">
             Hover / click nodes • Sphere pulses on resonance • Central texture = living portal
           </div>
         </div>
@@ -216,7 +229,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
         </div>
 
         {/* Legend / Admin note */}
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground/60 font-mono border-t border-border/30 pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground/70 font-mono border-t border-border pt-4">
           <div>
             Tier 1 (Nobel/Glitch) • Tier 2 (Cinematic/Engine) • zeno/xeno tags in data
           </div>
@@ -246,10 +259,10 @@ export const ResonanceSpheresAtlas: React.FC = () => {
 
       {/* Expanded Node Modal with rich media */}
       <Dialog open={!!expanded.node} onOpenChange={(open) => !open && closeModal()}>
-        <DialogContent className="max-w-4xl bg-[#05060c] border-white/10 text-slate-200 p-0 overflow-hidden">
+        <DialogContent className="max-w-4xl bg-background border-border text-foreground p-0 overflow-hidden">
           {expanded.node && (
             <>
-              <DialogHeader className="px-6 pt-6 pb-4 border-b border-white/10">
+              <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -286,7 +299,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
                       )}
                     </div>
 
-                    <div className="relative rounded-xl overflow-hidden border border-white/10 bg-black/40">
+                    <div className="relative rounded-xl overflow-hidden border border-border bg-muted/30">
                       {currentMedia?.type === 'image' && (
                         <img 
                           src={currentMedia.url} 
@@ -308,7 +321,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
                         </div>
                       )}
                       {currentMedia?.caption && (
-                        <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-4 py-2 text-xs font-mono text-cyan-400/90">
+                        <div className="absolute bottom-0 left-0 right-0 bg-background/80 px-4 py-2 text-xs font-mono text-primary/90">
                           {currentMedia.caption}
                         </div>
                       )}
@@ -327,7 +340,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
                           <button
                             key={idx}
                             onClick={() => setExpanded(e => ({ ...e, mediaIndex: idx }))}
-                            className={`flex-shrink-0 w-20 h-12 rounded overflow-hidden border ${idx === expanded.mediaIndex ? 'border-cyan-400' : 'border-white/20'}`}
+                            className={`flex-shrink-0 w-20 h-12 rounded overflow-hidden border ${idx === expanded.mediaIndex ? 'border-primary' : 'border-border'}`}
                           >
                             <img 
                               src={m.thumbnail || m.url} 
@@ -374,7 +387,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
                         </a>
                       ))}
                     </div>
-                    <p className="mt-3 text-[10px] text-amber-400/60 italic">
+                    <p className="mt-3 text-[10px] text-amber-600 dark:text-amber-400/60 italic">
                       Resonance Echo — Glitch Productions, The Amazing Digital Circus (and the Nobel curved-spacetime lineage). 
                       Framed as technical and perceptual kinship with xPRIMEray portals, traversal, and observer immersion.
                     </p>
@@ -382,7 +395,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
                 )}
               </div>
 
-              <div className="px-6 py-4 border-t border-white/10 flex justify-end">
+              <div className="px-6 py-4 border-t border-border flex justify-end">
                 <Button variant="outline" onClick={closeModal}>Close</Button>
               </div>
             </>

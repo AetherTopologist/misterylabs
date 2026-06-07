@@ -175,6 +175,24 @@
     --sidebar-accent-foreground: 230 18% 18%;
     --sidebar-border: 220 12% 85%;
     --sidebar-ring: 245 85% 48%;
+
+    /* Resonance Sphere / Portal custom visuals (dark defaults) */
+    --sphere-base: 230 25% 7%;
+    --sphere-glow-cyan: 186 90% 58%;
+    --sphere-glow-amber: 28 95% 60%;
+    --sphere-rim: 186 90% 58%;
+    --sphere-line: 210 40% 80%;
+    --portal-glow: 186 90% 58%;
+  }
+
+  html.light {
+    /* Resonance Sphere / Portal custom visuals (light) */
+    --sphere-base: 0 0% 98%;
+    --sphere-glow-cyan: 188 80% 38%;
+    --sphere-glow-amber: 28 88% 44%;
+    --sphere-rim: 188 80% 38%;
+    --sphere-line: 210 25% 45%;
+    --portal-glow: 188 80% 38%;
   }
 }
 
@@ -248,34 +266,33 @@
     background-size: auto, auto, 56px 56px, 56px 56px;
   }
 
-  /* Atlas observatory hero: dark graphite + 40px technical grid */
+  /* Atlas observatory hero: theme-aware */
   .bg-atlas-hero {
-    background-color: #05060c;
+    background-color: hsl(var(--background));
     background-image:
-      repeating-linear-gradient(0deg,  rgba(255,255,255,0.016) 0 1px, transparent 1px 40px),
-      repeating-linear-gradient(90deg, rgba(255,255,255,0.016) 0 1px, transparent 1px 40px);
+      repeating-linear-gradient(0deg,  hsl(var(--border) / 0.4) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(90deg, hsl(var(--border) / 0.4) 0 1px, transparent 1px 40px);
   }
 
-  /* Hero sphere section — dark graphite + 50px ghost grid (used by TransportSphereViz hero) */
+  /* Hero sphere section — theme-aware */
   .hero-sphere-section {
-    background-color: #0c0d12;
+    background-color: hsl(var(--background));
     background-image:
-      repeating-linear-gradient(0deg,  rgba(255,255,255,0.012) 0 1px, transparent 1px 50px),
-      repeating-linear-gradient(90deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 50px);
+      repeating-linear-gradient(0deg,  hsl(var(--border) / 0.35) 0 1px, transparent 1px 50px),
+      repeating-linear-gradient(90deg, hsl(var(--border) / 0.35) 0 1px, transparent 1px 50px);
     min-height: 100svh; /* full-screen: sphere dominates the first viewport */
   }
 
-  /* Gradient overlay that fades the sphere into the hero text area.
-     Shallower than before so more sphere remains visible above the headline. */
+  /* Gradient overlay that fades the sphere into the hero text area. */
   .hero-sphere-fade {
     height: 52%;
-    background: linear-gradient(to top, #0c0d12 24%, rgba(12,13,18,0.80) 52%, transparent);
+    background: linear-gradient(to top, hsl(var(--background)) 24%, hsl(var(--background) / 0.85) 52%, transparent);
   }
 
   /* Atlas page sphere section bottom fade — matches .bg-atlas-hero background */
   .atlas-sphere-fade {
     height: 38%;
-    background: linear-gradient(to top, #05060c 18%, rgba(5,6,12,0.65) 52%, transparent);
+    background: linear-gradient(to top, hsl(var(--background)) 18%, hsl(var(--background) / 0.7) 52%, transparent);
   }
 
   /* Featured artifact section — one step lighter than hero */

@@ -324,10 +324,10 @@ const Observatory = () => {
       </section>
 
       {/* RESONANCE SPHERES — Primary immersive exhibit (central textured sphere + orbiting nodes + rich media modals) */}
-      <section className="border-t border-border/30 bg-[#05060c] py-10">
+      <section className="border-t border-border/30 bg-background py-10">
         <div className="container">
           <div className="mb-6">
-            <div className="font-mono text-[9px] uppercase tracking-[0.3em] text-cyan-400/60">LIVING CONSTELLATION</div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.3em] text-cyan-400/60 dark:text-cyan-400/60">LIVING CONSTELLATION</div>
             <h2 className="text-3xl font-bold tracking-tight">Resonance Spheres</h2>
             <p className="text-muted-foreground/80 max-w-2xl mt-1 text-sm">
               Central Transport Sphere textured with curated portal media (GRIN refraction + wormhole distortion). 
