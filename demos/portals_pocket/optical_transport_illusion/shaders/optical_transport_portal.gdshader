@@ -1,30 +1,38 @@
 shader_type spatial;
-render_mode unshaded, blend_mix, depth_draw_opaque, cull_back;
+render_mode blend_mix, unshaded, depth_draw_opaque, cull_back;
 
-// Holographic Portals & Optical Transport — xPRIMEray v0.1
-// (Local copy for self-contained demo project. See top-level shaders/ for canonical.)
+// Holographic Portals & Optical Transport — xPRIMEray (holographic-portals-v0.1+)
+// (Local copy — see top-level shaders/ for canonical version + full comments)
 
-uniform sampler2D screen_texture : hint_screen_texture;
-uniform float recursion_depth = 4.0;
-uniform vec3 wormhole_color : source_color = vec3(0.08, 0.22, 0.95);
-uniform float grin_index = 1.65;
-uniform float time_scale = 0.8;
-uniform float trap_radius_base = 0.09;
-uniform float pocket_scale = 1.65;
-uniform float shimmer_strength = 0.7;
-uniform float alpha_edge = 0.88;
+uniform sampler2D screen_texture : hint_screen_texture, repeat_enable;
 
-uniform vec3 peacock_a : source_color = vec3(0.05, 0.65, 0.55);
-uniform vec3 peacock_b : source_color = vec3(0.55, 0.15, 0.75);
+uniform float recursion_depth : hint_range(1.0, 8.0) = 4.0;
+uniform float pocket_scale = 1.618;
+uniform float trap_radius_base = 0.085;
+
+uniform float grin_index : hint_range(1.0, 3.0) = 1.618;
+uniform sampler2D grin_field : hint_default_black;
+
+uniform float time_scale = 1.0;
+uniform vec3 bee_blue : source_color = vec3(0.10, 0.38, 0.92);
+uniform float shimmer_strength = 0.75;
+
+uniform vec3 peacock_a : source_color = vec3(0.05, 0.68, 0.58);
+uniform vec3 peacock_b : source_color = vec3(0.58, 0.12, 0.78);
 
 float bee_sigil(vec2 p, float t) {
-    vec2 q = abs(p) - vec2(0.22, 0.12);
-    float hex = max(q.x, q.y * 0.866 + q.x * 0.5) - 0.18;
-    float center = length(p) - 0.055;
-    float wing = length(p - vec2(0.0, 0.18 * sin(t * 3.0))) - 0.07;
-    float body = max(hex, -center * 0.6);
-    float sig = min(min(body, wing), center);
-    return sig;
+    vec2 q = abs(p) - vec2(0.22, 0.115);
+    float hex = max(q.x, q.y * 0.866 + q.x * 0.5) - 0.175;
+    float center = length(p) - 0.052;
+    float wing = length(p - vec2(0.0, 0.175 * sin(t * 2.8))) - 0.065;
+    float body = max(hex, -center * 0.55);
+    return min(min(body, wing), center);
+}
+
+vec2 apply_grin_warp(vec2 uv, vec3 view_dir, float t, float strength) {
+    vec2 warp = sin(uv * strength * 6.28318 + t * 0.7) * 0.028;
+    warp += sin(view_dir.xy * strength * 1.3 + t * 1.1) * 0.018;
+    return uv + warp;
 }
 
 void fragment() {
@@ -33,48 +41,53 @@ void fragment() {
     float t = TIME * time_scale;
 
     float depth = 0.0;
-    vec3 color_acc = vec3(0.0);
-    float trap_factor = 0.0;
+    bool trapped = false;
 
     for (int i = 0; i < int(recursion_depth); i++) {
         float fi = float(i);
-        uv = fract(uv * pocket_scale + vec2(sin(t * 0.7 + fi) * 0.06, cos(t * 0.5 + fi * 1.3) * 0.04));
-        depth += 0.18;
+        uv = fract(uv * pocket_scale + vec2(
+            sin(t + fi * 1.7) * 0.048,
+            cos(t * 0.85 + fi) * 0.042
+        ));
+        depth += 0.22;
 
-        float trap_r = trap_radius_base * (1.0 + fi * 0.6);
-        float d_to_center = length(uv - 0.5);
-        if (d_to_center < trap_r) {
-            trap_factor = 1.0 - (d_to_center / trap_r);
-            ALBEDO = vec3(0.0);
-            ALPHA = 1.0;
-            return;
+        float trap_r = trap_radius_base * (1.0 + fi * 0.65);
+        if (length(uv - 0.5) < trap_r) {
+            trapped = true;
+            break;
         }
-
-        float pocket_contrib = (1.0 - depth * 0.22) * (0.35 + 0.2 * sin(t + fi * 2.0));
-        color_acc += pocket_contrib * 0.25;
     }
 
-    vec3 base = texture(screen_texture, uv).rgb;
+    vec3 color;
 
-    vec2 grin_warp = sin(view_dir.xy * grin_index + t * 0.6) * 0.035;
-    uv += grin_warp;
+    if (trapped) {
+        color = vec3(0.0);
+    } else {
+        color = texture(screen_texture, uv).rgb;
 
-    vec3 color = base * (1.0 - depth * 0.28) + color_acc;
+        float sigil = bee_sigil((uv - 0.5) * 2.9, t) * 0.9;
+        float sig_mask = 1.0 - smoothstep(-0.008, 0.022, sigil);
+        color = mix(color, bee_blue * 1.15, sig_mask * (0.55 + 0.35 * sin(t * 3.6)));
 
-    float core_shimmer = pow(max(0.0, sin(t * 1.8 + depth * 4.0)), 3.0);
-    color += wormhole_color * core_shimmer * shimmer_strength;
+        float peacock_phase = t * 0.95 + depth * 2.8;
+        vec3 peacock = mix(peacock_a, peacock_b, 0.5 + 0.5 * sin(peacock_phase));
+        color += peacock * pow(max(0.0, sin(peacock_phase * 1.25)), 4.5) * 0.09 * (1.0 - depth * 0.35);
+    }
 
-    float peacock_phase = t * 0.9 + depth * 3.2;
-    vec3 peacock = mix(peacock_a, peacock_b, 0.5 + 0.5 * sin(peacock_phase));
-    color += peacock * pow(max(0.0, sin(peacock_phase * 1.3)), 5.0) * 0.12 * (1.0 - depth * 0.4);
+    vec2 grin_uv = uv;
+    if (grin_field != null) {
+        vec2 field = texture(grin_field, uv * 0.5 + 0.5).rg * 2.0 - 1.0;
+        grin_uv += field * grin_index * 0.035;
+    } else {
+        grin_uv = apply_grin_warp(uv, view_dir, t, grin_index);
+    }
+    uv = grin_uv;
 
-    float sig = bee_sigil((uv - 0.5) * 2.8, t);
-    float sig_mask = 1.0 - smoothstep(-0.01, 0.025, sig);
-    color = mix(color, wormhole_color * 1.1, sig_mask * 0.65 * (0.6 + 0.4 * sin(t * 4.0)));
+    if (!trapped) {
+        color = mix(color, texture(screen_texture, uv).rgb, 0.35);
+    }
 
-    color = mix(color, color * (0.6 + 0.4 * sin(view_dir.x * 6.0 + t)), 0.08);
-
-    float edge = 1.0 - smoothstep(0.0, 0.35, length(SCREEN_UV - 0.5));
+    float edge = 1.0 - smoothstep(0.0, 0.38, length(SCREEN_UV - 0.5));
     ALBEDO = color;
-    ALPHA = mix(alpha_edge, 0.96, edge * 0.6);
+    ALPHA = mix(0.88, 0.97, edge * 0.55) - depth * 0.11;
 }

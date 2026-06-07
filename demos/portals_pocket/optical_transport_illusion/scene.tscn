@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://optical_transport_illusion.gd" id="1_root"]
 [ext_resource type="Script" path="res://player.gd" id="2_player"]
 [ext_resource type="Script" path="res://portal_trigger.gd" id="3_trigger"]
+[ext_resource type="PackedScene" path="res://inner_pocket_viewport.tscn" id="4_inner_pocket"]
+[ext_resource type="Script" path="res://grin_field_sampler.gd" id="5_grin"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_Portal"]
 size = Vector2(3.6, 5.2)
@@ -35,6 +37,16 @@ size = Vector3(3.8, 5.4, 1.6)
 [node name="OpticalTransportIllusion" type="Node3D"]
 script = ExtResource("1_root")
 
+[node name="GRINFieldSampler" type="Node" parent="."]
+script = ExtResource("5_grin")
+; Generates a live GRIN-like field texture and provides math sampling helpers.
+; The root script wires this texture into the portal shader's "grin_field" uniform.
+; Replace / extend with your real RK4 / FieldSystem data for authentic curved transport.
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+; Use the root script's create_optical_dolly_animation() helper (or build in editor).
+; Then use Godot Movie Maker or headless export for DaVinci/Suno sync sequences.
+
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_Main")
 
@@ -61,13 +73,22 @@ far = 180.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, -1.2)
 mesh = SubResource("PlaneMesh_Portal")
 surface_material_override/0 = null
-; The root script applies the optical_transport_portal.gdshader material at runtime.
-; You can also create a ShaderMaterial in the inspector and assign the .gdshader manually.
+; The root script (optical_transport_illusion.gd) applies the shader + wires the SubViewport texture.
+
+[node name="SubViewport" type="SubViewport" parent="PortalFrame"]
+size = Vector2i(640, 640)
+render_target_update_mode = 4
+handle_input_locally = false
+transparent_bg = true
+; This SubViewport renders the "true" view from inside the pocket (recursive camera).
+; The root script assigns sub_viewport.get_texture() to the shader's screen_texture uniform.
+
+[node name="InnerPocketViewportRoot" parent="PortalFrame/SubViewport" instance=ExtResource("4_inner_pocket")]
 
 [node name="PortalFrameRing" type="MeshInstance3D" parent="PortalFrame"]
 transform = Transform3D(1.02, 0, 0, 0, 1.02, 0, 0, 0, 1.02, 0, 0, -0.02)
 mesh = SubResource("PlaneMesh_Portal")
-; Decorative outer ring (same plane, slightly larger). Shader will draw bee sigil across layers.
+; Decorative outer ring. The bee B/q sigil and peacock shimmer are drawn by the shader on top of the live viewport texture.
 
 [node name="JBPillar_Left" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8, 2.4, -1.6)
@@ -107,11 +128,9 @@ mesh = SubResource("SphereMesh_Orb")
 
 [node name="InnerPocket" type="Node3D" parent="."]
 visible = false
-; This is the "pocket dimension" / bulk reveal node.
-; When the player crosses the portal trigger, the root script makes this visible + pulses scale.
-; Add more nested geometry, lights, or even another smaller PortalFrame here for true recursion.
-; For deeper effect later: add a SubViewport + Camera3D that renders a duplicated world and feeds
-; a ViewportTexture into the portal shader's screen_texture uniform.
+; "Real" geometry the player can fly among after crossing the portal trigger.
+; The SubViewport (under PortalFrame) renders a separate camera view into a deeper copy of this world
+; and feeds it live to the shader as screen_texture → true recursive nested portals.
 
 [node name="PocketPillar" type="MeshInstance3D" parent="InnerPocket"]
 transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 1.8, -3.2)
@@ -141,17 +160,17 @@ shape = SubResource("BoxShape_PortalTrigger")
 
 [node name="InstructionsLabel" type="Label3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 4.2, 2.8)
-text = "WASD + Mouse  |  Space/Ctrl vertical  |  Shift sprint  |  N = noclip (free bulk flight)
-Walk/fly straight through the glowing frame to reveal the pocket."
+text = "WASD + Mouse  |  Space/Ctrl vertical  |  Shift sprint  |  N = noclip
+Fly through the frame → real SubViewport recursion + GRIN warp. Bulk reveal on cross."
 font_size = 22
 outline_size = 4
 horizontal_alignment = 0
 
 [node name="CaptionBillboard" type="Label3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.8, 1.6, -3.5)
-text = "Optical Transport Illusion
-Nested portals • Ray trapping • Bulk reveal
-(AdS/CFT toy • GRIN curvature • event horizon analog)"
+text = "Optical Transport Illusion v0.1+
+Real SubViewport recursion • GRIN warp • Ray trapping • Bulk reveal
+(AdS/CFT toy • curved transport intuition)"
 font_size = 18
 outline_size = 3
 horizontal_alignment = 2

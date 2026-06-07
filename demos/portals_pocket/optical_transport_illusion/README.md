@@ -29,9 +29,13 @@ Alternative (if you prefer the repo root as Godot project root):
 - `player.gd` — Walkable/flyable CharacterBody3D controller with noclip.
 - `optical_transport_illusion.gd` — Root script. Applies the shader material at runtime + simple bulk-reveal on portal cross.
 - `portal_trigger.gd` — Area3D helper (logic centralized in root for v0.1).
-- `shaders/optical_transport_portal.gdshader` — The star. Recursion + trapping + GRIN warp + bee sigil + peacock shimmer.
+- `shaders/optical_transport_portal.gdshader` — The star. Real SubViewport recursion (via screen_texture) + fractal golden nesting + event-horizon trapping + procedural bee B/q sigil + peacock iridescence + GRIN field hook.
+- `grin_field_sampler.gd` — Runtime GRIN-like field texture generator + math sampling stub. Clear comments on how to wire your real RK4 / FieldSystem / MetricHeuristicIntegrator.
+- `rk4_witness_orb.gd` — Proper 4th-order Runge-Kutta curved geodesic integrator. 6 instances live inside the inner pocket (varied initial velocities). They follow the GRIN field, brighten near the throat, and dim when trapped.
+- `inner_pocket_viewport.tscn` — Self-contained pocket world (PocketCamera + geometry + lights + **live RK4 witness orbs**). Rendered by the SubViewport.
 - `project.godot` — Minimal Godot 4 project so the demo folder is independently openable.
 - `reference/wormhole_structure_contact_sheet.png` — Pulled from the main xPRIMEray asset library for visual reference / future texture use.
+- `inner_pocket_viewport.tscn` is instanced inside the SubViewport in the main scene (edit it to add more orbs or another recursion level).
 
 ## Shader Highlights (optical_transport_portal.gdshader)
 - `recursion_depth`, `pocket_scale`, `trap_radius_base` — control how deep the nesting goes and how aggressively rays get trapped into darkness.
@@ -42,11 +46,24 @@ Alternative (if you prefer the repo root as Godot project root):
 - `unshaded + blend_mix` for ethereal portal feel. Easy to switch to lit modes later.
 
 ## How to Iterate (Godot Editor Tips)
-- Select the `PortalFrame` MeshInstance3D → in the inspector you can override the material and live-edit shader params (after the root script runs, or disable the script temporarily).
-- Duplicate the `InnerPocket` contents or add another smaller `PortalFrame` inside it for multi-level nesting.
-- Add a real SubViewport + Camera3D inside the pocket. Feed its texture to the shader's `screen_texture` for actual "what's on the other side" recursion (classic portal technique).
-- Replace the sin() GRIN warp with calls into an RK4 integrator node (expose a `sample_grin_accel(uv, depth)` or similar). The shader is compute-friendly in spirit — you can move heavy lifting to a compute shader or GDScript-driven texture later.
-- For video export: use Godot's AnimationPlayer on a Path3D for the camera, or just fly with noclip and use the built-in Movie Maker (Project Settings → Movie Maker). Output PNG sequence or Theora/WebM.
+- The SubViewport lives under `PortalFrame/SubViewport`. Its child `InnerPocketViewportRoot` (instanced from `inner_pocket_viewport.tscn`) contains the `PocketCamera` that the root script drives every frame.
+- Select `PortalFrame` → inspect the material the root script creates, or temporarily disable `optical_transport_illusion.gd` and assign the shader manually for live editing.
+- Edit `inner_pocket_viewport.tscn` independently to add more geometry, another mini-portal, or different lighting inside the recursive view.
+- The `grin_field` sampler is a child of the root. Open `grin_field_sampler.gd` — the TODO section shows exactly where to connect your real curved-ray / RK4 / FieldSystem code.
+- In the shader, the `grin_field` uniform receives the texture; the `apply_grin_warp` function + texture sampling path are the two places to extend with live geodesic data.
+- For even deeper recursion you can put another SubViewport + camera inside `inner_pocket_viewport.tscn` and chain the textures (performance cost rises quickly).
+- The 6 RK4 orbs in the inner pocket demonstrate live curved transport. Their brightness reacts to "trapping" vs bulk depth. The main controller modulates their trap_intensity based on distance to the portal.
+- **Camera Dolly + Export**: Call `create_optical_dolly_animation()` on the root (from the script editor or console). It generates a 20-second "approach → cross → deep bulk orbit" animation on the AnimationPlayer. Save the animation resource and use it to drive a camera (or the Player) for clean export sequences.
+
+### Exporting for DaVinci + Suno (Quick Guide)
+1. Enable Movie Maker in Editor Settings → Movie Writer (choose PNG sequence or Theora).
+2. Play the scene with the dolly animation active (or use a Path3D + AnimationPlayer in the editor for more control).
+3. Godot will write frames while the animation runs.
+4. Headless export example:
+   ```
+   godot --headless --path demos/portals_pocket/optical_transport_illusion --script export_dolly.gd
+   ```
+5. 15–30s loops work great synced to the hyperpop "enter the bulk" Suno prompt from the earlier README section. Use the trapped-to-bloom color shift as a natural drop moment.
 
 ## Export & Sync Notes (DaVinci + Suno)
 - Camera path suggestions: slow approach from "our" side → acceleration through the frame → spiraling "deeper" once bulk is revealed.

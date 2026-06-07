@@ -1,0 +1,107 @@
+[gd_scene load_steps=6 format=3 uid="uid://inner_pocket_viewport_v01"]
+
+[ext_resource type="Script" path="res://rk4_witness_orb.gd" id="6_rk4_orb"]
+
+; Inner Pocket Viewport Scene
+; This is the world rendered by the SubViewport attached to the main portal.
+; It provides the "true" recursive camera view into the bulk.
+; The main optical_transport_illusion.gd drives the PocketCamera transform every frame.
+
+[sub_resource type="BoxMesh" id="BoxMesh_PocketPillar"]
+size = Vector3(0.28, 3.8, 0.28)
+
+[sub_resource type="SphereMesh" id="SphereMesh_PocketOrb"]
+radius = 0.18
+height = 0.36
+
+[sub_resource type="Environment" id="Environment_Pocket"]
+background_mode = 1
+background_color = Color(0.008, 0.01, 0.022, 1)
+ambient_light_color = Color(0.04, 0.05, 0.09, 1)
+ambient_light_energy = 0.25
+fog_enabled = true
+fog_light_color = Color(0.01, 0.012, 0.028, 1)
+fog_density = 0.032
+
+[node name="InnerPocketViewportRoot" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_Pocket")
+
+[node name="PocketCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 1.8)
+fov = 68.0
+near = 0.08
+far = 120.0
+; This camera's global_transform is driven every frame by the main script
+; to simulate "looking through the portal from the pocket side".
+
+[node name="PocketJBPillar" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9, -2.6)
+mesh = SubResource("BoxMesh_PocketPillar")
+surface_material_override/0 = null
+
+[node name="PocketLightCore" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, -3.8)
+light_color = Color(0.25, 0.45, 0.95, 1)
+light_energy = 2.2
+omni_range = 6.0
+
+[node name="PocketOrbs" type="Node3D" parent="."]
+; These are now live RK4-integrated witness orbs.
+; They follow curved paths using the GRIN sampler's acceleration field (hook for full xPRIMEray integrator).
+
+[node name="RK4_Orb_01" type="MeshInstance3D" parent="PocketOrbs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 1.6, -4.8)
+mesh = SubResource("SphereMesh_PocketOrb")
+script = ExtResource("6_rk4_orb")
+initial_velocity = Vector3(0.55, 0.12, -1.25)
+step_size = 0.017
+center = Vector3(0, 1.8, -5.5)
+
+[node name="RK4_Orb_02" type="MeshInstance3D" parent="PocketOrbs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 2.9, -6.4)
+mesh = SubResource("SphereMesh_PocketOrb")
+script = ExtResource("6_rk4_orb")
+initial_velocity = Vector3(-0.4, 0.35, -0.95)
+step_size = 0.019
+center = Vector3(0, 1.8, -5.5)
+
+[node name="RK4_Orb_03" type="MeshInstance3D" parent="PocketOrbs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0.9, -8.5)
+mesh = SubResource("SphereMesh_PocketOrb")
+script = ExtResource("6_rk4_orb")
+initial_velocity = Vector3(0.25, -0.18, -1.4)
+step_size = 0.015
+center = Vector3(0, 1.8, -5.5)
+
+[node name="RK4_Orb_04" type="MeshInstance3D" parent="PocketOrbs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, 3.1, -7.8)
+mesh = SubResource("SphereMesh_PocketOrb")
+script = ExtResource("6_rk4_orb")
+initial_velocity = Vector3(-0.7, 0.22, -0.85)
+step_size = 0.021
+center = Vector3(0, 1.8, -5.5)
+
+[node name="RK4_Orb_05" type="MeshInstance3D" parent="PocketOrbs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.2, -10.2)
+mesh = SubResource("SphereMesh_PocketOrb")
+script = ExtResource("6_rk4_orb")
+initial_velocity = Vector3(0.35, 0.45, -1.1)
+step_size = 0.016
+center = Vector3(0, 1.8, -5.5)
+
+[node name="RK4_Orb_06" type="MeshInstance3D" parent="PocketOrbs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0.5, -5.9)
+mesh = SubResource("SphereMesh_PocketOrb")
+script = ExtResource("6_rk4_orb")
+initial_velocity = Vector3(-0.15, -0.25, -1.65)
+step_size = 0.0185
+center = Vector3(0, 1.8, -5.5)
+
+[node name="MiniPortalFrame" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.55, 0, 0, 0, 0.55, 0, 0, 0, 0.55, 0, 2.1, -4.2)
+; This is a visual "deeper portal" inside the pocket.
+; You can assign a second (lower recursion) material or the same shader here for extra nesting.
+mesh = SubResource("BoxMesh_PocketPillar")  # placeholder quad shape; replace with PlaneMesh in editor for better look
+surface_material_override/0 = null
