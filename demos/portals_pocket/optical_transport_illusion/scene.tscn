@@ -1,0 +1,158 @@
+[gd_scene load_steps=9 format=3 uid="uid://optical_transport_illusion_v01"]
+
+[ext_resource type="Script" path="res://optical_transport_illusion.gd" id="1_root"]
+[ext_resource type="Script" path="res://player.gd" id="2_player"]
+[ext_resource type="Script" path="res://portal_trigger.gd" id="3_trigger"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_Portal"]
+size = Vector2(3.6, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Pillar"]
+size = Vector3(0.35, 4.8, 0.35)
+
+[sub_resource type="SphereMesh" id="SphereMesh_Orb"]
+radius = 0.22
+height = 0.44
+
+[sub_resource type="Environment" id="Environment_Main"]
+background_mode = 1
+background_color = Color(0.015, 0.018, 0.032, 1)
+ambient_light_color = Color(0.06, 0.08, 0.14, 1)
+ambient_light_energy = 0.35
+fog_enabled = true
+fog_light_color = Color(0.02, 0.025, 0.045, 1)
+fog_light_energy = 0.6
+fog_density = 0.018
+fog_depth_begin = 4.0
+fog_depth_end = 38.0
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.035
+volumetric_fog_albedo = Color(0.04, 0.06, 0.11, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape_PortalTrigger"]
+size = Vector3(3.8, 5.4, 1.6)
+
+[node name="OpticalTransportIllusion" type="Node3D"]
+script = ExtResource("1_root")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_Main")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0.5, 0.75, -0.433013, 0, 0.5, 0.866025, 0, 12, 0)
+light_color = Color(0.92, 0.95, 1, 1)
+light_energy = 0.55
+shadow_enabled = true
+
+[node name="Player" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 7.5)
+script = ExtResource("2_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+shape = SubResource("BoxShape_PortalTrigger")
+
+[node name="Camera3D" type="Camera3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+fov = 72.0
+near = 0.05
+far = 180.0
+
+[node name="PortalFrame" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, -1.2)
+mesh = SubResource("PlaneMesh_Portal")
+surface_material_override/0 = null
+; The root script applies the optical_transport_portal.gdshader material at runtime.
+; You can also create a ShaderMaterial in the inspector and assign the .gdshader manually.
+
+[node name="PortalFrameRing" type="MeshInstance3D" parent="PortalFrame"]
+transform = Transform3D(1.02, 0, 0, 0, 1.02, 0, 0, 0, 1.02, 0, 0, -0.02)
+mesh = SubResource("PlaneMesh_Portal")
+; Decorative outer ring (same plane, slightly larger). Shader will draw bee sigil across layers.
+
+[node name="JBPillar_Left" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8, 2.4, -1.6)
+mesh = SubResource("BoxMesh_Pillar")
+surface_material_override/0 = null
+; J&B pillar motif (mythos structural element). Place symmetric right side or duplicate.
+
+[node name="JBPillar_Right" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8, 2.4, -1.6)
+mesh = SubResource("BoxMesh_Pillar")
+surface_material_override/0 = null
+
+[node name="TrappedLight_01" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1, 1.8, -2.4)
+light_color = Color(0.35, 0.55, 1.0, 1)
+light_energy = 1.8
+omni_range = 4.5
+omni_attenuation = 1.6
+
+[node name="TrappedLight_02" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 3.2, -2.1)
+light_color = Color(0.9, 0.6, 0.35, 1)
+light_energy = 1.4
+omni_range = 3.8
+
+[node name="WitnessOrbs" type="Node3D" parent="."]
+
+[node name="Orb_Deep1" type="MeshInstance3D" parent="WitnessOrbs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 1.9, -4.8)
+mesh = SubResource("SphereMesh_Orb")
+surface_material_override/0 = null
+; These orbs "fall" into the trap visually until you cross the portal and the bulk blooms.
+
+[node name="Orb_Deep2" type="MeshInstance3D" parent="WitnessOrbs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 3.6, -6.1)
+mesh = SubResource("SphereMesh_Orb")
+
+[node name="InnerPocket" type="Node3D" parent="."]
+visible = false
+; This is the "pocket dimension" / bulk reveal node.
+; When the player crosses the portal trigger, the root script makes this visible + pulses scale.
+; Add more nested geometry, lights, or even another smaller PortalFrame here for true recursion.
+; For deeper effect later: add a SubViewport + Camera3D that renders a duplicated world and feeds
+; a ViewportTexture into the portal shader's screen_texture uniform.
+
+[node name="PocketPillar" type="MeshInstance3D" parent="InnerPocket"]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 1.8, -3.2)
+mesh = SubResource("BoxMesh_Pillar")
+surface_material_override/0 = null
+
+[node name="PocketOrbCluster" type="Node3D" parent="InnerPocket"]
+
+[node name="Orb_P1" type="MeshInstance3D" parent="InnerPocket/PocketOrbCluster"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 2.1, -5.5)
+mesh = SubResource("SphereMesh_Orb")
+
+[node name="Orb_P2" type="MeshInstance3D" parent="InnerPocket/PocketOrbCluster"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 3.4, -7.2)
+mesh = SubResource("SphereMesh_Orb")
+
+[node name="Orb_P3" type="MeshInstance3D" parent="InnerPocket/PocketOrbCluster"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0.9, -8.8)
+mesh = SubResource("SphereMesh_Orb")
+
+[node name="PortalArea" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, -1.0)
+script = ExtResource("3_trigger")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PortalArea"]
+shape = SubResource("BoxShape_PortalTrigger")
+
+[node name="InstructionsLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 4.2, 2.8)
+text = "WASD + Mouse  |  Space/Ctrl vertical  |  Shift sprint  |  N = noclip (free bulk flight)
+Walk/fly straight through the glowing frame to reveal the pocket."
+font_size = 22
+outline_size = 4
+horizontal_alignment = 0
+
+[node name="CaptionBillboard" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.8, 1.6, -3.5)
+text = "Optical Transport Illusion
+Nested portals • Ray trapping • Bulk reveal
+(AdS/CFT toy • GRIN curvature • event horizon analog)"
+font_size = 18
+outline_size = 3
+horizontal_alignment = 2
+vertical_alignment = 2
