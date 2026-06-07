@@ -4,6 +4,11 @@
 // spatial storytelling, traversal mechanics).
 // Nobel / Glitch first, then others pulled from existing atlas (Quake, Interstellar, Bell Labs, etc.).
 // 
+// This file ALSO serves as the STATIC MOCK FALLBACK when Supabase is not configured
+// (i.e. missing VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY).
+// ResonanceSpheresAtlas will use this data (with Digital Circus Trophy Room + Nobel nodes)
+// and log a warning instead of crashing with "supabaseUrl is required".
+//
 // Textures: Use high-quality visuals from assets/misterylabs_artifacts/visuals/ (copy key ones like 
 // wormhole-structure-observatory.png, observer-disagreement-hero.png, hermetic-closure-hero.png to 
 // public/assets/observatory/ for serving). For the "Trophy Room with xPRIMEray GRIN distortion", 
