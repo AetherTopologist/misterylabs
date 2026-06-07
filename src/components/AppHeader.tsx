@@ -11,6 +11,7 @@ import { useTheme } from "@/hooks/useTheme";
 const NAV_LINKS = [
   { to: "/", label: "Home", exact: true },
   { to: "/atlas", label: "Atlas" },
+  { to: "/observatory", label: "Observatory" },
   { to: "/archive", label: "Archive" },
   { to: "/research", label: "Research" },
   { to: "/media", label: "Media" },

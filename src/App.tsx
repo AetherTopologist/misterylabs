@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard.tsx";
 import ProjectDetail from "./pages/ProjectDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Auth from "./pages/Auth.tsx";
+import Observatory from "./pages/Observatory.tsx";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { RequireAuth } from "@/components/RequireAuth";
 
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/archive" element={<Archive />} />
             <Route path="/research" element={<Research />} />
             <Route path="/media" element={<Media />} />
+            <Route path="/observatory" element={<Observatory />} />
             {/* /mission and /dashboard both render Mission Control */}
             <Route path="/mission" element={<RequireAuth><Dashboard /></RequireAuth>} />
             <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
