@@ -17,6 +17,7 @@ interface ResonanceSphereProps {
   size?: number; // canvas pixel size (square recommended)
   distortion?: number; // 0-1 strength of GRIN-like radial warp
   showRays?: boolean;
+  highlightedNodeId?: string | null; // drives pulse / "face the portal" animation
 }
 
 export function ResonanceSphere({
@@ -25,6 +26,7 @@ export function ResonanceSphere({
   size = 420,
   distortion = 0.35,
   showRays = true,
+  highlightedNodeId,
 }: ResonanceSphereProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -135,14 +137,25 @@ export function ResonanceSphere({
         }
       }
 
-      // Focal glow
+      // Focal glow (boosted on highlight for "facing the portal")
+      const isHighlighted = !!highlightedNodeId;
+      const focalStrength = isHighlighted ? 0.32 : 0.18;
       const focal = ctx.createRadialGradient(cx + r * 0.12, cy - r * 0.08, 8, cx + r * 0.12, cy - r * 0.08, r * 0.55);
-      focal.addColorStop(0, "rgba(103, 232, 249, 0.18)");
+      focal.addColorStop(0, `rgba(103, 232, 249, ${focalStrength})`);
       focal.addColorStop(1, "transparent");
       ctx.fillStyle = focal;
       ctx.beginPath();
       ctx.arc(cx + r * 0.12, cy - r * 0.08, r * 0.55, 0, Math.PI * 2);
       ctx.fill();
+
+      if (isHighlighted) {
+        // extra "light leak" / ray pulse when a node is selected
+        ctx.strokeStyle = "rgba(245, 158, 11, 0.35)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.96, 0, Math.PI * 2);
+        ctx.stroke();
+      }
     };
 
     const loadAndDraw = () => {
@@ -162,7 +175,7 @@ export function ResonanceSphere({
       draw();
     }
 
-    // Gentle animation for refraction pulse
+    // Gentle animation for refraction pulse (stronger on highlight)
     let raf: number;
     const animate = () => {
       draw();
@@ -171,7 +184,7 @@ export function ResonanceSphere({
     raf = requestAnimationFrame(animate);
 
     return () => cancelAnimationFrame(raf);
-  }, [textureUrl, size, distortion, showRays]);
+  }, [textureUrl, size, distortion, showRays, highlightedNodeId]);
 
   return (
     <canvas

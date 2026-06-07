@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { FixtureCard, type Fixture } from "@/components/observatory/FixtureCard";
+import { ResonanceSpheresAtlas } from "@/components/ResonanceSpheresAtlas";
+import { ResonanceSphere } from "@/components/ResonanceSphere";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -318,6 +320,21 @@ const Observatory = () => {
           <div className="diagnostic-frame p-4 rounded text-xs border border-white/10">Triclock DOE Sandbox Plan</div>
           <div className="diagnostic-frame p-4 rounded text-xs border border-white/10">Overspace Architecture Layer</div>
           <div className="diagnostic-frame p-4 rounded text-xs border border-white/10">Phase Coherence Field (early)</div>
+        </div>
+      </section>
+
+      {/* RESONANCE SPHERES — Primary immersive exhibit (central textured sphere + orbiting nodes + rich media modals) */}
+      <section className="border-t border-border/30 bg-[#05060c] py-10">
+        <div className="container">
+          <div className="mb-6">
+            <div className="font-mono text-[9px] uppercase tracking-[0.3em] text-cyan-400/60">LIVING CONSTELLATION</div>
+            <h2 className="text-3xl font-bold tracking-tight">Resonance Spheres</h2>
+            <p className="text-muted-foreground/80 max-w-2xl mt-1 text-sm">
+              Central Transport Sphere textured with curated portal media (GRIN refraction + wormhole distortion). 
+              Nodes orbit with geodesic springs. Click for media gallery, YT embeds, and deep xPRIMEray "signal resonance" alignment.
+            </p>
+          </div>
+          <ResonanceSpheresAtlas />
         </div>
       </section>
 
