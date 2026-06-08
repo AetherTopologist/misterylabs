@@ -520,7 +520,7 @@ const Index = () => {
                 href="https://github.com/AetherTopologist/GD_xPRIMEray"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-1 items-center gap-3.5 border border-border/50 bg-white/4 px-7 py-5 transition-base hover:border-border/80 hover:bg-white/8 sm:flex-none"
+                className="flex flex-1 items-center gap-3.5 border border-border/50 bg-card/60 px-7 py-5 transition-base hover:border-border/80 hover:bg-secondary/70 sm:flex-none"
               >
                 <Github className="h-5 w-5 shrink-0 text-foreground/65" />
                 <div className="text-left">
