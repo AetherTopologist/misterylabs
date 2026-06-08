@@ -13,9 +13,7 @@ const NAV_LINKS = [
   { to: "/atlas", label: "Atlas" },
   { to: "/observatory", label: "Observatory" },
   { to: "/archive", label: "Archive" },
-  { to: "/research", label: "Research" },
   { to: "/media", label: "Media" },
-  { to: "/mission", label: "Mission" },
 ] as const;
 
 export function AppHeader() {

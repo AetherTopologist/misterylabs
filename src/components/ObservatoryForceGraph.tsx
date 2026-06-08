@@ -16,6 +16,7 @@ import { useState } from "react";
 import { ForceGraph3D } from "react-force-graph-3d";
 import * as THREE from "three";
 import { getAtlasGraphData, type AtlasGraphNode, type AtlasGraphLink, ATLAS_GRAPH_TIERS } from "@/lib/atlasGraph";
+import { useTheme } from "@/hooks/useTheme";
 
 interface ObservatoryForceGraphProps {
   onNodeSelect?: (node: AtlasGraphNode | null) => void;
@@ -23,6 +24,7 @@ interface ObservatoryForceGraphProps {
 }
 
 export function ObservatoryForceGraph({ onNodeSelect, selectedNodeId }: ObservatoryForceGraphProps) {
+  const { theme } = useTheme();
   const { nodes, links } = getAtlasGraphData();
 
   // Convert to the format react-force-graph expects
@@ -113,16 +115,16 @@ export function ObservatoryForceGraph({ onNodeSelect, selectedNodeId }: Observat
   };
 
   return (
-    <div className="relative w-full h-full bg-[#05060c] rounded-sm overflow-hidden border border-border/20">
+    <div className="relative w-full h-full bg-background rounded-sm overflow-hidden border border-border/20">
       <ForceGraph3D
         graphData={graphData}
         nodeThreeObject={nodeThreeObject}
         nodeLabel={(n: any) => `${n.name} — ${ATLAS_GRAPH_TIERS[n.tier as AtlasGraphNode["tier"]]?.label}`}
-        linkColor={() => "rgba(103, 232, 249, 0.25)"} // soft cyan links
+        linkColor={() => "rgba(103, 232, 249, 0.25)"}
         linkWidth={0.6}
         linkOpacity={0.6}
         onNodeClick={handleNodeClick}
-        backgroundColor="#05060c"
+        backgroundColor={theme === 'light' ? '#fafafa' : '#05060c'}
         showNavInfo={false}
         enableNodeDrag={true}
         enableNavigationControls={true}

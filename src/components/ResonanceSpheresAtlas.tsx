@@ -334,7 +334,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
                         <img 
                           src={currentMedia.url} 
                           alt={currentMedia.alt || currentMedia.caption || expanded.node.title}
-                          className="w-full max-h-[420px] object-contain bg-[#02040a]"
+                          className="w-full max-h-[420px] object-contain bg-card"
                         />
                       )}
                       {currentMedia?.type === 'youtube' && (

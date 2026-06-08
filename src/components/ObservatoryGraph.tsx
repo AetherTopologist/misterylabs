@@ -2,16 +2,40 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import * as THREE from 'three';
 import { getAtlasGraphData, type AtlasGraphNode, ATLAS_GRAPH_TIERS } from '@/lib/atlasGraph';
+import { useTheme } from '@/hooks/useTheme';
 
 interface ObservatoryGraphProps {
   onNodeClick?: (node: AtlasGraphNode | null) => void;
   className?: string;
 }
 
+function detectWebGL(): boolean {
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(
+      canvas.getContext('webgl') ||
+      canvas.getContext('experimental-webgl')
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function ObservatoryGraph({ onNodeClick, className = '' }: ObservatoryGraphProps) {
-  const { nodes, links } = getAtlasGraphData();
+  const { theme } = useTheme();
+  const [webGLAvailable] = React.useState(() => detectWebGL());
   const fgRef = useRef<any>(null);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
+
+  // Defensive data load — log and expose empty graph rather than crashing
+  const { nodes, links } = React.useMemo(() => {
+    try {
+      return getAtlasGraphData();
+    } catch (err) {
+      console.error('[ObservatoryGraph] getAtlasGraphData failed:', err);
+      return { nodes: [], links: [] };
+    }
+  }, []);
 
   const graphData = {
     nodes: nodes.map(node => ({
@@ -28,9 +52,13 @@ export function ObservatoryGraph({ onNodeClick, className = '' }: ObservatoryGra
   // Helper: Create a 3D text sprite (real 3D label floating above the orb)
   const createTextSprite = (text: string, color: string, size = 18) => {
     const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d', { alpha: true })!;
     canvas.width = 512;
     canvas.height = 128;
+    const ctx = canvas.getContext('2d', { alpha: true });
+    if (!ctx) {
+      // Return an invisible sprite rather than throwing
+      return new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, opacity: 0 }));
+    }
 
     ctx.font = `${size}px 'JetBrains Mono', ui-monospace, monospace`;
     ctx.fillStyle = color;
@@ -169,6 +197,14 @@ export function ObservatoryGraph({ onNodeClick, className = '' }: ObservatoryGra
     }
   }, [selectedId]);
 
+  if (!webGLAvailable) {
+    return (
+      <div className={`flex h-full items-center justify-center text-sm text-muted-foreground ${className}`}>
+        3D graph requires WebGL, which is not available in this browser.
+      </div>
+    );
+  }
+
   return (
     <div className={`relative w-full h-full bg-background ${className}`}>
       <ForceGraph3D
@@ -184,7 +220,7 @@ export function ObservatoryGraph({ onNodeClick, className = '' }: ObservatoryGra
         linkDirectionalParticleColor={() => 'rgba(103,232,249,0.7)'}
         linkDirectionalParticleWidth={0.8}
         onNodeClick={handleNodeClick}
-        backgroundColor="#05060c"
+        backgroundColor={theme === 'light' ? '#fafafa' : '#05060c'}
         showNavInfo={false}
         enableNodeDrag={true}
         enableNavigationControls={true}
@@ -204,7 +240,14 @@ export function ObservatoryGraph({ onNodeClick, className = '' }: ObservatoryGra
           backgroundSize: '48px 48px',
         }}
       />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,rgba(5,6,12,0.65)_80%)]" />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: theme === 'light'
+            ? 'radial-gradient(circle at center, transparent 30%, rgba(240,242,248,0.55) 80%)'
+            : 'radial-gradient(circle at center, transparent 30%, rgba(5,6,12,0.65) 80%)',
+        }}
+      />
     </div>
   );
 }

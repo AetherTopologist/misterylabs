@@ -1,21 +1,8 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { ExternalLink, Github, MessageSquare } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
-import { FractalInspirationAtlas } from "@/components/FractalInspirationAtlas";
-import { ResonanceSphere } from "@/components/ResonanceSphere";
-import { ResonanceSpheresAtlas } from "@/components/ResonanceSpheresAtlas";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import { ObservatoryGraph } from "@/components/ObservatoryGraph";
-import { CubeNetExplorer } from "@/components/CubeNetExplorer";
-import { HollowMaskIllusion } from "@/components/HollowMaskIllusion";
-import { QuaternionExplorer } from "@/components/QuaternionExplorer";
-import { PoissonDotAndNegativeIOR } from "@/components/PoissonDotAndNegativeIOR";
-import { SpinningDancer } from "@/components/SpinningDancer";
-import { TesseractExplorer } from "@/components/TesseractExplorer";
-import { TransportSphereViz } from "@/components/TransportSphereViz";
 import { SiteFooter } from "@/components/SiteFooter";
-import type { AtlasGraphNode } from "@/lib/atlasGraph";
-import { ATLAS_GRAPH_TIERS } from "@/lib/atlasGraph";
 
 // ── Types ─────────────────────────────────────────────────
 
@@ -952,9 +939,6 @@ function AtlasInstrumentNav() {
 // ── Page ──────────────────────────────────────────────────
 
 export default function AtlasPage() {
-  const [viewMode, setViewMode] = useState<'graph' | 'cards'>('graph');
-  const [selectedNode, setSelectedNode] = useState<AtlasGraphNode | null>(null);
-
   return (
     <div className="min-h-screen">
       <AppHeader />
@@ -962,174 +946,7 @@ export default function AtlasPage() {
       <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/25 to-transparent" aria-hidden />
 
       <ObservatoryHeroSection />
-
-      {/* === NEW PRIMARY ATLAS VISUALIZATION === */}
-      <section id="atlas-graph" className="border-t border-border/35 bg-background">
-        <div className="container py-8">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
-            <div>
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">SYS // 04</span>
-                <div className="h-px w-12 bg-border/35" />
-                <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary-glow/60">The Seed</span>
-              </div>
-              <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">
-                Observatory Atlas
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground max-w-xl">
-                The living convergence of personal wonder, optical transport mysteries, engineering cathedrals, and conceptual lineage.
-              </p>
-            </div>
-
-            {/* View Toggle */}
-            <div className="flex items-center gap-1 rounded-sm border border-border/40 bg-card/20 p-1">
-              <button
-                onClick={() => setViewMode('graph')}
-                className={`px-4 py-1.5 text-sm font-mono uppercase tracking-[0.15em] rounded-sm transition-all ${
-                  viewMode === 'graph' 
-                    ? 'bg-primary/15 text-primary border border-primary/40' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Graph View
-              </button>
-              <button
-                onClick={() => setViewMode('cards')}
-                className={`px-4 py-1.5 text-sm font-mono uppercase tracking-[0.15em] rounded-sm transition-all ${
-                  viewMode === 'cards' 
-                    ? 'bg-primary/15 text-primary border border-primary/40' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Card Archive
-              </button>
-            </div>
-          </div>
-
-          {viewMode === 'graph' ? (
-            <div className="relative">
-              <div className="h-[72vh] min-h-[520px] w-full rounded-sm overflow-hidden border border-border/30">
-                <ObservatoryGraph 
-                  onNodeClick={setSelectedNode} 
-                />
-              </div>
-
-              {/* Rich Side Panel — cosmic, diagnostic, and poetic (matching screenshot reference) */}
-              {selectedNode && (
-                <div 
-                  className="fixed inset-x-0 bottom-0 md:right-0 md:top-0 md:bottom-0 md:left-auto w-full md:w-[420px] lg:w-[460px] z-[60] 
-                             bg-background/95 backdrop-blur-xl border-t md:border-t-0 md:border-l border-border/40 
-                             overflow-auto p-5 md:p-7 shadow-2xl"
-                  style={{ maxHeight: '85vh' }} // good mobile experience
-                >
-                  <div className="flex justify-between items-start mb-5 md:mb-6">
-                    <div>
-                      <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-amber-400/60">
-                        {ATLAS_GRAPH_TIERS[selectedNode.tier]?.label || selectedNode.tier}
-                      </div>
-                      <h3 className="text-[21px] md:text-2xl font-semibold tracking-[-0.015em] mt-1 pr-8 leading-tight text-foreground">
-                        {selectedNode.name}
-                      </h3>
-                    </div>
-                    <button 
-                      onClick={() => setSelectedNode(null)}
-                      className="text-muted-foreground/70 hover:text-foreground text-3xl leading-none mt-[-4px] transition-colors"
-                      aria-label="Close panel"
-                    >
-                      ×
-                    </button>
-                  </div>
-
-                  <div className="space-y-6 text-[13.5px] leading-[1.65] text-muted-foreground/90">
-                    <div>
-                      <div className="font-mono text-[9px] uppercase tracking-[0.25em] text-primary/70 mb-1.5">The Signal</div>
-                      <p>{selectedNode.description}</p>
-                    </div>
-
-                    {selectedNode.whyItMatters && (
-                      <div>
-                        <div className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-400/70 mb-1.5">Why it matters</div>
-                        <p className="text-foreground/90">{selectedNode.whyItMatters}</p>
-                      </div>
-                    )}
-
-                    {selectedNode.influencedXPRIME && (
-                      <div>
-                        <div className="font-mono text-[9px] uppercase tracking-[0.25em] text-cyan-400/70 mb-1.5">What it influenced in the observatory</div>
-                        <p>{selectedNode.influencedXPRIME}</p>
-                      </div>
-                    )}
-
-                    {selectedNode.tags?.length > 0 && (
-                      <div>
-                        <div className="font-mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground/60 mb-2">Resonance tags</div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {selectedNode.tags.map(tag => (
-                            <span 
-                              key={tag} 
-                              className="px-2.5 py-0.5 text-[10px] font-mono border border-border/40 bg-card/30 rounded-sm text-muted-foreground/80 tracking-[0.02em]"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedNode.href && (
-                      <div className="pt-2">
-                        <a 
-                          href={selectedNode.href} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/90 underline underline-offset-4 transition-colors"
-                        >
-                          Continue the lineage <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-8 pt-4 border-t border-border/30 text-[10px] text-muted-foreground/40 font-mono tracking-[0.2em]">
-                    Resonance, not derivation. — MisterY Labs Atlas
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            // Card Archive (existing experience preserved)
-            <div className="pt-4">
-              <SignalsSection />
-            </div>
-          )}
-        </div>
-      </section>
-
-      <FractalInspirationAtlas /> {/* Enhanced with Resonance Spheres media + textured central sphere */}
-
-      {/* Full Resonance Spheres Atlas — the immersive flagship (central sphere + orbiting nodes + rich modal media) */}
-      <ErrorBoundary fallback={
-        <div className="container py-8 text-sm text-muted-foreground">
-          Resonance Spheres temporarily unavailable (see console for details). The classic Atlas and Fractal Inspiration view below remain fully functional.
-        </div>
-      }>
-        <section id="resonance-spheres" className="border-t border-border/35 bg-background">
-          <div className="container py-10">
-            <ResonanceSpheresAtlas />
-          </div>
-        </section>
-      </ErrorBoundary>
-
-      {/* Legacy Resonance Spheres feature teaser (kept for continuity) */}
-      <section className="border-t border-border/35 bg-[#05060c] py-8">
-        <div className="container text-xs text-muted-foreground/70">
-          The Digital Circus Trophy Room (and Nobel curved-spacetime nodes) are also available as high-coherence entries in the constellation above. 
-          Use the full ResonanceSpheresAtlas for the complete "Unknown Knowns Matrix" experience with live sphere texturing.
-        </div>
-      </section>
-
-      <QuaternionExplorerSection />
-      <HigherDimensionalSection />
+      <DemoInstrumentsSection />
       <XenoCitationSection />
       <InspirationAtlasSection />
       <GetInvolvedSection />
@@ -1138,32 +955,145 @@ export default function AtlasPage() {
   );
 }
 
+// ── Demo Instruments Index ────────────────────────────────
+
+type Maturity = "Stable" | "Experimental" | "Draft";
+
+const MATURITY_STYLE: Record<Maturity, string> = {
+  Stable:       "border-emerald-500/30 bg-emerald-950/20 text-emerald-400/80",
+  Experimental: "border-amber-500/30   bg-amber-950/20   text-amber-400/80",
+  Draft:        "border-border/30      bg-secondary/20   text-muted-foreground/50",
+};
+
+const DEMO_CARDS: Array<{
+  href: string;
+  label: string;
+  sub: string;
+  desc: string;
+  accent: string;
+  border: string;
+  maturity: Maturity;
+}> = [
+  {
+    href: "/observatory/force-graph",
+    label: "Observatory Atlas",
+    sub: "SYS // 04 · The Seed",
+    desc: "3D force-directed graph of the living conceptual lineage. Click nodes to explore resonance signals.",
+    accent: "text-primary/70",
+    border: "border-primary/20 hover:border-primary/40",
+    maturity: "Stable",
+  },
+  {
+    href: "/observatory/transport-sphere",
+    label: "Transport Sphere",
+    sub: "Viz · GRIN Field",
+    desc: "Real-time ray transport field — straight vs. GRIN curved hemisphere comparison.",
+    accent: "text-cyan-400/70",
+    border: "border-cyan-500/20 hover:border-cyan-500/40",
+    maturity: "Stable",
+  },
+  {
+    href: "/observatory/resonance-spheres",
+    label: "Resonance Spheres",
+    sub: "Living Constellation",
+    desc: "Central transport sphere with orbiting nodes. Media gallery, YT embeds, signal resonance.",
+    accent: "text-cyan-400/70",
+    border: "border-cyan-500/20 hover:border-cyan-500/40",
+    maturity: "Stable",
+  },
+  {
+    href: "/observatory/fractal-inspiration",
+    label: "Fractal Inspiration Atlas",
+    sub: "Canvas · Force-Directed",
+    desc: "Canvas-based inspiration network — thinkers and concepts rendered as a living fractal field.",
+    accent: "text-violet-400/70",
+    border: "border-violet-500/20 hover:border-violet-500/40",
+    maturity: "Stable",
+  },
+  {
+    href: "/observatory/quaternion",
+    label: "Quaternion Explorer",
+    sub: "OBS-QX · Rotation Field",
+    desc: "Interactive quaternion field explorer. Drag sliders to define axis + angle, watch the frame rotate.",
+    accent: "text-cyan-400/70",
+    border: "border-cyan-500/20 hover:border-cyan-500/40",
+    maturity: "Experimental",
+  },
+  {
+    href: "/observatory/higher-dimensional",
+    label: "Higher-Dimensional Instruments",
+    sub: "OBS-HD · Topology & Perception",
+    desc: "Cube nets, 4D tesseract projection, hollow mask depth inversion, bistable rotation silhouette.",
+    accent: "text-violet-400/70",
+    border: "border-violet-500/20 hover:border-violet-500/40",
+    maturity: "Experimental",
+  },
+  {
+    href: "/observatory/poisson-dot",
+    label: "Poisson Dot & Negative IOR",
+    sub: "Instrument E · Optical Transport",
+    desc: "Wave source in layered medium. Drag IOR into negative territory — phase velocity reverses, flat-lens focal point reconstructs.",
+    accent: "text-rose-400/70",
+    border: "border-rose-500/20 hover:border-rose-500/40",
+    maturity: "Experimental",
+  },
+];
+
+function DemoInstrumentsSection() {
+  return (
+    <section id="atlas-graph" className="border-t border-border/35 bg-background">
+      <div className="container py-10">
+        <div className="flex items-center gap-3 mb-1">
+          <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">SYS // 04</span>
+          <div className="h-px w-12 bg-border/35" />
+          <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary-glow/60">The Seed</span>
+        </div>
+        <h2 className="text-2xl font-bold tracking-tight md:text-3xl mb-1">Observatory Instruments</h2>
+        <p className="text-sm text-muted-foreground max-w-xl mb-8">
+          Each instrument is loaded on demand. Click to open a standalone view.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {DEMO_CARDS.map((card) => (
+            <Link
+              key={card.href}
+              to={card.href}
+              className={`group flex flex-col rounded-sm border bg-card/20 p-5 transition-base ${card.border}`}
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className={`font-mono text-[8px] uppercase tracking-[0.3em] ${card.accent}`}>
+                  {card.sub}
+                </div>
+                <span className={`shrink-0 rounded-sm border px-1.5 py-0.5 font-mono text-[7px] uppercase tracking-[0.2em] ${MATURITY_STYLE[card.maturity]}`}>
+                  {card.maturity}
+                </span>
+              </div>
+              <div className="text-sm font-semibold text-foreground mb-2 group-hover:text-foreground/90">
+                {card.label}
+              </div>
+              <p className="text-xs leading-relaxed text-muted-foreground/60 flex-1">{card.desc}</p>
+              <div className="mt-3 pt-3 border-t border-border/20 font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/35 group-hover:text-primary/50 transition-colors">
+                Open instrument →
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ── Observatory Hero ──────────────────────────────────────
 
 function ObservatoryHeroSection() {
   return (
     <section id="observatory-hero" className="bg-atlas-hero relative border-t border-border/60">
-      {/* ── Full-width sphere visualization ───────────────── */}
-      <div className="relative overflow-hidden">
-        {/* Flanking transport labels — outside the sphere, vertically centered */}
-        <div className="pointer-events-none absolute inset-0 z-10 hidden items-center justify-between px-5 md:px-10 sm:flex">
-          <div>
-            <div className="font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/25">n(x) = 1</div>
-            <div className="mt-1 text-base font-semibold tracking-tight text-foreground/55 md:text-lg lg:text-xl">Straight</div>
-            <div className="text-base font-semibold tracking-tight text-foreground/55 md:text-lg lg:text-xl">Transport</div>
-          </div>
-          <div className="text-right">
-            <div className="font-mono text-[8px] uppercase tracking-[0.3em] text-cyan-400/35">n(x) = gradient</div>
-            <div className="mt-1 text-base font-semibold tracking-tight text-cyan-300/65 md:text-lg lg:text-xl">Curved</div>
-            <div className="text-base font-semibold tracking-tight text-cyan-300/65 md:text-lg lg:text-xl">Transport</div>
-          </div>
-        </div>
-
-        {/* Sphere */}
-        <TransportSphereViz className="h-[40vh] min-h-[240px] w-full sm:h-[46vh] md:h-[54vh] lg:h-[58vh]" />
-
-        {/* Fade into content below */}
-        <div className="atlas-sphere-fade pointer-events-none absolute bottom-0 left-0 right-0" aria-hidden />
+      <div className="flex justify-end border-b border-border/20 px-5 py-2.5">
+        <Link
+          to="/observatory/transport-sphere"
+          className="font-mono text-[9px] uppercase tracking-[0.3em] text-cyan-400/60 transition-colors hover:text-cyan-400"
+        >
+          View Transport Sphere →
+        </Link>
       </div>
 
       <div className="container py-10 md:py-14">
@@ -1259,7 +1189,7 @@ function ObservatoryHeroSection() {
         </div>
 
         {/* Hero cutsheet */}
-        <div className="mt-4 overflow-hidden rounded-sm border border-border/30 bg-[#030407]">
+        <div className="mt-4 overflow-hidden rounded-sm border border-border/30 bg-card">
           <img
             src={`${BASE}assets/offaxis_observe_delta/observability_cutsheet.png`}
             alt="7-panel observability cutsheet comparing straight and GRIN curved transport terminal classifications, delta mask, and contours"
@@ -1349,154 +1279,6 @@ function ObservatoryHeroSection() {
             </div>
           </div>
         </div>
-      </div>
-    </section>
-  );
-}
-
-// ── Quaternion Explorer Section ────────────────────────────
-
-function QuaternionExplorerSection() {
-  return (
-    <section id="quaternion-explorer" className="bg-atlas-hero border-t border-border/25">
-      <div className="container py-14">
-        {/* Header */}
-        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.3em] text-cyan-400/45">
-              SYS // OBS-QX · Higher-Dimensional Transport
-            </div>
-            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-              Quaternion Field Explorer
-            </h2>
-          </div>
-          <p className="max-w-sm text-xs leading-relaxed text-muted-foreground/50 sm:text-right">
-            Drag sliders to define axis + angle.
-            The amber arrow is the rotation axis.
-            The ghost sphere is the orientation reference frame.
-          </p>
-        </div>
-        <p className="mb-6 max-w-2xl text-sm leading-relaxed text-muted-foreground/60">
-          Every 3D rotation in xPRIMEray's curved-transport field is encoded as a unit quaternion —
-          four numbers (x, y, z, w) that compress a rotation axis and angle into a single algebraic
-          object. This is the same mathematical structure that tracks ray orientations across the
-          GRIN field boundary.
-        </p>
-        {/* Spectral accent bar */}
-        <div className="spectral-bar mb-6" aria-hidden />
-        <QuaternionExplorer />
-      </div>
-    </section>
-  );
-}
-
-// ── Higher-Dimensional Transport ──────────────────────────
-
-function HigherDimensionalSection() {
-  return (
-    <section id="higher-dimensional" className="bg-atlas-hero border-t border-border/25">
-      <div className="container py-14">
-
-        {/* Section header */}
-        <div className="mb-3">
-          <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.3em] text-violet-400/50">
-            SYS // OBS-HD · Topology, Projection & Perception
-          </div>
-          <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-            Higher-Dimensional Transport &amp; Perception
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground/60">
-            Curved transport operates in a field that connects to higher-dimensional geometry
-            and to the limits of observer perception. These instruments explore how topology
-            unfolds, how 4D structure projects, and how two observers can look at the same
-            boundary and disagree on its curvature.
-          </p>
-        </div>
-        <div className="spectral-bar mb-10" aria-hidden />
-
-        {/* Cube Net Explorer */}
-        <div className="mb-10">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-cyan-400/55">
-              Instrument A · Net Topology
-            </span>
-            <div className="h-px flex-1 bg-border/20" />
-          </div>
-          <p className="mb-4 max-w-xl text-xs leading-relaxed text-muted-foreground/50">
-            A cube has exactly 11 distinct 2D nets — flat unfoldings that fold back into a cube without
-            overlap. Hover a colored cell to highlight the matching face in the 3D view.
-          </p>
-          <CubeNetExplorer />
-        </div>
-
-        {/* Tesseract Explorer */}
-        <div className="mb-10">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-violet-400/55">
-              Instrument B · 4D Projection
-            </span>
-            <div className="h-px flex-1 bg-border/20" />
-          </div>
-          <p className="mb-4 max-w-xl text-xs leading-relaxed text-muted-foreground/50">
-            A tesseract is the 4D analogue of a cube — 16 vertices, 32 edges, 8 cubic cells.
-            Two successive perspective projections (4D→3D→2D) produce the nested-cube appearance.
-            The XW rotation plane is the "extra" dimension beyond familiar 3D space.
-          </p>
-          <TesseractExplorer />
-        </div>
-
-        {/* Hollow Mask Illusion */}
-        <div className="mb-10">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-amber-400/55">
-              Instrument C · Depth Inversion
-            </span>
-            <div className="h-px flex-1 bg-border/20" />
-          </div>
-          <p className="mb-4 max-w-xl text-xs leading-relaxed text-muted-foreground/50">
-            A concave hollow mask rotates. Despite correct physics, the brain overrides the
-            concave depth cues and perceives a convex face — demonstrating that an observer's
-            prior assumptions can override geometric evidence. Toggle between the brain's
-            interpretation and the true concave geometry.
-          </p>
-          <HollowMaskIllusion />
-        </div>
-
-        {/* Spinning Dancer */}
-        <div className="mb-10">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-violet-400/55">
-              Instrument D · Bistable Rotation
-            </span>
-            <div className="h-px flex-1 bg-border/20" />
-          </div>
-          <p className="mb-4 max-w-xl text-xs leading-relaxed text-muted-foreground/50">
-            A silhouette has no stereo depth cue — both clockwise and counter-clockwise
-            rotations project to an identical 2D path. Two observers assign opposite 3D
-            interpretations and are equally correct. This mirrors how two transport rays
-            entering a curved boundary from opposite sides can disagree on interior vs exterior.
-          </p>
-          <SpinningDancer />
-        </div>
-
-        {/* Poisson Dot & Negative IOR */}
-        <div>
-          <div className="mb-4 flex items-center gap-3">
-            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-rose-400/55">
-              Instrument E · Optical Transport
-            </span>
-            <div className="h-px flex-1 bg-border/20" />
-          </div>
-          <p className="mb-4 max-w-xl text-xs leading-relaxed text-muted-foreground/50">
-            A point source emits circular waves into a layered medium. Drag the index of
-            refraction into negative territory — phase velocity reverses, transmitted waves
-            bend backward, and a flat-lens focal point reconstructs the source below the
-            membrane. This models the boundary conditions xPRIMEray's GRIN field traversal
-            encounters near wormhole seam and curved-transport inversion zones.
-          </p>
-          <PoissonDotAndNegativeIOR />
-        </div>
-
       </div>
     </section>
   );
@@ -1678,7 +1460,7 @@ function AtlasEntryCard({ entry }: { entry: AtlasEntry }) {
         {/* ── Visual anchor image ───────────────────── */}
         {entry.imageSrc && (
           <div className="mb-6">
-            <div className="overflow-hidden rounded-sm border border-border/25 bg-[#030407]">
+            <div className="overflow-hidden rounded-sm border border-border/25 bg-card">
               <img
                 src={`${import.meta.env.BASE_URL}${entry.imageSrc}`}
                 alt={entry.imageAlt ?? entry.title}
@@ -2069,8 +1851,8 @@ function ObsPanel({ panel }: { panel: ObsPanel }) {
     panel.type === "curved" ? "GRIN · curved" : panel.type === "straight" ? "straight" : "delta";
 
   return (
-    <div className="group overflow-hidden rounded-sm border border-border/25 bg-[#030407] transition-base hover:border-border/40">
-      <div className="relative overflow-hidden bg-[#020305]">
+    <div className="group overflow-hidden rounded-sm border border-border/25 bg-card transition-base hover:border-border/40">
+      <div className="relative overflow-hidden bg-background">
         <img
           src={panel.src}
           alt={panel.label}

@@ -248,7 +248,7 @@ export function PoissonDotAndNegativeIOR() {
     <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
 
       {/* ── Canvas ──────────────────────────────────────── */}
-      <div className="corner-marks flex-1 min-w-0 overflow-hidden rounded-sm border border-border/30 bg-[#05060c]">
+      <div className="corner-marks flex-1 min-w-0 overflow-hidden rounded-sm border border-border/30 bg-card">
         <canvas
           ref={el => {
             canvasRef.current = el;

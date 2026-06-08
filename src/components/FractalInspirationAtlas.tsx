@@ -454,7 +454,7 @@ export function FractalInspirationAtlas() {
   return (
     <section
       id="atlas"
-      className="relative border-t border-border/60 bg-[#05060c]"
+      className="relative border-t border-border/60 bg-background"
       aria-label="Fractal Inspiration Atlas"
     >
       <div className="container py-16">

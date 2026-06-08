@@ -91,6 +91,14 @@
     --sidebar-accent-foreground: 220 20% 92%;
     --sidebar-border: 230 18% 16%;
     --sidebar-ring: 245 90% 66%;
+
+    /* Resonance Sphere / Portal custom visuals (dark defaults) */
+    --sphere-base: 230 25% 7%;
+    --sphere-glow-cyan: 186 90% 58%;
+    --sphere-glow-amber: 28 95% 60%;
+    --sphere-rim: 186 90% 58%;
+    --sphere-line: 210 40% 80%;
+    --portal-glow: 186 90% 58%;
   }
 
   /* App is dark-by-default; expose .dark for compatibility */
@@ -175,18 +183,10 @@
     --sidebar-accent-foreground: 230 18% 18%;
     --sidebar-border: 220 12% 85%;
     --sidebar-ring: 245 85% 48%;
-
-    /* Resonance Sphere / Portal custom visuals (dark defaults) */
-    --sphere-base: 230 25% 7%;
-    --sphere-glow-cyan: 186 90% 58%;
-    --sphere-glow-amber: 28 95% 60%;
-    --sphere-rim: 186 90% 58%;
-    --sphere-line: 210 40% 80%;
-    --portal-glow: 186 90% 58%;
   }
 
   html.light {
-    /* Resonance Sphere / Portal custom visuals (light) */
+    /* Resonance Sphere / Portal custom visuals (light overrides) */
     --sphere-base: 0 0% 98%;
     --sphere-glow-cyan: 188 80% 38%;
     --sphere-glow-amber: 28 88% 44%;
@@ -326,6 +326,14 @@
     letter-spacing: 0.22em;
     text-transform: uppercase;
     color: hsl(var(--muted-foreground));
+  }
+
+  html.light .bg-featured-artifact {
+    background-color: hsl(var(--card));
+  }
+
+  html.light .panel {
+    background: hsl(var(--card));
   }
 
   /* Corner bracket diagnostic frame (all four corners) */

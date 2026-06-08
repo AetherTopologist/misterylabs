@@ -138,7 +138,7 @@ const Observatory = () => {
   const experimental = filtered.filter(f => ["experimental", "placeholder"].includes(f.status));
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200">
+    <div className="min-h-screen bg-background text-foreground">
       <AppHeader />
 
       {/* Breadcrumbs */}
@@ -157,9 +157,9 @@ const Observatory = () => {
       </div>
 
       {/* HERO LANDING */}
-      <section className="max-w-7xl mx-auto px-6 pt-10 pb-16 border-b border-white/10">
+      <section className="max-w-7xl mx-auto px-6 pt-10 pb-16 border-b border-border/40">
         <div className="max-w-4xl">
-          <div className="inline-flex items-center rounded-full bg-white/5 px-3 py-1 text-[10px] font-mono tracking-[0.2em] text-amber-400 mb-4 border border-white/10">
+          <div className="inline-flex items-center rounded-full bg-secondary/50 px-3 py-1 text-[10px] font-mono tracking-[0.2em] text-amber-500 dark:text-amber-400 mb-4 border border-border/40">
             LAYER 2 — PUBLIC OBSERVATORY • ACTIVATING
           </div>
 
@@ -167,16 +167,16 @@ const Observatory = () => {
             xPRIMEray<br />Observatory Gallery
           </h1>
 
-          <p className="max-w-2xl text-xl text-slate-400 mb-8">
-            Museum of curved transport instrumentation. Mature validation, public intuition artifacts, 
+          <p className="max-w-2xl text-xl text-muted-foreground mb-8">
+            Museum of curved transport instrumentation. Mature validation, public intuition artifacts,
             and gated performance archives. "Enter the Bulk" navigation between layers.
           </p>
 
           <div className="flex flex-wrap gap-3">
-            <a href="#canonical" className="inline-flex items-center rounded-lg bg-white px-6 py-2.5 text-sm font-medium text-[#020617] hover:bg-amber-400 transition">
+            <a href="#canonical" className="inline-flex items-center rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition">
               Enter the Museum Hall
             </a>
-            <Link to="/atlas#observatory-hero" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-5 py-2.5 text-sm hover:bg-white/5">
+            <Link to="/atlas#observatory-hero" className="inline-flex items-center gap-2 rounded-lg border border-border/40 px-5 py-2.5 text-sm hover:bg-secondary/50">
               View in Atlas Context
             </Link>
           </div>
@@ -184,7 +184,7 @@ const Observatory = () => {
 
         {/* Featured: Optical Transport Illusion + portal demo teaser */}
         <div id="optical-portal" className="mt-10">
-          <Card className="border-cyan-500/20 bg-black/40">
+          <Card className="border-cyan-500/20 bg-card">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-cyan-400 border-cyan-500/30">PUBLIC INTUITION LAYER • v0.1+</Badge>
@@ -206,7 +206,7 @@ const Observatory = () => {
                   Open Godot Demo Folder →
                 </a>
                 <span className="text-amber-400/70">+ Suno “enter the bulk” hyperpop/K-pop energy track teaser</span>
-                <span className="text-xs self-center text-slate-500">Reference: optozorax.github.io/portal</span>
+                <span className="text-xs self-center text-muted-foreground">Reference: optozorax.github.io/portal</span>
               </div>
             </CardContent>
           </Card>
@@ -229,16 +229,16 @@ const Observatory = () => {
             <Button variant={filter === "experimental" ? "default" : "outline"} size="sm" onClick={() => setFilter("experimental")}>Experimental / Placeholder</Button>
           </div>
 
-          <Input 
-            placeholder="Search fixtures..." 
-            className="w-full md:w-64 bg-white/5 border-white/10"
+          <Input
+            placeholder="Search fixtures..."
+            className="w-full md:w-64"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
         {/* Layer Legend */}
-        <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs mb-8 text-slate-400">
+        <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs mb-8 text-muted-foreground">
           <div><span className="text-emerald-400">●</span> Layer 1: Instrument Validation (mature)</div>
           <div><span className="text-cyan-400">●</span> Layer 2: Public Observatory (activating)</div>
           <div><span className="text-amber-400">●</span> Layer 3: Performance (gated)</div>
@@ -258,23 +258,23 @@ const Observatory = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {canonical.length > 0 ? canonical.map(f => (
             <FixtureCard key={f.id} fixture={f} />
-          )) : <div className="text-sm text-slate-500 col-span-full">No matches.</div>}
+          )) : <div className="text-sm text-muted-foreground col-span-full">No matches.</div>}
         </div>
       </section>
 
       {/* CURVATURE BENCHMARK + CLOSURE DIAGNOSTICS */}
-      <section id="benchmark" className="max-w-7xl mx-auto px-6 py-10 border-t border-white/10">
+      <section id="benchmark" className="max-w-7xl mx-auto px-6 py-10 border-t border-border/30">
         <div className="grid lg:grid-cols-2 gap-8">
           <div>
             <div className="section-header">Layer 1 • Validation</div>
             <h3 className="text-2xl font-semibold tracking-tight mb-3">Curvature Benchmark</h3>
-            <p className="text-sm text-slate-400 mb-4">Signature ladders, GRIN vs straight off-axis observe, delta classification, and observability cutsheets.</p>
-            <div className="text-xs text-slate-500">Primary assets: offaxis_observe_delta/, curved_field_validation_ladder/, overview/wormhole_structure_contact_sheet.png</div>
+            <p className="text-sm text-muted-foreground mb-4">Signature ladders, GRIN vs straight off-axis observe, delta classification, and observability cutsheets.</p>
+            <div className="text-xs text-muted-foreground/70">Primary assets: offaxis_observe_delta/, curved_field_validation_ladder/, overview/wormhole_structure_contact_sheet.png</div>
           </div>
           <div>
             <div className="section-header">Layer 1</div>
             <h3 className="text-2xl font-semibold tracking-tight mb-3">Closure Diagnostics</h3>
-            <p className="text-sm text-slate-400">Hermetic hit closure, domain resolver stress, observer disagreement, classification delta pipelines. Canonical wormhole observer ladder (Fixtures 008–013) is the reference sequence.</p>
+            <p className="text-sm text-muted-foreground">Hermetic hit closure, domain resolver stress, observer disagreement, classification delta pipelines. Canonical wormhole observer ladder (Fixtures 008–013) is the reference sequence.</p>
           </div>
         </div>
       </section>
@@ -286,9 +286,9 @@ const Observatory = () => {
           <h2 className="text-3xl font-semibold tracking-tighter">Research Fixtures</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {research.length > 0 ? research.map(f => <FixtureCard key={f.id} fixture={f} />) : <div className="text-sm text-slate-500">No current research fixtures match filter.</div>}
+          {research.length > 0 ? research.map(f => <FixtureCard key={f.id} fixture={f} />) : <div className="text-sm text-muted-foreground">No current research fixtures match filter.</div>}
           {/* Difference Fixture Teaser */}
-          <Card className="border-amber-500/30 bg-black/30">
+          <Card className="border-amber-500/30 bg-card">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="border-amber-500/40 text-amber-400">TEASER</Badge>
@@ -296,7 +296,7 @@ const Observatory = () => {
               </div>
               <CardTitle className="text-lg">Difference / Delta Classification Fixture</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-slate-400">
+            <CardContent className="text-sm text-muted-foreground">
               Classification delta pipeline and observer disagreement heatmaps. Straight vs curved terminal classification comparison. 
               See Atlas “offaxis_observe_delta” and CLASSIFICATION_DELTA_PIPELINE_V01 for current state.
             </CardContent>
@@ -305,22 +305,22 @@ const Observatory = () => {
       </section>
 
       {/* EXPERIMENTAL ARCHIVE */}
-      <section id="experimental" className="max-w-7xl mx-auto px-6 pb-20 border-t border-white/10 pt-10">
+      <section id="experimental" className="max-w-7xl mx-auto px-6 pb-20 border-t border-border/30 pt-10">
         <div className="mb-5">
-          <div className="section-header text-amber-400">Layer 3 • Gated / Experimental</div>
+          <div className="section-header text-amber-500 dark:text-amber-400">Layer 3 • Gated / Experimental</div>
           <h2 className="text-3xl font-semibold tracking-tighter">Experimental Archive</h2>
-          <p className="text-sm text-slate-400 mt-1">Exploratory, internal, or carrying explicit PLACEHOLDER discipline. Not for public citation without context.</p>
+          <p className="text-sm text-muted-foreground mt-1">Exploratory, internal, or carrying explicit PLACEHOLDER discipline. Not for public citation without context.</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
           {experimental.length > 0 ? experimental.map(f => <FixtureCard key={f.id} fixture={f} compact />) : null}
-          <div className="diagnostic-frame p-4 rounded text-xs border border-white/10">
-            Cathedral Probe → corner_probe_reference <span className="text-amber-400">[PLACEHOLDER]</span>
+          <div className="diagnostic-frame p-4 rounded text-xs border border-border/30">
+            Cathedral Probe → corner_probe_reference <span className="text-amber-500 dark:text-amber-400">[PLACEHOLDER]</span>
           </div>
-          <div className="diagnostic-frame p-4 rounded text-xs border border-white/10">Resonance Chamber Overlay Trial</div>
-          <div className="diagnostic-frame p-4 rounded text-xs border border-white/10">Triclock DOE Sandbox Plan</div>
-          <div className="diagnostic-frame p-4 rounded text-xs border border-white/10">Overspace Architecture Layer</div>
-          <div className="diagnostic-frame p-4 rounded text-xs border border-white/10">Phase Coherence Field (early)</div>
+          <div className="diagnostic-frame p-4 rounded text-xs border border-border/30">Resonance Chamber Overlay Trial</div>
+          <div className="diagnostic-frame p-4 rounded text-xs border border-border/30">Triclock DOE Sandbox Plan</div>
+          <div className="diagnostic-frame p-4 rounded text-xs border border-border/30">Overspace Architecture Layer</div>
+          <div className="diagnostic-frame p-4 rounded text-xs border border-border/30">Phase Coherence Field (early)</div>
         </div>
       </section>
 

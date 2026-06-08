@@ -500,7 +500,7 @@ const Index = () => {
       </section>
 
       {/* ── JOIN THE OBSERVATORY ──────────────────────────── */}
-      <section className="border-t border-border/20 bg-[#05060c]">
+      <section className="border-t border-border/20 bg-background">
         <div className="container py-20">
           <div className="mx-auto max-w-2xl text-center">
             <div className="mb-5 text-3xl text-amber-400/55 select-none" aria-hidden>✦</div>

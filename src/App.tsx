@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -16,6 +16,48 @@ import Auth from "./pages/Auth.tsx";
 import Observatory from "./pages/Observatory.tsx";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { RequireAuth } from "@/components/RequireAuth";
+import ErrorBoundary from "@/components/ErrorBoundary";
+
+// Heavy observatory demo pages — lazy-loaded so they don't bloat the main bundle
+const ForceGraphPage        = lazy(() => import("./pages/observatory/ForceGraph.tsx"));
+const ResonanceSpheresPage  = lazy(() => import("./pages/observatory/ResonanceSpheres.tsx"));
+const FractalInspirationPage = lazy(() => import("./pages/observatory/FractalInspiration.tsx"));
+const TransportSpherePage   = lazy(() => import("./pages/observatory/TransportSphere.tsx"));
+const PoissonDotPage        = lazy(() => import("./pages/observatory/PoissonDot.tsx"));
+const QuaternionPage        = lazy(() => import("./pages/observatory/Quaternion.tsx"));
+const HigherDimensionalPage = lazy(() => import("./pages/observatory/HigherDimensional.tsx"));
+
+function DemoLoading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center font-mono text-sm tracking-widest text-muted-foreground/50">
+      Loading…
+    </div>
+  );
+}
+
+function DemoError() {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center">
+      <p className="text-sm text-muted-foreground">This instrument failed to initialize.</p>
+      <a
+        href="/misterylabs/atlas"
+        className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary/60 transition-colors hover:text-primary"
+      >
+        ← Back to Atlas
+      </a>
+    </div>
+  );
+}
+
+function DemoWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<DemoLoading />}>
+      <ErrorBoundary fallback={<DemoError />}>
+        {children}
+      </ErrorBoundary>
+    </Suspense>
+  );
+}
 
 // Reads the sessionStorage destination written by Auth.tsx before the OAuth
 // redirect and navigates there once a session is detected on return.
@@ -52,6 +94,14 @@ const App = () => (
             <Route path="/research" element={<Research />} />
             <Route path="/media" element={<Media />} />
             <Route path="/observatory" element={<Observatory />} />
+            {/* Heavy demo routes — lazy-loaded */}
+            <Route path="/observatory/force-graph"         element={<DemoWrapper><ForceGraphPage /></DemoWrapper>} />
+            <Route path="/observatory/resonance-spheres"   element={<DemoWrapper><ResonanceSpheresPage /></DemoWrapper>} />
+            <Route path="/observatory/fractal-inspiration" element={<DemoWrapper><FractalInspirationPage /></DemoWrapper>} />
+            <Route path="/observatory/transport-sphere"    element={<DemoWrapper><TransportSpherePage /></DemoWrapper>} />
+            <Route path="/observatory/poisson-dot"         element={<DemoWrapper><PoissonDotPage /></DemoWrapper>} />
+            <Route path="/observatory/quaternion"          element={<DemoWrapper><QuaternionPage /></DemoWrapper>} />
+            <Route path="/observatory/higher-dimensional"  element={<DemoWrapper><HigherDimensionalPage /></DemoWrapper>} />
             {/* /mission and /dashboard both render Mission Control */}
             <Route path="/mission" element={<RequireAuth><Dashboard /></RequireAuth>} />
             <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
