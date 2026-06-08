@@ -419,7 +419,7 @@ function ObservatoryLightbox({
         <DialogTitle className="sr-only">{localItem.title}</DialogTitle>
 
         {/* Observatory header bar */}
-        <div className="flex items-center justify-between border-b border-border/30 bg-black/40 px-4 py-2.5">
+        <div className="flex items-center justify-between border-b border-border/30 bg-card/40 px-4 py-2.5">
           <div className="flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.3em]">
             <span className="text-muted-foreground/50">xPRIMEray</span>
             <span className="text-primary-glow/70">Observatory Archive</span>

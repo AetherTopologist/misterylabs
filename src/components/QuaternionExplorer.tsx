@@ -433,7 +433,7 @@ export function QuaternionExplorer() {
   const angleDeg = (2 * Math.atan2(sinHalf, Math.abs(qw)) * (180 / Math.PI));
 
   return (
-    <div className="flex flex-col gap-0 overflow-hidden border border-border/35 bg-black/30 lg:flex-row">
+    <div className="flex flex-col gap-0 overflow-hidden border border-border/35 bg-card/20 lg:flex-row">
 
       {/* ── Canvas panel ─────────────────────────────── */}
       <div className="relative flex-1 min-h-[300px] sm:min-h-[380px] lg:min-h-[500px]">
@@ -452,7 +452,7 @@ export function QuaternionExplorer() {
       </div>
 
       {/* ── Control panel ────────────────────────────── */}
-      <div className="flex w-full flex-col gap-5 border-t border-border/30 bg-black/20 p-5 lg:w-80 lg:border-l lg:border-t-0">
+      <div className="flex w-full flex-col gap-5 border-t border-border/30 bg-secondary/30 p-5 lg:w-80 lg:border-l lg:border-t-0">
 
         {/* Header */}
         <div>

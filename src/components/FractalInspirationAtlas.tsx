@@ -658,7 +658,7 @@ export function FractalInspirationAtlas() {
                     {selectedNode.media.map((m, idx) => {
                       if (m.type === 'image') {
                         return (
-                          <figure key={idx} className="overflow-hidden rounded border border-border/40 bg-black/30">
+                          <figure key={idx} className="overflow-hidden rounded border border-border/40 bg-card/30">
                             <img 
                               src={m.url} 
                               alt={m.alt || m.caption || selectedNode.label} 
@@ -674,7 +674,7 @@ export function FractalInspirationAtlas() {
                       if (m.type === 'youtube') {
                         const vidId = m.url.includes('embed/') ? m.url.split('embed/')[1]?.split('?')[0] : m.url.split('v=')[1]?.split('&')[0];
                         return (
-                          <div key={idx} className="overflow-hidden rounded border border-border/40 bg-black/30">
+                          <div key={idx} className="overflow-hidden rounded border border-border/40 bg-card/30">
                             {vidId ? (
                               <iframe 
                                 width="100%" 

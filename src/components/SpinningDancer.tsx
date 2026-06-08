@@ -345,7 +345,7 @@ export function SpinningDancer() {
   const focusLabel = focus < 18 ? "Head" : focus < 40 ? "Torso" : focus < 62 ? "Hips" : focus < 82 ? "Knee" : "Foot";
 
   return (
-    <div className="flex flex-col overflow-hidden border border-border/35 bg-black/30 lg:flex-row">
+    <div className="flex flex-col overflow-hidden border border-border/35 bg-card/20 lg:flex-row">
 
       {/* Canvas */}
       <div className="relative min-h-[320px] flex-1 sm:min-h-[400px] lg:min-h-[480px]">
@@ -370,7 +370,7 @@ export function SpinningDancer() {
       </div>
 
       {/* Control panel */}
-      <div className="flex w-full flex-col gap-5 border-t border-border/30 bg-black/20 p-5 lg:w-72 lg:border-l lg:border-t-0">
+      <div className="flex w-full flex-col gap-5 border-t border-border/30 bg-secondary/30 p-5 lg:w-72 lg:border-l lg:border-t-0">
 
         {/* Header */}
         <div>

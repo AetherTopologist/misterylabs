@@ -393,7 +393,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
                 {/* Tags */}
                 <div className="flex flex-wrap gap-1.5">
                   {expanded.node.tags.map(tag => (
-                    <span key={tag} className="px-2 py-0.5 text-[10px] rounded bg-white/5 border border-white/10 font-mono text-muted-foreground/80">
+                    <span key={tag} className="px-2 py-0.5 text-[10px] rounded bg-secondary/30 border border-border/30 font-mono text-muted-foreground/80">
                       {tag}
                     </span>
                   ))}
@@ -401,7 +401,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
 
                 {/* External links + credits */}
                 {expanded.node.externalLinks && expanded.node.externalLinks.length > 0 && (
-                  <div className="pt-2 border-t border-white/10">
+                  <div className="pt-2 border-t border-border/30">
                     <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 mb-2">Resonance Echo — Kinship</div>
                     <div className="flex flex-wrap gap-2">
                       {expanded.node.externalLinks.map((link, i) => (

@@ -98,7 +98,7 @@ const Index = () => {
           </p>
 
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link to="/observatory" className="inline-flex items-center rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 px-5 py-2 text-sm">
+            <Link to="/observatory" className="inline-flex items-center rounded-lg bg-secondary/30 hover:bg-secondary/50 border border-border/40 px-5 py-2 text-sm">
               Enter the Observatory Gallery
             </Link>
             <a href="/observatory/#optical-portal" className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded border border-cyan-500/30 text-cyan-400 hover:bg-cyan-950/30">
@@ -207,9 +207,9 @@ const Index = () => {
             ].map((panel) => (
               <div
                 key={panel.src}
-                className="overflow-hidden rounded border border-border/25 bg-black/30 transition-base hover:border-border/45"
+                className="overflow-hidden rounded border border-border/25 bg-card/30 transition-base hover:border-border/45"
               >
-                <div className="aspect-square overflow-hidden bg-black/60">
+                <div className="aspect-square overflow-hidden bg-card/60">
                   <img
                     src={panel.src}
                     alt={panel.label}

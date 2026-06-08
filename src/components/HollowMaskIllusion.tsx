@@ -321,7 +321,7 @@ export function HollowMaskIllusion() {
   const speedPct = ((speed - 0.25) / 2.75) * 100;
 
   return (
-    <div className="flex flex-col overflow-hidden border border-border/35 bg-black/30 lg:flex-row">
+    <div className="flex flex-col overflow-hidden border border-border/35 bg-card/20 lg:flex-row">
 
       {/* Canvas */}
       <div className="relative min-h-[300px] flex-1 sm:min-h-[380px] lg:min-h-[460px]">
@@ -348,7 +348,7 @@ export function HollowMaskIllusion() {
       </div>
 
       {/* Control panel */}
-      <div className="flex w-full flex-col gap-5 border-t border-border/30 bg-black/20 p-5 lg:w-72 lg:border-l lg:border-t-0">
+      <div className="flex w-full flex-col gap-5 border-t border-border/30 bg-secondary/30 p-5 lg:w-72 lg:border-l lg:border-t-0">
 
         <div>
           <div className="mb-1 font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/45">

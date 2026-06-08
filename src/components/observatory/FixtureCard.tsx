@@ -22,7 +22,7 @@ const statusClass = (status: FixtureStatus) => {
   if (status === "public") return "bg-cyan-500/15 text-cyan-400 border-cyan-500/30";
   if (status === "research") return "bg-blue-500/15 text-blue-400 border-blue-500/30";
   if (status === "experimental") return "bg-amber-500/15 text-amber-400 border-amber-500/30";
-  return "bg-slate-500/15 text-slate-400 border-slate-500/30";
+  return "bg-secondary/40 text-muted-foreground border-border/40";
 };
 
 const layerLabel = (layer: Layer) => {
@@ -35,9 +35,9 @@ export function FixtureCard({ fixture, compact = false }: { fixture: Fixture; co
   const { title, layer, status, desc, tags, image, note, isHero } = fixture;
 
   return (
-    <Card className={`diagnostic-frame group overflow-hidden ${isHero ? "border-cyan-500/30" : "border-white/10"}`}>
+    <Card className={`diagnostic-frame group overflow-hidden ${isHero ? "border-cyan-500/30" : "border-border/30"}`}>
       {image && (
-        <div className="h-36 bg-zinc-950 overflow-hidden border-b border-white/10">
+        <div className="h-36 bg-card overflow-hidden border-b border-border/30">
           <img src={image} alt={title} className="w-full h-full object-cover opacity-75 group-hover:opacity-95 transition" />
         </div>
       )}
@@ -52,10 +52,10 @@ export function FixtureCard({ fixture, compact = false }: { fixture: Fixture; co
       </CardHeader>
       {!compact && (
         <CardContent>
-          <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">{desc}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">{desc}</p>
           <div className="mt-3 flex flex-wrap gap-1">
             {tags.map((tag, i) => (
-              <span key={i} className="text-[9px] px-1.5 py-px rounded bg-white/5 text-slate-400">{tag}</span>
+              <span key={i} className="text-[9px] px-1.5 py-px rounded bg-secondary/30 text-muted-foreground">{tag}</span>
             ))}
           </div>
           {note && <div className="mt-2 text-[10px] text-amber-400/80">{note}</div>}

@@ -636,10 +636,10 @@ export function CubeNetExplorer() {
   const gridH  = (maxRow + 1) * CELL;
 
   return (
-    <div className="flex flex-col overflow-hidden border border-border/35 bg-black/30 lg:flex-row">
+    <div className="flex flex-col overflow-hidden border border-border/35 bg-card/20 lg:flex-row">
 
       {/* ── Left panel: 2D net + controls ─────────────────── */}
-      <div className="flex flex-col gap-4 border-b border-border/30 bg-black/20 p-5 lg:w-72 lg:border-b-0 lg:border-r">
+      <div className="flex flex-col gap-4 border-b border-border/30 bg-secondary/30 p-5 lg:w-72 lg:border-b-0 lg:border-r">
         <div>
           <div className="mb-1 font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/45">
             SYS // OBS-CN · Cube Nets
@@ -830,7 +830,7 @@ export function CubeNetExplorer() {
             {FACE_COLORS.map((fc, i) => (
               <div
                 key={i}
-                className={`flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 transition-colors ${hovered === i ? "bg-white/5" : ""}`}
+                className={`flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 transition-colors ${hovered === i ? "bg-secondary/50" : ""}`}
                 onMouseEnter={() => handleCellHover(i)}
                 onMouseLeave={() => handleCellHover(null)}
               >
