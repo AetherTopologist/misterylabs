@@ -71,10 +71,10 @@ export function TransportSphereViz({ className }: { className?: string }) {
 
   // Structural / text colors — two complete palettes
   const c = {
-    grid:      lm ? "rgba(0,0,0,0.042)"       : "rgba(255,255,255,0.018)",
-    vigStop:   lm ? "rgba(210,218,238,0.55)"   : "rgba(4,5,11,0.55)",
-    latLines:  lm ? "rgba(10,20,60,0.13)"      : "rgba(255,255,255,0.055)",
-    boundary:  lm ? "rgba(20,35,75,0.32)"      : "rgba(255,255,255,0.22)",
+    grid:      lm ? "rgba(15,25,70,0.09)"      : "rgba(255,255,255,0.018)",
+    vigStop:   lm ? "rgba(15,25,70,0.14)"      : "rgba(4,5,11,0.55)",
+    latLines:  lm ? "rgba(10,20,60,0.18)"      : "rgba(255,255,255,0.055)",
+    boundary:  lm ? "rgba(20,35,75,0.62)"      : "rgba(255,255,255,0.22)",
     divider:   lm ? "rgba(20,35,75,0.28)"      : "rgba(255,255,255,0.32)",
     crosshair: lm ? "rgba(20,35,75,0.26)"      : "rgba(255,255,255,0.22)",
     labelStr:  lm ? "rgba(10,20,45,0.72)"      : "rgba(255,255,255,0.28)",
@@ -180,7 +180,7 @@ export function TransportSphereViz({ className }: { className?: string }) {
       <circle cx={CX} cy={CY} r={R} fill="url(#tsv-vig)" clipPath="url(#tsv-full)" />
 
       {/* ── Sphere boundary circle ────────────────────────── */}
-      <circle cx={CX} cy={CY} r={R} fill="none" stroke={c.boundary} strokeWidth="1.1" />
+      <circle cx={CX} cy={CY} r={R} fill="none" stroke={c.boundary} strokeWidth={lm ? 1.5 : 1.1} />
 
       {/* ── Center divider (straight vs curved boundary) ─── */}
       <line

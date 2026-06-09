@@ -289,6 +289,17 @@
     background: linear-gradient(to top, hsl(var(--background)) 24%, hsl(var(--background) / 0.85) 52%, transparent);
   }
 
+  /* Light mode: add a cool-tinted mid-stop so the scrim reads as a zone
+     transition rather than the same white continuing upward. */
+  html.light .hero-sphere-fade {
+    background: linear-gradient(
+      to top,
+      hsl(var(--background)) 28%,
+      hsl(220 10% 96% / 0.92) 52%,
+      transparent
+    );
+  }
+
   /* Atlas page sphere section bottom fade — matches .bg-atlas-hero background */
   .atlas-sphere-fade {
     height: 38%;

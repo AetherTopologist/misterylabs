@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTheme } from "@/hooks/useTheme";
 import {
   Github,
   FolderOpen,
@@ -63,6 +64,9 @@ const FLAGSHIP_CARDS: {
 // ── Page ──────────────────────────────────────────────────
 
 const Index = () => {
+  const { theme } = useTheme();
+  const lm = theme === "light";
+
   return (
     <div className="min-h-screen">
       <AppHeader />
@@ -98,10 +102,16 @@ const Index = () => {
           </p>
 
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link to="/observatory" className="inline-flex items-center rounded-lg bg-secondary/30 hover:bg-secondary/50 border border-border/40 px-5 py-2 text-sm">
+            <Link
+              to="/observatory"
+              className={`inline-flex items-center rounded-lg border border-border/40 px-5 py-2 text-sm ${lm ? "bg-secondary hover:bg-secondary/80" : "bg-secondary/30 hover:bg-secondary/50"}`}
+            >
               Enter the Observatory Gallery
             </Link>
-            <a href="/observatory/#optical-portal" className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded border border-cyan-500/30 text-cyan-400 hover:bg-cyan-950/30">
+            <a
+              href="/observatory/#optical-portal"
+              className={`inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded border ${lm ? "border-cyan-500/70 text-cyan-700 hover:bg-cyan-50/70" : "border-cyan-500/30 text-cyan-400 hover:bg-cyan-950/30"}`}
+            >
               Optical Transport Illusion (demo + Suno teaser)
             </a>
             <Button
