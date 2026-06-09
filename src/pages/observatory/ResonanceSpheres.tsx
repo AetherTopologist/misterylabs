@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { DemoNav } from "@/components/observatory/DemoNav";
 
 const ResonanceSpheresAtlas = lazy(() =>
   import("@/components/ResonanceSpheresAtlas")
@@ -23,6 +24,7 @@ export default function ResonanceSpheresPage() {
   return (
     <div className="min-h-screen">
       <AppHeader />
+      <DemoNav next={{ label: "Fractal Inspiration", to: "/observatory/fractal-inspiration" }} />
       <section id="resonance-spheres" className="border-t border-border/35 bg-background">
         <div className="container py-10">
           <div className="mb-6">

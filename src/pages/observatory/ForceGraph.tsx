@@ -3,6 +3,7 @@ import { ExternalLink } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { DemoNav } from "@/components/observatory/DemoNav";
 import { ATLAS_GRAPH_TIERS, type AtlasGraphNode } from "@/lib/atlasGraph";
 
 const ObservatoryGraph = lazy(() =>
@@ -29,6 +30,7 @@ export default function ForceGraphPage() {
   return (
     <div className="min-h-screen">
       <AppHeader />
+      <DemoNav next={{ label: "Resonance Spheres", to: "/observatory/resonance-spheres" }} />
       <section id="atlas-graph" className="border-t border-border/35 bg-background">
         <div className="container py-8">
           <div className="mb-6">

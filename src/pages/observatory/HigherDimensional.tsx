@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { DemoNav } from "@/components/observatory/DemoNav";
 
 const CubeNetExplorer = lazy(() =>
   import("@/components/CubeNetExplorer").then(m => ({ default: m.CubeNetExplorer }))
@@ -36,6 +37,7 @@ export default function HigherDimensionalPage() {
   return (
     <div className="min-h-screen">
       <AppHeader />
+      <DemoNav />
       <section id="higher-dimensional" className="bg-atlas-hero border-t border-border/25">
         <div className="container py-14">
           <div className="mb-3">

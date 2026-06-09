@@ -30,6 +30,7 @@ const FLAGSHIP_CARDS: {
   icon: React.ElementType;
   tag: string;
   lineage: string | null;
+  href: string;
 }[] = [
   {
     title: "Transport Engine",
@@ -37,6 +38,7 @@ const FLAGSHIP_CARDS: {
     icon: Orbit,
     tag: "CORE",
     lineage: null,
+    href: "/atlas",
   },
   {
     title: "LuxCoreGRIN",
@@ -44,6 +46,7 @@ const FLAGSHIP_CARDS: {
     icon: Sparkles,
     tag: "RESEARCH",
     lineage: "Precursor renderer — directly informed xPRIMEray architecture",
+    href: "/research",
   },
   {
     title: "Validation Cockpit",
@@ -51,6 +54,7 @@ const FLAGSHIP_CARDS: {
     icon: Activity,
     tag: "DIAGNOSTICS",
     lineage: null,
+    href: "/media",
   },
   {
     title: "Island Classifier",
@@ -58,6 +62,7 @@ const FLAGSHIP_CARDS: {
     icon: CircleDot,
     tag: "ANALYSIS",
     lineage: null,
+    href: "/observatory",
   },
 ];
 
@@ -103,7 +108,7 @@ const Index = () => {
 
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
-              to="/observatory"
+              to="/atlas"
               className={`inline-flex items-center rounded-lg border border-border/40 px-5 py-2 text-sm ${lm ? "bg-secondary hover:bg-secondary/80" : "bg-secondary/30 hover:bg-secondary/50"}`}
             >
               Enter the Observatory Gallery
@@ -359,9 +364,10 @@ const Index = () => {
           {/* Component cards */}
           <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {FLAGSHIP_CARDS.map((c) => (
-              <div
+              <Link
                 key={c.title}
-                className="diagnostic-frame group relative rounded-sm border border-border/40 bg-card/35 p-4 transition-base hover:border-primary/35 hover:bg-card/55"
+                to={c.href}
+                className="diagnostic-frame group relative block rounded-sm border border-border/40 bg-card/35 p-4 transition-base hover:border-primary/35 hover:bg-card/55"
               >
                 <div className="mb-3 flex items-start justify-between">
                   <div className="grid h-9 w-9 place-items-center rounded-sm bg-secondary/70 ring-1 ring-inset ring-border/50">
@@ -378,7 +384,7 @@ const Index = () => {
                     ↳ {c.lineage}
                   </p>
                 )}
-              </div>
+              </Link>
             ))}
           </div>
 

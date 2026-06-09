@@ -188,9 +188,8 @@ export default function MediaPage() {
               </a>
             </Button>
             <Button variant="outline" asChild>
-              <Link to="/mission">
-                <GitBranch className="mr-2 h-4 w-4" />
-                Mission Control
+              <Link to="/atlas">
+                Explore Instruments
               </Link>
             </Button>
           </div>

@@ -176,8 +176,11 @@ const Observatory = () => {
             <a href="#canonical" className="inline-flex items-center rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition">
               Enter the Museum Hall
             </a>
-            <Link to="/atlas#observatory-hero" className="inline-flex items-center gap-2 rounded-lg border border-border/40 px-5 py-2.5 text-sm hover:bg-secondary/50">
-              View in Atlas Context
+            <Link to="/atlas" className="inline-flex items-center gap-2 rounded-lg border border-border/40 px-5 py-2.5 text-sm hover:bg-secondary/50">
+              View Instruments
+            </Link>
+            <Link to="/media" className="inline-flex items-center gap-2 rounded-lg border border-border/40 px-5 py-2.5 text-sm hover:bg-secondary/50">
+              Diagnostic Gallery
             </Link>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { DemoNav } from "@/components/observatory/DemoNav";
 
 const FractalInspirationAtlas = lazy(() =>
   import("@/components/FractalInspirationAtlas").then(m => ({ default: m.FractalInspirationAtlas }))
@@ -23,6 +24,7 @@ export default function FractalInspirationPage() {
   return (
     <div className="min-h-screen">
       <AppHeader />
+      <DemoNav next={{ label: "Transport Sphere", to: "/observatory/transport-sphere" }} />
       <ErrorBoundary fallback={FALLBACK}>
         <Suspense fallback={LOADING}>
           <FractalInspirationAtlas />

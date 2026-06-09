@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { DemoNav } from "@/components/observatory/DemoNav";
 
 const QuaternionExplorer = lazy(() =>
   import("@/components/QuaternionExplorer").then(m => ({ default: m.QuaternionExplorer }))
@@ -23,6 +24,7 @@ export default function QuaternionPage() {
   return (
     <div className="min-h-screen">
       <AppHeader />
+      <DemoNav next={{ label: "Higher Dimensional", to: "/observatory/higher-dimensional" }} />
       <section id="quaternion-explorer" className="bg-atlas-hero border-t border-border/25">
         <div className="container py-14">
           <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">

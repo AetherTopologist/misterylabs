@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { DemoNav } from "@/components/observatory/DemoNav";
 
 const TransportSphereViz = lazy(() =>
   import("@/components/TransportSphereViz").then(m => ({ default: m.TransportSphereViz }))
@@ -23,6 +24,7 @@ export default function TransportSpherePage() {
   return (
     <div className="min-h-screen">
       <AppHeader />
+      <DemoNav next={{ label: "Poisson Dot", to: "/observatory/poisson-dot" }} />
       <section className="bg-atlas-hero border-t border-border/60">
         <div className="pointer-events-none flex items-center justify-between px-5 md:px-10 py-3">
           <div>

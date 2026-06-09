@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { DemoNav } from "@/components/observatory/DemoNav";
 
 const PoissonDotAndNegativeIOR = lazy(() =>
   import("@/components/PoissonDotAndNegativeIOR").then(m => ({ default: m.PoissonDotAndNegativeIOR }))
@@ -23,6 +24,7 @@ export default function PoissonDotPage() {
   return (
     <div className="min-h-screen">
       <AppHeader />
+      <DemoNav next={{ label: "Quaternion", to: "/observatory/quaternion" }} />
       <section className="bg-atlas-hero border-t border-border/25">
         <div className="container py-14">
           <div className="mb-4 flex items-center gap-3">
