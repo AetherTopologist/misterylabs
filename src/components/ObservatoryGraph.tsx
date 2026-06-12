@@ -152,16 +152,19 @@ export function ObservatoryGraph({ onNodeClick, className = '' }: ObservatoryGra
 
     // === Real 3D label (Sprite with canvas texture) ===
     const shortLabel = node.name.length > 20 ? node.name.slice(0, 17) + '…' : node.name;
+    const labelColor = theme === 'light'
+      ? (tier === 'core' ? '#1e3a5f' : '#334155')
+      : (tier === 'core' ? '#bae6fd' : '#e0f2fe');
     const labelSprite = createTextSprite(
       shortLabel,
-      tier === 'core' ? '#bae6fd' : '#e0f2fe',
+      labelColor,
       tier === 'core' ? 22 : 16
     );
     labelSprite.position.set(0, size * 2.8, 0); // float above the orb
     group.add(labelSprite);
 
     return group;
-  }, []);
+  }, [theme]);
 
   const handleNodeClick = (node: any) => {
     const fullNode = nodes.find(n => n.id === node.id) || null;
@@ -212,7 +215,7 @@ export function ObservatoryGraph({ onNodeClick, className = '' }: ObservatoryGra
         graphData={graphData}
         nodeThreeObject={nodeThreeObject}
         nodeLabel={(node: any) => `${node.name} — ${ATLAS_GRAPH_TIERS[node.tier as any]?.label || ''}`}
-        linkColor={() => 'rgba(103, 232, 249, 0.22)'}
+        linkColor={() => theme === 'light' ? 'rgba(8,128,155,0.55)' : 'rgba(103, 232, 249, 0.22)'}
         linkWidth={0.85}
         linkOpacity={0.45}
         linkDirectionalParticles={3}

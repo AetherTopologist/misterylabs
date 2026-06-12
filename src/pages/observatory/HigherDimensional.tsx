@@ -3,6 +3,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { DemoNav } from "@/components/observatory/DemoNav";
+import { useTheme } from "@/hooks/useTheme";
 
 const CubeNetExplorer = lazy(() =>
   import("@/components/CubeNetExplorer").then(m => ({ default: m.CubeNetExplorer }))
@@ -34,6 +35,8 @@ function DemoLoading() {
 }
 
 export default function HigherDimensionalPage() {
+  const { theme } = useTheme();
+  const lm = theme === "light";
   return (
     <div className="min-h-screen">
       <AppHeader />
@@ -41,7 +44,7 @@ export default function HigherDimensionalPage() {
       <section id="higher-dimensional" className="bg-atlas-hero border-t border-border/25">
         <div className="container py-14">
           <div className="mb-3">
-            <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.3em] text-violet-400/50">
+            <div className={`mb-2 font-mono text-[8px] uppercase tracking-[0.3em] ${lm ? "text-violet-700/75" : "text-violet-400/50"}`}>
               SYS // OBS-HD · Topology, Projection &amp; Perception
             </div>
             <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
@@ -59,7 +62,7 @@ export default function HigherDimensionalPage() {
           {/* Cube Net Explorer */}
           <div className="mb-10">
             <div className="mb-4 flex items-center gap-3">
-              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-cyan-400/55">
+              <span className={`font-mono text-[9px] uppercase tracking-[0.3em] ${lm ? "text-cyan-700/80" : "text-cyan-400/55"}`}>
                 Instrument A · Net Topology
               </span>
               <div className="h-px flex-1 bg-border/20" />
@@ -78,7 +81,7 @@ export default function HigherDimensionalPage() {
           {/* Tesseract Explorer */}
           <div className="mb-10">
             <div className="mb-4 flex items-center gap-3">
-              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-violet-400/55">
+              <span className={`font-mono text-[9px] uppercase tracking-[0.3em] ${lm ? "text-violet-700/70" : "text-violet-400/55"}`}>
                 Instrument B · 4D Projection
               </span>
               <div className="h-px flex-1 bg-border/20" />
@@ -98,7 +101,7 @@ export default function HigherDimensionalPage() {
           {/* Hollow Mask Illusion */}
           <div className="mb-10">
             <div className="mb-4 flex items-center gap-3">
-              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-amber-400/55">
+              <span className={`font-mono text-[9px] uppercase tracking-[0.3em] ${lm ? "text-amber-700/70" : "text-amber-400/55"}`}>
                 Instrument C · Depth Inversion
               </span>
               <div className="h-px flex-1 bg-border/20" />
@@ -119,7 +122,7 @@ export default function HigherDimensionalPage() {
           {/* Spinning Dancer */}
           <div>
             <div className="mb-4 flex items-center gap-3">
-              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-violet-400/55">
+              <span className={`font-mono text-[9px] uppercase tracking-[0.3em] ${lm ? "text-violet-700/70" : "text-violet-400/55"}`}>
                 Instrument D · Bistable Rotation
               </span>
               <div className="h-px flex-1 bg-border/20" />
