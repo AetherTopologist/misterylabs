@@ -1,7 +1,7 @@
 # Visual Audit — 2026-06-12
 
 > Reference screenshots for visual/theme audit only.
-> Generated: 2026-06-12 00:24:26 UTC
+> Generated: 2026-06-12 03:08:40 UTC
 > Viewport: 1440×1100
 
 ## Routes captured

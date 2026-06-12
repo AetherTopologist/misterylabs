@@ -281,7 +281,7 @@ function QSlider({ label, value, variant, onChange }: SliderProps) {
       </span>
       <div className="relative flex-1 py-2">
         {/* Track */}
-        <div className="h-0.5 w-full rounded-full bg-white/10" />
+        <div className="h-0.5 w-full rounded-full bg-foreground/15" />
         {/* Fill — width set via ref callback so no inline style prop */}
         <div
           ref={el => { if (el) el.style.width = `${pct}%`; }}
@@ -300,7 +300,7 @@ function QSlider({ label, value, variant, onChange }: SliderProps) {
         {/* Thumb — position set via ref callback */}
         <div
           ref={el => { if (el) el.style.left = `${pct}%`; }}
-          className={`pointer-events-none absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/20 ${vc.thumb}`}
+          className={`pointer-events-none absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-foreground/25 ${vc.thumb}`}
         />
       </div>
       <span className="w-14 text-right font-mono text-[11px] tabular-nums text-foreground/75">
@@ -467,7 +467,7 @@ export function QuaternionExplorer() {
 
         {/* Sliders */}
         <div className="flex flex-col gap-3.5">
-          <div className="font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/40">
+          <div className="font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/65">
             Raw components (auto-normalized)
           </div>
           <QSlider label="x" value={raw[0]} variant="x" onChange={v => setComponent(0, v)} />
@@ -478,7 +478,7 @@ export function QuaternionExplorer() {
 
         {/* Math readout */}
         <div className="rounded-sm border border-border/30 bg-secondary/20 p-3.5">
-          <div className="mb-2.5 font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/40">
+          <div className="mb-2.5 font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/65">
             Normalized q
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
@@ -495,7 +495,7 @@ export function QuaternionExplorer() {
           </div>
 
           <div className="mt-3 border-t border-border/20 pt-3">
-            <div className="mb-1.5 font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/40">
+            <div className="mb-1.5 font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/65">
               Rotation axis
             </div>
             <div className="font-mono text-[10px] tabular-nums text-foreground/70">
@@ -504,7 +504,7 @@ export function QuaternionExplorer() {
           </div>
 
           <div className="mt-3 border-t border-border/20 pt-3">
-            <div className="mb-1.5 font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/40">
+            <div className="mb-1.5 font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/65">
               Rotation angle
             </div>
             <div className="font-mono text-xl tabular-nums text-foreground/90">
@@ -520,7 +520,7 @@ export function QuaternionExplorer() {
             q = cos(θ/2) +<br />
             sin(θ/2)·(x<span className="text-cyan-400/70">i</span> + y<span className="text-green-400/70">j</span> + z<span className="text-violet-400/70">k</span>)
           </div>
-          <p className="mt-1.5 text-[9px] leading-relaxed text-muted-foreground/40">
+          <p className="mt-1.5 text-[9px] leading-relaxed text-muted-foreground/65">
             Every 3D rotation maps to exactly two unit quaternions: q and −q.
           </p>
         </div>

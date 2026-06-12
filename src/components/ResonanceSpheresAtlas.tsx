@@ -150,7 +150,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
             textureUrl={centralSphere.textureUrl}
             showRays
             isDark={isDark}
-            className="mx-auto rounded-full shadow-2xl border border-white/10"
+            className="mx-auto rounded-full shadow-2xl border border-border/50"
             // Pass highlight for pulse / "rotation toward portal" effect
             // (current canvas impl pulses on any highlight; future versions can offset draw for direction)
           />
@@ -175,8 +175,8 @@ export const ResonanceSpheresAtlas: React.FC = () => {
                   key={idx}
                   x1={src.x} y1={src.y} x2={tgt.x} y2={tgt.y}
                   stroke={lineColor}
-                  strokeOpacity={isActive ? 0.75 : 0.35}
-                  strokeWidth={isActive ? 1.5 : 0.8}
+                  strokeOpacity={isActive ? 0.75 : (isDark ? 0.35 : 0.55)}
+                  strokeWidth={isActive ? 1.5 : (isDark ? 0.8 : 1.1)}
                 />
               );
             })}

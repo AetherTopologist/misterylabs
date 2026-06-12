@@ -82,7 +82,7 @@ export function TransportSphereViz({ className }: { className?: string }) {
     labelCyan: lm ? "rgba(8,128,155,0.92)"     : "rgba(34,211,238,0.38)",
     labelAmb:  lm ? "rgba(148,78,0,0.78)"      : "rgba(251,191,36,0.35)",
     axisMuted: lm ? "rgba(10,20,50,0.62)"      : "rgba(255,255,255,0.24)",
-    axisVer:   lm ? "rgba(10,20,50,0.42)"      : "rgba(255,255,255,0.18)",
+    axisVer:   lm ? "rgba(10,20,50,0.65)"      : "rgba(255,255,255,0.18)",
   };
 
   return (

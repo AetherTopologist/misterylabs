@@ -159,7 +159,7 @@ export function ResonanceSphere({
       const focalStrength = isHighlighted ? 0.32 : 0.18;
       const focal = ctx.createRadialGradient(cx + r * 0.12, cy - r * 0.08, 8, cx + r * 0.12, cy - r * 0.08, r * 0.55);
       focal.addColorStop(0, `rgba(103, 232, 249, ${focalStrength})`);
-      focal.addColorStop(1, "transparent");
+      focal.addColorStop(1, "rgba(103,232,249,0)");
       ctx.fillStyle = focal;
       ctx.beginPath();
       ctx.arc(cx + r * 0.12, cy - r * 0.08, r * 0.55, 0, Math.PI * 2);

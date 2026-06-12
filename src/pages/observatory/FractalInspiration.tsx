@@ -9,8 +9,10 @@ const FractalInspirationAtlas = lazy(() =>
 );
 
 const FALLBACK = (
-  <div className="container py-8 text-sm text-muted-foreground border-t border-border/35">
-    Fractal Inspiration Atlas unavailable (see console for details).
+  <div className="container py-8 border-t border-border/35">
+    <div className="border-l-2 border-amber-500 bg-amber-500/5 pl-4 py-3 text-sm text-foreground/80">
+      Fractal Inspiration Atlas unavailable — see browser console for details.
+    </div>
   </div>
 );
 

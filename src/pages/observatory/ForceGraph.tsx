@@ -35,8 +35,8 @@ export default function ForceGraphPage() {
         <div className="container py-8">
           <div className="mb-6">
             <div className="flex items-center gap-3">
-              <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">SYS // 04</span>
-              <div className="h-px w-12 bg-border/35" />
+              <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/70">SYS // 04</span>
+              <div className="h-px w-12 bg-border/55" />
               <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary-glow/60">The Seed</span>
             </div>
             <h1 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">Observatory Atlas</h1>

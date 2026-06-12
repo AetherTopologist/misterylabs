@@ -158,19 +158,19 @@ export default function MediaPage() {
       <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/25 to-transparent" aria-hidden />
 
       {/* ── HEADER ─────────────────────────────────────────── */}
-      <section className="border-t border-border/35">
+      <section className="border-t border-border/55">
         <div className="container py-14">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
+            <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/70">
               SYS // 05
             </span>
-            <div className="h-px w-12 bg-border/35" />
+            <div className="h-px w-12 bg-border/55" />
             <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary-glow/60">
               Visual Experiments
             </span>
           </div>
           <h1 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">Media Lab</h1>
-          <p className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground/45">
+          <p className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground/70">
             Visual experiments · ACT research · Open signal
           </p>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -197,7 +197,7 @@ export default function MediaPage() {
       </section>
 
       {/* ── OBSERVATORY GALLERY ─────────────────────────────── */}
-      <section id="observatory-gallery" className="relative border-t border-border/35">
+      <section id="observatory-gallery" className="relative border-t border-border/55">
         {/* Section watermark */}
         <img
           src={`${BASE}assets/xPRIMEray_Logo_Research_256.png`}
@@ -207,10 +207,10 @@ export default function MediaPage() {
         />
         <div className="container py-12">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
+            <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/70">
               SYS // 05.A
             </span>
-            <div className="h-px w-12 bg-border/35" />
+            <div className="h-px w-12 bg-border/55" />
             <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary-glow/60">
               Observatory Gallery
             </span>
@@ -264,13 +264,13 @@ export default function MediaPage() {
       </section>
 
       {/* ── COMING SIGNALS ─────────────────────────────────── */}
-      <section className="border-t border-border/35">
+      <section className="border-t border-border/55">
         <div className="container py-12">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
+            <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/70">
               Queued
             </span>
-            <div className="h-px flex-1 bg-border/35" />
+            <div className="h-px flex-1 bg-border/55" />
           </div>
           <h2 className="mt-3 text-xl font-semibold tracking-tight">Coming Signals</h2>
           <p className="mt-1 text-sm text-muted-foreground">

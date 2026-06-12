@@ -3,6 +3,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { DemoNav } from "@/components/observatory/DemoNav";
+import { useTheme } from "@/hooks/useTheme";
 
 const TransportSphereViz = lazy(() =>
   import("@/components/TransportSphereViz").then(m => ({ default: m.TransportSphereViz }))
@@ -21,6 +22,8 @@ const LOADING = (
 );
 
 export default function TransportSpherePage() {
+  const { theme } = useTheme();
+  const lm = theme === "light";
   return (
     <div className="min-h-screen">
       <AppHeader />
@@ -28,12 +31,12 @@ export default function TransportSpherePage() {
       <section className="bg-atlas-hero border-t border-border/60">
         <div className="pointer-events-none flex items-center justify-between px-5 md:px-10 py-3">
           <div>
-            <div className="font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/25">n(x) = 1</div>
+            <div className={`font-mono text-[8px] uppercase tracking-[0.3em] ${lm ? "text-foreground/65" : "text-muted-foreground/25"}`}>n(x) = 1</div>
             <div className="mt-1 text-base font-semibold tracking-tight text-foreground/55">Straight Transport</div>
           </div>
           <div className="text-right">
-            <div className="font-mono text-[8px] uppercase tracking-[0.3em] text-cyan-400/35">n(x) = gradient</div>
-            <div className="mt-1 text-base font-semibold tracking-tight text-cyan-300/65">Curved Transport</div>
+            <div className={`font-mono text-[8px] uppercase tracking-[0.3em] ${lm ? "text-cyan-700/75" : "text-cyan-400/35"}`}>n(x) = gradient</div>
+            <div className={`mt-1 text-base font-semibold tracking-tight ${lm ? "text-cyan-700/90" : "text-cyan-300/65"}`}>Curved Transport</div>
           </div>
         </div>
         <ErrorBoundary fallback={FALLBACK}>
