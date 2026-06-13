@@ -92,6 +92,22 @@
     --sidebar-border: 230 18% 16%;
     --sidebar-ring: 245 90% 66%;
 
+    /* ── Luminance layer tokens (surface hierarchy) ── */
+    --layer-page:          230 25%  7%;   /* page field — outermost surface */
+    --layer-diagram:       230 22% 10%;   /* canvas / diagram area */
+    --layer-panel:         230 22% 11%;   /* panel body */
+    --layer-panel-strong:  230 20% 13%;   /* panel header / elevated row */
+
+    /* ── Ink tokens (text hierarchy) ── */
+    --ink-primary:         220 25% 95%;   /* headlines, critical labels */
+    --ink-secondary:       220 18% 75%;   /* body copy, readable secondary */
+    --ink-muted:           220 12% 62%;   /* supporting text — aliases muted-foreground */
+    --ink-ambient:         220 12% 44%;   /* decorative / atmospheric labels */
+
+    /* ── Annotation spot colors (graphical elements, not prose) ── */
+    --annotation-cyan:     188 92% 58%;   /* cyan data annotation — aliases spectral-cool */
+    --annotation-amber:     28 95% 60%;   /* amber data annotation — aliases spectral-warm */
+
     /* Resonance Sphere / Portal custom visuals (dark defaults) */
     --sphere-base: 230 25% 7%;
     --sphere-glow-cyan: 186 90% 58%;
@@ -183,6 +199,22 @@
     --sidebar-accent-foreground: 230 18% 18%;
     --sidebar-border: 220 12% 85%;
     --sidebar-ring: 245 85% 48%;
+
+    /* ── Luminance layer tokens ── */
+    --layer-page:          0 0% 99%;      /* page field — off-white */
+    --layer-diagram:       220 12% 96%;   /* diagram canvas — very light cool gray */
+    --layer-panel:         0 0% 100%;     /* panel body — pure white card */
+    --layer-panel-strong:  220 12% 94%;   /* panel header / elevated row */
+
+    /* ── Ink tokens ── */
+    --ink-primary:         230 20%  8%;   /* headlines — very dark navy */
+    --ink-secondary:       220 15% 22%;   /* body copy — dark slate */
+    --ink-muted:           220 12% 32%;   /* supporting text — aliases muted-foreground */
+    --ink-ambient:         220 12% 50%;   /* decorative / atmospheric labels */
+
+    /* ── Annotation spot colors — calibrated for ≥3:1 on white ── */
+    --annotation-cyan:     188 80% 35%;   /* cyan data annotation — darker than spectral-cool */
+    --annotation-amber:     28 90% 40%;   /* amber data annotation — darker than spectral-warm */
   }
 
   html.light {
