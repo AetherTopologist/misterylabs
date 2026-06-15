@@ -62,7 +62,7 @@ export default function HigherDimensionalPage() {
           {/* Cube Net Explorer */}
           <div className="mb-10">
             <div className="mb-4 flex items-center gap-3">
-              <span className={`font-mono text-[9px] uppercase tracking-[0.3em] ${lm ? "text-cyan-700/80" : "text-cyan-400/55"}`}>
+              <span className={`annotation-plate font-mono text-[9px] uppercase tracking-[0.3em] ${lm ? "text-cyan-700/80" : "text-cyan-400/55"}`}>
                 Instrument A · Net Topology
               </span>
               <div className="h-px flex-1 bg-border/20" />
@@ -81,7 +81,7 @@ export default function HigherDimensionalPage() {
           {/* Tesseract Explorer */}
           <div className="mb-10">
             <div className="mb-4 flex items-center gap-3">
-              <span className={`font-mono text-[9px] uppercase tracking-[0.3em] ${lm ? "text-violet-700/70" : "text-violet-400/55"}`}>
+              <span className={`annotation-plate font-mono text-[9px] uppercase tracking-[0.3em] ${lm ? "text-violet-700/70" : "text-violet-400/55"}`}>
                 Instrument B · 4D Projection
               </span>
               <div className="h-px flex-1 bg-border/20" />
@@ -101,7 +101,7 @@ export default function HigherDimensionalPage() {
           {/* Hollow Mask Illusion */}
           <div className="mb-10">
             <div className="mb-4 flex items-center gap-3">
-              <span className={`font-mono text-[9px] uppercase tracking-[0.3em] ${lm ? "text-amber-700/70" : "text-amber-400/55"}`}>
+              <span className={`annotation-plate font-mono text-[9px] uppercase tracking-[0.3em] ${lm ? "text-amber-700/70" : "text-amber-400/55"}`}>
                 Instrument C · Depth Inversion
               </span>
               <div className="h-px flex-1 bg-border/20" />
@@ -122,7 +122,7 @@ export default function HigherDimensionalPage() {
           {/* Spinning Dancer */}
           <div>
             <div className="mb-4 flex items-center gap-3">
-              <span className={`font-mono text-[9px] uppercase tracking-[0.3em] ${lm ? "text-violet-700/70" : "text-violet-400/55"}`}>
+              <span className={`annotation-plate font-mono text-[9px] uppercase tracking-[0.3em] ${lm ? "text-violet-700/70" : "text-violet-400/55"}`}>
                 Instrument D · Bistable Rotation
               </span>
               <div className="h-px flex-1 bg-border/20" />

@@ -83,6 +83,9 @@ export function TransportSphereViz({ className }: { className?: string }) {
     labelAmb:  lm ? "rgba(148,78,0,0.78)"      : "rgba(251,191,36,0.35)",
     axisMuted: lm ? "rgba(10,20,50,0.62)"      : "rgba(255,255,255,0.24)",
     axisVer:   lm ? "rgba(10,20,50,0.65)"      : "rgba(255,255,255,0.18)",
+    // Annotation chip surfaces — give quadrant labels a dedicated layer
+    labelBg:    lm ? "rgba(228,230,238,0.90)"  : "rgba(22,24,40,0.82)",
+    labelBgBdr: lm ? "rgba(80,96,138,0.45)"    : "rgba(180,195,255,0.07)",
   };
 
   return (
@@ -198,6 +201,9 @@ export function TransportSphereViz({ className }: { className?: string }) {
         <circle cx={CX} cy={CY} r={4} />
       </g>
 
+      {/* ── Quadrant label annotation chips (doctrine: labels need a dedicated surface) ── */}
+      <rect x={CX - 232} y={TOP + 13} width={200} height={34} rx="3" ry="3" fill={c.labelBg} stroke={c.labelBgBdr} strokeWidth="0.6" />
+      <rect x={CX + 32}  y={TOP + 13} width={200} height={34} rx="3" ry="3" fill={c.labelBg} stroke={c.labelBgBdr} strokeWidth="0.6" />
       {/* ── Quadrant labels ───────────────────────────────── */}
       <text x={CX - 132} y={TOP + 26} textAnchor="middle" fontFamily={MONO} fontSize="9"  fill={c.labelStr}  letterSpacing={2.5}>STRAIGHT TRANSPORT</text>
       <text x={CX - 132} y={TOP + 39} textAnchor="middle" fontFamily={MONO} fontSize="8"  fill={c.labelSub}  letterSpacing={1.5}>Reference Reality</text>

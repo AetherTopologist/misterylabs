@@ -250,7 +250,7 @@ export default function MediaPage() {
           </div>
 
           {/* Gallery grid — cinematic archive presentation */}
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:rounded-sm lg:border lg:border-border/20 lg:bg-card/5 lg:p-4">
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 rounded-sm border border-border/25 bg-muted/20 p-3 sm:p-4">
             {visibleItems.map((item) => (
               <GalleryCard
                 key={item.id}

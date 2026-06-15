@@ -1130,7 +1130,7 @@ function ObservatoryHeroSection() {
         </p>
 
         {/* Geodesic equation strip */}
-        <div className="mt-7 flex flex-wrap items-start gap-x-6 gap-y-3 border-l-2 border-cyan-500/20 pl-4">
+        <div className="mt-7 flex flex-wrap items-start gap-x-6 gap-y-3 rounded-r-sm border-l-2 border-cyan-500/20 bg-muted/15 py-3 pl-4 pr-4">
           <div>
             <span className="block font-mono text-[8px] uppercase tracking-[0.3em] text-muted-foreground/25 mb-1.5">
               null-geodesic integration

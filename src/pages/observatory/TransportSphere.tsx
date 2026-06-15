@@ -29,7 +29,7 @@ export default function TransportSpherePage() {
       <AppHeader />
       <DemoNav next={{ label: "Poisson Dot", to: "/observatory/poisson-dot" }} />
       <section className="bg-atlas-hero border-t border-border/60">
-        <div className="pointer-events-none flex items-center justify-between px-5 md:px-10 py-3">
+        <div className="instrument-strip pointer-events-none flex items-center justify-between px-5 md:px-10 py-3">
           <div>
             <div className={`font-mono text-[8px] uppercase tracking-[0.3em] ${lm ? "text-foreground/65" : "text-muted-foreground/25"}`}>n(x) = 1</div>
             <div className="mt-1 text-base font-semibold tracking-tight text-foreground/55">Straight Transport</div>
