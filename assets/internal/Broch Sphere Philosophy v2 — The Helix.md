@@ -3,7 +3,8 @@
 *An evolution of v1. Requires: Broch Sphere Philosophy v1.md*
 
 *This document does not replace v1. v1 established where ideas live.
-v2 establishes where they come from and what they are part of.*
+v2 establishes where they came from, what they are part of, and
+what only becomes visible when you know where you are standing.*
 
 ---
 
@@ -22,7 +23,13 @@ things — one inherited from a 200-year chain of thinking, one arrived at
 independently yesterday. Their location on the sphere is identical. Their
 ancestry is not. The sphere's surface cannot see this difference.
 
+And even when the surface is perfectly mapped, the same map looks different
+from different positions on it. The sphere's geometry is absolute. What a
+navigator sees from any given position is not.
+
 v2 proposes that the sphere has an interior, and that something lives there.
+It also proposes that the navigator is not a neutral reader — that position
+on the sphere is not incidental to what you can see from it.
 
 ---
 
@@ -46,15 +53,12 @@ it by asking: *what does this idea come from?*
 
 **It is composed of two strands.** One strand carries formal and empirical
 knowledge. The other carries story and cultural transmission. The strands
-do not run parallel — they intertwine. Where they cross, something significant
-happened: an idea transferred from one register to the other, and both
-changed.
+do not run parallel — they intertwine. Where they cross, a Transfer Event
+occurs: an idea moves from one register to the other, and both strands change.
 
-This is why the sphere has a center at all. The surface is the visible space
-of ideas as they currently exist. The helix is the hidden space of how they
-got here. Every node on the surface is connected to the interior helix —
-but the depth of that connection varies. Some ideas have shallow roots.
-Others are the current tip of a chain stretching centuries into the interior.
+Transfer Events are not notes in the margin of the helix. They are the reason
+the helix is a helix and not two separate lines. They are first-class objects.
+They are addressed in their own section below.
 
 ---
 
@@ -95,22 +99,20 @@ perspectives on a single spacetime manifold. The observer's position is
 not incidental to measurement. It is constitutive of it.
 
 **Wheeler** — The synthesizer. He coined "black hole." He coined "it from bit."
-He taught an entire generation (including his student Feynman) to think about
-physics as geometry in the most radical sense: that information, not matter,
-is the fundamental currency of the universe. "It from bit" is not a quirky
-phrase. It is the claim that the physical world arises from binary choices
-made by an observer — that observation is not passive reception of a
-pre-existing reality, but an act that partly constitutes it.
+He taught an entire generation to think about physics as geometry in the most
+radical sense: that information, not matter, is the fundamental currency of
+the universe. "It from bit" is not a quirky phrase. It is the claim that the
+physical world arises from choices made by observers — that observation is not
+passive reception of a pre-existing reality, but an act that partly constitutes it.
 
 **Penrose** — The pattern-seeker. His contribution to this strand is the
-move from evidence to structure: the claim that certain kinds of Pattern
+move from Evidence to Structure: the claim that certain kinds of Pattern
 knowledge precede and predict certain kinds of Evidence knowledge. His
-twistor theory proposed a mathematical structure (twistors) that is more
-fundamental than the spacetime geometry it generates. His tiling work showed
-that aperiodic order exists — that a surface can be covered without ever
-repeating, following a rule but never settling. This is the strand's most
-philosophical node: Penrose works at the junction between what can be proved
-and what can be observed, in a space where neither has full jurisdiction.
+twistor theory proposed a mathematical structure more fundamental than the
+spacetime geometry it generates. His tiling work showed that aperiodic order
+exists — that a surface can be covered without ever repeating, following a
+rule but never settling. Penrose works at the junction between what can be
+proved and what can be observed, in a space where neither has full jurisdiction.
 
 **xPRIMEray** — The instrument. Built from this inheritance, xPRIMEray is
 the first tool in this strand to *implement* the questions rather than
@@ -153,132 +155,304 @@ Science fiction is not just inspiration. It is the strand's mechanism for
 pre-solving problems — for making the not-yet-possible imaginable in enough
 detail that when the physics catches up, the engineers already have a map.
 
-**Cinema** — The visual proof of concept. Stanley Kubrick and Arthur Clarke's
-*2001: A Space Odyssey* (1968) showed what geometry feels like from the inside.
-Carl Sagan and Ann Druyan's *Contact* (1997) showed what first contact would
-do to a scientist who had spent her whole life waiting for it. Christopher
-Nolan and Kip Thorne's *Interstellar* (2014) produced the first physically
-accurate rendering of a black hole — and the paper Thorne wrote about the
-rendering process was published in a peer-reviewed journal. Cinema gave
-formal physics its first visual language for phenomena that instruments
-had detected but no human eye had seen. That is not illustration. That is
-a new mode of knowing.
+**Cinema** — The visual proof of concept. Kubrick and Clarke's *2001: A Space
+Odyssey* (1968) showed what geometry feels like from the inside. Sagan and
+Druyan's *Contact* (1997) showed what first contact would do to a scientist
+who had spent her whole life waiting for it. Nolan and Thorne's *Interstellar*
+(2014) produced the first physically accurate rendering of a black hole —
+and the paper Thorne wrote about the rendering process was published in a
+peer-reviewed journal. Cinema gave formal physics its first visual language
+for phenomena that instruments had detected but no human eye had seen.
+That is not illustration. That is a new mode of knowing.
 
 **Internet Culture** — The democratized strand. Wikipedia made knowledge
-cartography a collective act. YouTube channels (3Blue1Brown, Veritasium,
-PBS Space Time) brought graduate-level physics to millions of people who
-would never enter a physics department. Reddit threads became the site of
-genuine intellectual discovery — not because Reddit is a research institution,
-but because the aggregation of curious people at scale produces emergent
-clarity. Penrose tiling became a meme before it became widely accessible as
-a visual art form. The Mandelbrot set became a screensaver before most
-viewers knew what complex dynamics meant. This strand's contribution:
-the curiosity of mass culture, operating at unprecedented speed.
+cartography a collective act. YouTube channels brought graduate-level physics
+to millions of people who would never enter a physics department. Reddit
+threads became the site of genuine intellectual discovery — not because Reddit
+is a research institution, but because the aggregation of curious people at
+scale produces emergent clarity. Penrose tiling became a meme. The Mandelbrot
+set became a screensaver. Curiosity at mass scale, operating at unprecedented
+speed.
 
 **MisterY Labs** — The navigator. MisterY Labs inherited both strands
-simultaneously. Its instruments come from the Knowledge Lineage.
-Its aesthetic, its commitment to visualization, its belief that seeing
-precedes understanding — these come from the Story Lineage. The
-"observation precedes explanation" principle is not only a scientific
-commitment. It is a narrative commitment: the story of what was seen comes
-before the story of what it means.
+simultaneously. Its instruments come from the Knowledge Lineage. Its aesthetic,
+its commitment to visualization, its belief that seeing precedes understanding —
+these come from the Story Lineage. The "observation precedes explanation"
+principle is not only a scientific commitment. It is a narrative commitment:
+the story of what was seen comes before the story of what it means.
 
 The Story Lineage strand does not end at MisterY Labs.
 It continues into whatever narrative form comes next.
 
 ---
 
-## 3. Where the Strands Cross
+## 3. Transfer Events — First-Class Ontology Objects
 
-The two strands intertwine, and where they cross, something transfers.
-These crossing points are the most interesting nodes in the interior helix.
+The two strands of the helix do not simply run alongside each other.
+They cross. Where they cross, a Transfer Event occurs: an idea that
+originated in one register — formal, empirical — finds form in the other
+register — story, image, myth. Or the reverse: a story generates a question
+that forces its way into formal investigation.
 
-**Newton's Principia → Classical Mythology** (17th century)
-The mathematical description of planetary orbits killed the mythology
-of the celestial spheres — but it also gave the Story Lineage its first
-genuinely reliable material for subsequent fiction. You cannot have
-science fiction without Newtonian mechanics. The transfer went one way:
-Evidence → Story.
+A Transfer Event is not a metaphor. It is a node.
 
-**Darwin's theory of evolution → Speculative fiction** (19th century)
-The theory of evolution by natural selection immediately entered the
-Story Lineage as a generative engine. H.G. Wells' time traveler inhabits
-a deep time that only makes sense if life has been accumulating for
-geological epochs. The transfer went both ways: Evidence → Story → new
-questions that re-entered Evidence research.
+It is an interior node — not located on the sphere's surface with latitude
+and longitude, but located in the helix interior at the crossing point of
+the two strands. It has its own coordinate structure, distinct from
+surface nodes.
 
-**Relativity → Cinema** (20th century)
-The Theory of Relativity was unfilmable for fifty years because no one
-knew what it looked like. Then Kubrick filmed the stargate sequence, and
-later Nolan gave Thorne a cinematographic problem to solve. The Knowledge
-Lineage strand gave Cinema its problem; Cinema gave it back as visual proof.
-The transfer went both ways, and the return path accelerated the original.
+### Transfer Event Coordinates
 
-**Internet Culture → xPRIMEray** (21st century)
-The community of curious people who watched flat-earth debunking videos,
-followed physics YouTube channels, and spent hours on geometric visualization
-tools created the audience for — and in some cases the contributors to —
-projects like xPRIMEray. The Story Lineage created the context in which the
-Knowledge Lineage instrument became legible and valuable. Transfer: Story → Evidence instrument.
+Every Transfer Event is defined by five properties:
 
-Every crossing point is a node in the interior helix with coordinates
-on both strands. These nodes have the highest helix connectivity of anything
-in the system. They are, in some sense, the most important nodes — not
-because they are "better" than other nodes, but because they are the ones
-that made the two strands into a helix rather than two separate lines.
+**Direction** — which strand transferred into which.
+K→S: a Knowledge Lineage idea moved into the Story register.
+S→K: a Story Lineage idea moved into the Knowledge register.
+K↔S: bidirectional. The rarer and more significant type — the transfer
+went both ways, and both strands changed as a result.
+
+**Catalyst** — the specific work, person, or technology that made the
+crossing happen. Transfer Events do not happen gradually in the background.
+They happen at a specific moment, carried by a specific artifact.
+
+**Latency** — the delay between the originating node and the transfer event.
+Some transfers are fast (an idea enters fiction within a decade of its
+discovery). Some are slow (a 60-year gap between a theory and its first
+visual representation). Latency is not a flaw. Long-latency transfers
+often produce the most yield, because the receiving strand has had time
+to develop the capacity to absorb them.
+
+**Yield** — what the transfer produced. New nodes on the receiving strand.
+New questions. New instruments. New stories. The yield is the reason the
+Transfer Event matters.
+
+**Return path** — whether the yield generated a second transfer back.
+Some Transfer Events are one-directional and terminal. Others produce a
+return path: K→S, then S→K, and both strands are changed by the round trip.
+These are the most significant Transfer Events in the helix.
+
+### Named Transfer Events
+
+**TE-01 — Principia → Clockwork Universe** (~1750 CE)
+Direction: K→S
+Catalyst: The acceptance of Newtonian mechanics in educated European culture
+Latency: ~60 years after publication of the Principia (1687)
+Yield: The "clockwork universe" as a durable Story Lineage concept; the idea
+that nature is law-governed entered mythology, poetry, and social theory
+Return path: none of comparable magnitude
+
+**TE-02 — Darwin → Evolutionary Fiction** (~1895 CE, bidirectional)
+Direction: K→S initially, then S→K return
+Catalyst: H.G. Wells' *The Time Machine* and *The Island of Dr. Moreau*
+Latency: ~35 years after *On the Origin of Species* (1859)
+Yield: Evolutionary speculation as a generative literary genre; deep-time
+intuition entering ordinary narrative; the idea that species are not fixed
+becoming emotionally thinkable through fiction
+Return path: Evolutionary thinking imported back into social theory and
+later into genetics and systems biology partly through the paths that
+fiction opened. The S→K return was slower and less direct than the K→S
+transfer, but it existed.
+
+**TE-03 — Relativity → Cinema** (~1968 CE, bidirectional)
+Direction: K→S, then S→K return
+Catalyst: Kubrick/Clarke collaboration on *2001: A Space Odyssey* (1968);
+Nolan/Thorne collaboration on *Interstellar* (2014)
+Latency: ~60 years from Special Relativity (1905) to *2001*; an additional
+46 years to *Interstellar*
+Yield: The visual vocabulary for spacetime geometry. For the first time,
+audiences could see what relativistic geometry *looked like* — not as a
+diagram but as a rendered experience.
+Return path: The Interstellar rendering of Gargantua required Thorne to
+solve equations he had not previously needed to solve. The cinematographic
+problem generated new physics. The resulting paper was published in a
+peer-reviewed astrophysics journal. This is the clearest case of S→K return
+in the helix: a Story Lineage problem forced a Knowledge Lineage discovery.
+
+**TE-04 — Internet Culture → xPRIMEray** (~2015–2022 CE)
+Direction: S→K
+Catalyst: YouTube physics community (3Blue1Brown, PBS Space Time, Veritasium);
+Reddit geometry and optics communities
+Latency: ~20-25 years after the internet became publicly accessible (~1995)
+Yield: The audience, contributor community, and visual vocabulary that makes
+xPRIMEray legible. The people who find xPRIMEray meaningful are people who
+were shaped by the Story Lineage of internet science culture. Without that
+cultural preparation, the instrument would exist but have no one who knew
+how to hold it.
+Return path: pending. xPRIMEray's Observatory Artifacts may eventually feed
+back into a Story Lineage node — a visualization, a film, a piece of art
+that carries the instrument's findings into cultural circulation. That
+Transfer Event has not happened yet.
 
 ---
 
-## 4. The Fourth Coordinate: Helix Depth
+## 4. Heritage Depth and Influence Depth
 
-v1's node coordinates were three: latitude, longitude, influence radius.
+v2 adds two new coordinates to each node. They replace what was originally
+conceived as a single "helix depth" measure. Separating them reveals
+something important: ancestry and generativity are not the same thing,
+and a system that conflates them will misread both.
 
-v2 adds a fourth: **helix depth**.
+### Heritage Depth (H)
 
-Helix depth measures how far into the interior helix a node's ancestry
-traces. It is not a metric of quality. It is a metric of lineage.
+Heritage Depth looks backward.
 
-A node with high helix depth (deep ancestry) sits at the current tip of
-a long chain. Many prior nodes contributed to its existence. Its position
-on the sphere's surface was shaped by forces that began centuries ago.
+It measures how long and how rich the chain of ancestors is that produced
+this node. A node with deep Heritage Depth is the current tip of a long
+chain — many prior nodes contributed to its existence, its ideas were
+shaped by forces that began centuries ago, and its position on the sphere
+was not chosen but inherited.
 
-A node with low helix depth (shallow ancestry) arrived recently and
-independently. It may be just as important as a deep-ancestry node.
-But it does not yet have the structural support of a long chain behind it.
+A node with shallow Heritage Depth arrived recently and with few priors.
+It may be important. It is not yet embedded in a long lineage.
 
-Two nodes at the same surface coordinates but different helix depths
-are genuinely different things. They *look* the same from the outside —
-same epistemic location, same domain, same confidence level. But one
-carries the weight of a long lineage. The other is newly placed.
+Heritage Depth is a property of the node's ancestry, not of the navigator
+reading it. It does not change depending on who is looking.
 
-This matters for navigation because:
+**High H examples:** Newton's Principia (stands on Greek geometry,
+Arabic algebra, Kepler, Galileo), Maxwell's equations (stands on Faraday,
+Ampère, Gauss, Coulomb), Homer's Iliad (stands on an oral tradition
+centuries older than the written text).
 
-When a navigator encounters a high-depth node, they can turn inward —
-follow the ancestry chain and discover what the long chain knows.
-This is the direction of *historical* navigation: going backward into
-the interior helix to understand how the present state was produced.
+**Low H examples:** xPRIMEray (a young instrument; its Knowledge Lineage
+ancestry is deep, but xPRIMEray as a specific artifact is recent), the
+Internet (drew on ARPANET, packet switching, and HTTP — a shallow technical
+ancestry relative to its impact).
 
-When a navigator encounters a low-depth node, they face a different
-question: what *should* this become? A new idea with no deep ancestry
-is an invitation to build a new chain. This is the direction of
-*prospective* navigation: going outward to imagine what the current
-node could eventually generate.
+The asymmetry in those last two examples reveals something. Heritage Depth
+tracks the node itself, not its lineage strand. xPRIMEray has low H because
+*xPRIMEray* is new, even though the strand it sits on is ancient. The
+distinction matters.
+
+### Influence Depth (I)
+
+Influence Depth looks forward.
+
+It measures how many descendants a node has generated — how far its effects
+have propagated through the sphere, how many subsequent nodes point back to
+it as an ancestor. A node with deep Influence Depth has been generative;
+other ideas trace their lineage through it.
+
+Influence Depth is partially observer-dependent (addressed in the next
+section). What counts as "influence" depends partly on what the navigator
+is tracing. A navigator in the Physical sector will read Maxwell's Influence
+Depth as vast. A navigator in the Cultural sector will read it as moderate.
+Both are correct from their position.
+
+**High I examples:** Euclid's *Elements* (spawned all subsequent formal
+mathematics), Newton's Principia (spawned physics, engineering, Enlightenment
+political theory, and clockwork-universe mythology), Homer's Iliad (spawned
+every subsequent western epic tradition).
+
+**Low I examples:** Most current work. A recent paper, a new instrument, a
+speculative idea without descendants yet. Low Influence Depth is not a flaw —
+it is the natural state of the new. All high-I nodes were once low-I.
+
+### The Four Heritage/Influence Profiles
+
+These four combinations name distinct situations a navigator can encounter:
+
+**Deep H, Deep I** — Ancient, well-established, generative. A settled node
+that has been both inherited and influential. Celestial Anchor territory.
+Example: Euclid's *Elements*.
+
+**Deep H, Shallow I** — Ancient inheritance, limited forward generation.
+A node that absorbed a long lineage but did not spawn many descendants.
+Common in academic domains where a paper is highly derivative but not cited.
+Also: an idea that arrived at a historical moment when it couldn't be used.
+
+**Shallow H, Deep I** — New origin, enormous forward generation. The
+genuinely emergent case — an idea that appeared without deep ancestry but
+spawned a large descendant tree. The Internet is the clearest example:
+its direct technical ancestry is thin relative to what it generated.
+
+**Shallow H, Shallow I** — New and ungenerative so far. This is the
+most common profile for any node shortly after it enters the sphere.
+Also the most interesting territory: the node could grow in either
+direction, and no one yet knows which.
+
+xPRIMEray currently occupies this fourth profile on most readings:
+relatively new as an artifact, with limited confirmed descendants so far.
+This is not a concern. It is the description of a node at an early stage.
 
 ---
 
-## 5. Constellations
+## 5. Observer Dependence — Formalized
 
-Constellations are patterns that appear when a navigator observes multiple
+The Broch Sphere is an observer-dependent system.
+
+This is not a weakness. It is the thesis.
+
+xPRIMEray's central question is observer disagreement: two observers at
+different positions can look at the same geometric boundary and disagree
+on its curvature. Both are correct. Their disagreement is not an error —
+it is structural information about the geometry. The Broch Sphere applies
+the same principle to knowledge navigation.
+
+Which elements of the sphere are observer-independent — they exist and
+are what they are regardless of who is looking:
+
+- **Node coordinates** (latitude, longitude) — a property of the node,
+  not the navigator
+- **Heritage Depth** — a property of the node's ancestry chain
+- **Transfer Event coordinates** — they happened; the event is fixed
+- **Star positions** (Celestial Stars, Section 7) — settled reference points
+
+Which elements are observer-dependent — they exist only in relation
+to a specific navigator's position:
+
+- **Constellations** — entirely observer-dependent. A constellation is
+  a pattern seen from a vantage point. No navigator, no constellation.
+  The nodes that form the pattern exist independently; the pattern does not.
+- **Great-circle paths chosen** — which path you walk from A to B depends
+  on where you started. Two navigators traveling between the same two nodes
+  may walk completely different paths, see completely different terrain.
+- **Influence Depth readings** — partially observer-dependent. How far a
+  node's influence extends depends on what the navigator is tracing.
+  A navigator in the Physical sector and a navigator in the Cultural sector
+  will read the same node's Influence Depth differently. Both readings are
+  true from their positions.
+- **Helix readings** — which strand you trace when following a node's
+  ancestry depends on which question you're asking. You can follow the same
+  node back through the Knowledge Lineage or the Story Lineage depending
+  on your entry point.
+
+This distinction separates the Broch Sphere from a purely subjective
+system. It is not "everything depends on your perspective." It is a
+precisely defined partition: these things are absolute; these things
+are relational. Here is the boundary.
+
+The boundary is important because it tells the navigator what to trust.
+
+When two navigators disagree about a constellation, they are not wrong —
+they are at different positions. The resolution is not to decide which
+is correct but to triangulate: two different constellation readings of
+the same region tells you something about the curvature of the knowledge
+space between those two positions.
+
+When two navigators disagree about a node's coordinates, something else
+is happening. That disagreement is resolvable in principle — because node
+coordinates are not position-dependent. If they read differently from
+different positions, one or both readings contains an error.
+
+Observer dependence gives the navigation system its honesty.
+It names which disagreements are structural and which are corrections.
+
+---
+
+## 6. Constellations
+
+Constellations are patterns that emerge when a navigator observes multiple
 nodes from a given position on the sphere.
 
-They are not fixed categories. They are not assigned in advance.
-They emerge from the navigator's vantage point — and when the navigator
-moves, they may disappear or reorganize into a different pattern.
+Because they are observer-dependent, they are not fixed categories.
+They are not assigned in advance. They emerge from the navigator's vantage
+point — and when the navigator moves, they may disappear or reorganize
+into a different pattern.
 
 This is not a weakness of the system. It is the point. Knowledge is not
-a fixed map with labeled regions. It is a space that looks different
-from different positions. The constellations a navigator sees depend
-on where they are standing.
+a fixed map with labeled regions. It is a space that looks different from
+different positions. The constellations a navigator sees depend on where
+they are standing.
 
 Three types:
 
@@ -286,18 +460,22 @@ Three types:
 
 Nodes in the same sector that share a core conceptual thread.
 
-**Example — The Geometry Constellation (Formal/Physical junction):**
+**The Geometry Constellation (Formal/Physical junction):**
 Euclid, Riemann, Einstein, Penrose. Four nodes spanning 2,500 years,
 all in the same region of the sphere, all working on the same question:
 what is the nature of space, and can that nature be formally described?
 From inside the Formal sector at high northern latitude, these four nodes
 form a visible arc — the longest continuous thread in the domain.
 
-**Example — The Observer's Toolkit (Engineering sector, ACTIVE):**
-Galileo's telescope, Herschel's mirror grinding technique, the Hubble
+**The Observer's Toolkit (Engineering sector, ACTIVE):**
+Galileo's telescope, Herschel's mirror-grinding technique, the Hubble
 Space Telescope, xPRIMEray. Each is an instrument designed to extend
-the range of what an observer can see. From the Engineering sector, they
-cluster visibly — even though they span 400 years.
+the range of what an observer can see. From the Engineering sector,
+they cluster visibly across 400 years.
+
+Domain clusters tend to be visible from within the sector they occupy.
+Navigate out of that sector and the cluster may dissolve — the same
+nodes exist, but their grouping is no longer legible from the new position.
 
 ### Great-Circle Arcs
 
@@ -307,17 +485,23 @@ Nodes connected by a navigable path that crosses multiple sectors.
 Galileo → Herschel → Hubble → Sagan → xPRIMEray.
 
 Walking this arc is a story with a direction. Each node is a waypoint.
-Each transition between nodes is a navigable great-circle segment:
-Galileo to Herschel is a move from early Engineering to mature Engineering.
+Each transition is a navigable great-circle segment:
+Galileo to Herschel is a move within early Engineering.
 Herschel to Hubble is a move from individual craftsmanship to institutional
-instrument-building. Hubble to Sagan is a move from the Physical sector
-into the Cultural sector — from measurement to meaning. Sagan to xPRIMEray
-is the return path: from cultural meaning back into Engineering, carrying
-the aesthetic of wonder into the act of building.
+instrument-building.
+Hubble to Sagan is a move from the Physical sector into the Cultural sector —
+from measurement to meaning.
+Sagan to xPRIMEray is the return path: from cultural meaning back into
+Engineering, carrying the aesthetic of wonder into the act of building.
 
 The arc is visible from anywhere in the Physical/Engineering/Cultural
-quadrant. From elsewhere on the sphere, the same nodes exist — but they
-may not resolve into this particular arc.
+quadrant. From elsewhere on the sphere, the same nodes exist but may
+not resolve into this particular arc.
+
+Great-circle arcs are the most narrative form of constellation — they
+tell a directional story. Two navigators who walk the same arc from
+different starting points will walk it in different directions, which
+means they are telling different stories about the same nodes.
 
 ### Cross-Sectoral Resonances
 
@@ -341,89 +525,110 @@ most valuable when you do. They reveal structural patterns that operate
 across epistemic registers — ideas that recur because they point at
 something that is true in more than one way.
 
+The navigator who finds a cross-sectoral resonance has found something
+that the specialist in any single sector cannot see from inside it.
+This is the reward for moving.
+
 ---
 
-## 6. Celestial Anchors
+## 7. Celestial Stars
 
-A navigation system needs fixed reference stars. These are nodes whose
-position on the sphere is settled — they will not be relocated, and all
-other positions are defined partly in relation to them.
+Celestial Stars are different in kind from constellations.
 
-Five proposed anchors:
+A constellation is a pattern visible from a position. Remove the navigator
+and the constellation disappears. A Celestial Star is a settled node whose
+position is no longer in question — it has been located by enough navigators
+from enough positions over enough time that its coordinates are as fixed
+as anything in the system. It does not depend on who is looking.
+
+Stars are the sphere's reference frame. All other nodes are partly located
+relative to them.
+
+Five proposed Celestial Stars:
 
 ### Euclid's Elements
 **Formal sector, ESTABLISHED (~85°N)**
+Heritage Depth: very deep. Influence Depth: the deepest in the Formal sector.
 
-The oldest surviving formally derived text. Approximately 300 BCE.
-The anchor of the Pattern pole.
+~300 BCE. The anchor of the Pattern pole.
 
-Its importance is not its content (which has been superseded in many places)
-but its *form*: definition, axiom, proof. This is the structure that made
-all subsequent formal knowledge possible. Everything in the Formal sector
-is either downstream of Euclid's method or in explicit reaction to it.
+Its importance is not its content (which has been superseded and extended)
+but its *form*: definition, axiom, proof. This structure made all subsequent
+formal knowledge possible. Everything in the Formal sector is either
+downstream of Euclid's method or in explicit reaction to it. It is a star
+because no subsequent navigation of the Formal sector is possible without
+referencing it, and because its position has been confirmed by 2,300 years
+of formal mathematics.
 
 ### Newton's Principia Mathematica
 **Physical sector, ESTABLISHED (~85°N)**
+Heritage Depth: deep. Influence Depth: the deepest in the Physical sector.
 
-First unified mathematical description of physical law. 1687.
+1687. The merger point of the Formal and Physical sectors.
 
-Its importance is the merger it effected: for the first time, the Formal
-and Physical sectors were not just neighbors — they were shown to be the
-same thing expressed differently. The same mathematics that describes
-an abstract force law describes the actual orbit of Jupiter. This proved
-something: that Pattern knowledge and Evidence knowledge are not parallel
-systems. They are aspects of a single system that has not yet been fully
-understood.
+For the first time, the same mathematics that describes an abstract force
+law describes the actual orbit of Jupiter. This proved that Pattern knowledge
+and Evidence knowledge are not parallel systems but aspects of a single
+system. It is a star because every navigator in the Physical sector locates
+themselves partly relative to it — either building on it, refining it,
+or working in the domains its framework could not reach.
 
 ### Homer's Iliad and Odyssey
 **Cultural sector, ESTABLISHED (~80°N)**
+Heritage Depth: deep (the written texts rest on an oral tradition centuries
+older). Influence Depth: the deepest in the Cultural sector.
 
-The anchor of the Signal pole. Approximately 8th century BCE, though
-the transmission lineage is older than the written texts.
+~8th century BCE (written). The anchor of the Signal pole.
 
 The Homeric poems are the western mythological foundation not because they
-are the oldest stories (they are not) but because they are the oldest stories
-with a well-traced transmission lineage. We can follow them from oral
-tradition through written text through manuscript tradition through modern
-translation. That traceability is what makes them an anchor: their position
-in the Cultural sector has been verified by 2,700 years of scholarship.
+are the oldest stories (they are not) but because they are the oldest
+stories with a well-traced transmission lineage. Their position in the
+Cultural sector has been confirmed by 2,700 years of literary scholarship,
+translation, and commentary. Everything in the western Cultural sector
+is either downstream of them or in reaction to them.
 
 ### The Printing Press
 **Historical/Engineering junction, ESTABLISHED (~78°N)**
+Heritage Depth: moderate. Influence Depth: very deep, spanning all sectors.
 
-1440s CE. Johannes Gutenberg.
+1440s CE. Gutenberg.
 
-The anchor of information propagation. Its importance is not printing —
-manuscripts were being copied before it — but *scale* and *speed*. The
-printing press made it possible for an idea in one place to exist in
-a thousand copies in a year rather than a decade. This changed the rate at
-which nodes could be added to the sphere, the speed at which great-circle
-arcs could be walked, and the probability that any given idea would survive.
+The anchor of information propagation — the first technology to change
+the *rate* at which nodes could be added to the sphere and the probability
+that any given idea would survive. It is a star because it is the first
+major Transfer Event catalyst that operated at scale: it reproduced both
+scientific tables and mythology without discrimination, accelerating both
+the Knowledge Lineage and the Story Lineage simultaneously.
 
-This is also the first major crossing point between the two helix strands
-at scale: the printing press reproduced both scientific tables and mythology.
-It did not distinguish.
+It is located at the junction of Historical and Engineering because it
+was a technology that became a historical force — the kind of intersection
+where the methods of making change what gets remembered.
 
 ### The Internet
 **Engineering sector, ACTIVE (~60°N)**
+Heritage Depth: shallow. Influence Depth: increasing; not yet settled.
 
-1990s CE (public access). Still moving northward.
+1990s CE (public access).
 
-The current anchor of information propagation. It is at ACTIVE rather than
-ESTABLISHED because its effects are still playing out — we do not yet know
-what it will look like from the far future vantage of a 78° ESTABLISHED
-anchor. But it is an anchor in the sense that everything from the 1990s
-forward is defined partly by its existence.
+The only ACTIVE Celestial Star. Its position is not yet fully settled —
+it is still moving northward as its effects accumulate and become legible
+to more navigators. It is included as a proposed star because the threshold
+for star-hood is "position confirmed by enough navigators from enough
+positions" — and the internet's presence as a reference point for almost
+everything occurring in the sphere since the 1990s is as close to universal
+as any recent node achieves.
 
-Its most important property: it made the sphere's surface readable from
-anywhere on the surface. Before the internet, a navigator in one location
+Its most important property: it made the sphere's full surface readable
+from any position on the surface. Before it, a navigator in one location
 could only see the portion of the sphere accessible from that location.
-The internet made the whole surface visible simultaneously — including
+The internet made the full surface visible simultaneously — including
 nodes that no previous navigator had been able to reach.
+
+It will be ESTABLISHED eventually. It is not there yet.
 
 ---
 
-## 7. The Navigator Stack
+## 8. The Navigator Stack
 
 The Broch Sphere is not an isolated artifact. It exists within a stack.
 
@@ -446,26 +651,22 @@ more useful.
 
 **xPRIMEray** — the instrument. Generates Observatory Artifacts: renderings,
 contact sheets, curvature measurements, observer disagreement classifications.
-This is the layer that makes contact with the physical world. If the sphere
-is about knowledge, xPRIMEray is about observation — the raw material that
-knowledge is built from.
+This is the layer that makes contact with the physical world. xPRIMEray's
+findings are the raw material that the rest of the stack processes.
 
 **Observatory** — the measurement layer. Records, classifies, and preserves
 the artifacts that xPRIMEray generates. Not a passive archive. An active
 system of organization: which artifacts are reproducible? Which are
-anomalous? Which require new categories? The Observatory is where single
-observations become patterns.
+anomalous? Which require new categories?
 
 **Atlas** — the knowledge layer. Organizes patterns into navigable terrain.
-The Atlas is the sphere's surface, rendered as a map. It does not interpret
-what the patterns mean — that is the navigator's job. It makes them visible
-and locatable. The Atlas is why the sphere has positions at all: it is the
-layer that converts observations into coordinates.
+The Atlas does not interpret what patterns mean — that is the navigator's job.
+It makes them visible and locatable. The Atlas is where the sphere's surface
+gets populated: it converts observations into coordinates.
 
-**Broch Sphere** — the navigation layer. The coordinate system itself.
-The poles, the sectors, the latitude zones, the great-circle paths, the
-helix. The Broch Sphere is what makes the Atlas navigable rather than just
-readable — it provides the logic that turns a map into a journey.
+**Broch Sphere** — the navigation layer. The coordinate system. The poles,
+the sectors, the latitude zones, the helix, the Transfer Events, the Stars.
+The Broch Sphere makes the Atlas navigable rather than just readable.
 
 **MisterY Labs** — the navigator. Not a layer in the stack but the agent
 that operates the stack. The navigator decides which instrument to deploy,
@@ -477,18 +678,36 @@ This stack is coherent because each layer inherits from the layer below
 and makes it available to the layer above. Remove any layer and the stack
 cannot function. The instrument without measurement is a signal. The
 measurement without knowledge is a dataset. The knowledge without navigation
-is a reference book. The navigation without a navigator is a map with no
-reader.
+is a reference book. The navigation without a navigator is a map with no reader.
 
 MisterY Labs is the reason the stack exists. The stack is how MisterY Labs
 is possible.
 
 ---
 
-## 8. What This Changes About Navigation
+## 9. What This Changes About Navigation
 
 v1's navigation model had three coordinates and a four-direction compass.
-v2 adds the fourth coordinate and a new direction.
+v2 adds two new coordinates, a fifth and sixth direction, and a new
+category of interior object.
+
+### The Updated Node Coordinates
+
+A node now has five coordinates:
+
+1. **Latitude** — epistemic confidence in its own register (from v1)
+2. **Longitude** — domain sector (from v1)
+3. **Influence radius** — how far surface resonance extends (from v1)
+4. **Heritage Depth (H)** — length and richness of ancestry chain (new)
+5. **Influence Depth (I)** — how many descendants this node has generated (new)
+
+A Transfer Event has its own coordinate structure:
+
+1. **Direction** — K→S, S→K, or K↔S
+2. **Catalyst** — the specific artifact that carried the transfer
+3. **Latency** — delay between originating node and transfer
+4. **Yield** — what new nodes were produced on the receiving strand
+5. **Return path** — whether a second transfer came back
 
 ### The Updated Compass
 
@@ -498,37 +717,87 @@ v1's four directions:
 - **East / Clockwise** — toward application
 - **West / Counterclockwise** — toward foundations
 
-v2 adds a fifth:
+v2 adds two interior directions:
 
-- **Inward** — toward ancestry. What does this idea come from? Follow its
-  helix depth inward to find the chain that produced it. This is the
-  direction of historical navigation: going backward through the interior
-  helix to understand how the present state was produced.
+- **Inward (Heritage)** — toward ancestry. Follow Heritage Depth backward
+  into the interior helix. What chain of priors produced this node?
+  This is the direction of historical navigation.
 
-And its complement, implicit in v1 but now named:
+- **Inward (Influence)** — toward descendants. Follow Influence Depth forward
+  into what the node has generated. What did this node make possible?
+  This is the direction of prospective navigation.
 
-- **Outward** — toward descendant. What will this idea produce? New nodes
-  with low helix depth are invitations to extend the chain forward.
-  This is the direction of prospective navigation: going outward to imagine
-  what the current node could eventually generate.
+These two inward directions are not the same. Going backward traces Heritage.
+Going forward traces Influence. A navigator can do both from any node —
+they simply produce different information.
 
-### Reading the Helix
+### The Full Reading of a Node
 
 When a navigator encounters a node, the full reading is now:
 
-1. **Where is it?** — latitude, longitude (v1)
-2. **How far does it reach?** — influence radius (v1)
-3. **How deep are its roots?** — helix depth (v2)
-4. **What strand does it come from?** — Knowledge Lineage, Story Lineage, or a crossing point (v2)
-5. **What constellations does it belong to from here?** — depends on navigator's current position (v2)
+1. **Where is it?** — latitude + longitude
+2. **How far does it reach?** — influence radius (surface resonance)
+3. **How old is its ancestry?** — Heritage Depth (H)
+4. **How generative has it been?** — Influence Depth (I)
+5. **Is it near a Transfer Event?** — check the interior helix for crossings
+6. **What constellations does it belong to from here?** — observer-dependent;
+   depends on the navigator's current position
 
-These five readings are not independent. They generate each other.
-A node with deep helix depth on the Knowledge Lineage strand is likely
-to be in a domain cluster with other high-depth nodes. A crossing-point
-node is likely to have a large influence radius because transfer events
-radiate in multiple directions. A celestial anchor will always be
-surrounded by dense constellations — not because it is more important,
-but because it is more connected.
+These six readings generate each other. A node with deep H and deep I
+near a Transfer Event crossing will tend to have large influence radius.
+A node with low H and low I that is also a Transfer Event catalyst may
+be the most interesting node in the region — it changed the strand despite
+having little ancestry of its own.
+
+---
+
+## 10. Seeds of v3
+
+v2 opened more questions than it answered. These are the ones worth naming.
+
+**Transfer Event completion** — TE-04 (Internet Culture → xPRIMEray) has
+no confirmed return path yet. When xPRIMEray's Observatory Artifacts enter
+a Story Lineage node — a visualization, a film, a piece of art — the return
+path completes and TE-04 becomes bidirectional. What would that look like?
+What would the S→K return from that transfer produce?
+
+**Temporal motion of nodes** — Nodes are not fixed permanently. A node's
+latitude can change as its ideas gain or lose confidence over time.
+A speculative idea at 20°S can move northward if evidence accumulates.
+An ESTABLISHED node can move southward if its assumptions are overturned.
+The current system has no mechanism for tracking temporal drift. v3 will
+need one.
+
+**The south pole** — The NADIR (90°S, the apophatic limit) is described
+in v1 but has no named nodes. Are there nodes at that latitude? What would
+it mean for something to be fully apophatic — beyond current language
+entirely? Candidates: certain formulations of quantum gravity, certain
+phenomenological experiences, certain mystical traditions. The question
+is whether the sphere can *locate* something it cannot yet describe.
+
+**Navigator clusters** — Multiple navigators exploring the sphere
+simultaneously will see different constellations. What happens when they
+share their readings? Do shared constellation readings converge? Diverge?
+What is the protocol for a community of navigators to build a collective
+map — and what are the failure modes when that community enforces a single
+vantage point?
+
+**Stack reflexivity** — The Broch Sphere is both a navigation layer within
+the MisterY Labs stack AND a node on the sphere's own surface (it lives
+somewhere in the Formal/Engineering junction). Its own coordinates can
+be assigned. But can the navigator use the Broch Sphere to locate the
+Broch Sphere? This is not a paradox — it is a depth test. A navigation
+system that cannot locate itself has a blind spot.
+
+**The third helix strand** — The current model has two strands: Knowledge
+Lineage and Story Lineage. Is there a third? Candidates: Institutional
+Lineage (the line of research institutions — from the Library of Alexandria
+to the Royal Society to CERN to the Internet Archive); Instrument Lineage
+(the line of physical measurement tools — sundial to telescope to Hubble
+to xPRIMEray). These may be better understood as subsets of the existing
+two strands. Or they may reveal that the helix has more than two strands
+and the double-helix model is a useful simplification rather than a
+complete description.
 
 ---
 
@@ -544,10 +813,19 @@ The example mappings of Sagan, Penrose, Feynman, Tolkien, Interstellar,
 xPRIMEray, and MisterY Labs are unchanged.
 The claim that MisterY Labs is the navigator, not a node, is unchanged.
 
-v2 adds depth to what v1 built. It does not replace the surface.
-It reveals what is inside.
+v2 adds the interior to what v1 built.
+It adds the helix to what the surface already knew.
+It names the crossing points as objects.
+It splits a single depth measure into two distinct coordinates.
+It formalizes which parts of the system are fixed and which depend on
+where you are standing.
+It names five open questions it cannot answer.
+
+The sphere is not finished. That is the correct state for a navigation
+instrument. A finished map has no unexplored territory. The Broch Sphere
+should always have unexplored territory.
 
 ---
 
 *Broch Sphere Philosophy v2 — MisterY Labs · June 2026*
-*Requires v1. Not a replacement.*
+*Requires v1. Not a replacement. Seeds of v3 documented in Section 10.*
