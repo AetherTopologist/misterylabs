@@ -16,14 +16,12 @@ export const observerStances: ObserverStance[] = [
       "k-faraday",
       "k-maxwell",
       "k-einstein",
-      "k-wheeler",
       "k-penrose",
       "k-xprimery",
       "b-darwin",
       "b-sagan",
       "b-galileo",
       "star-press",
-      "s-clarke",
       "s-interstellar",
     ],
     cannotAsk:
@@ -53,7 +51,7 @@ export const observerStances: ObserverStance[] = [
       "k-xprimery",
     ],
     cannotAsk:
-      "Heritage Depth alone cannot answer what form made the idea felt. From here, form is part of the content.",
+      "Which ideas in the Knowledge Lineage have not yet crossed into form — and what would need to happen before they could be felt?",
   },
 ];
 

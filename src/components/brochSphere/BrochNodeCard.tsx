@@ -51,15 +51,6 @@ export function BrochNodeCard({ node, stance, horizon }: BrochNodeCardProps) {
         </div>
       </div>
 
-      <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-        <Info label="Latitude" value={`${node.latitude} deg`} />
-        <Info label="Longitude" value={`${node.longitude} deg`} />
-        <Info label="Sector" value={node.sector} />
-        <Info label="Radius" value={`${node.influenceRadius} deg`} />
-        <Info label="Heritage" value={node.heritageDepth} />
-        <Info label="Influence" value={node.influenceDepth} />
-      </div>
-
       {stanceReading && (
         <div className="mt-4 rounded-md border border-primary/25 bg-primary/8 p-3">
           <div className="mb-2 flex items-center gap-2 text-primary-glow">
@@ -74,7 +65,7 @@ export function BrochNodeCard({ node, stance, horizon }: BrochNodeCardProps) {
         <div className="mt-4 rounded-md border border-amber-500/25 bg-amber-500/8 p-3">
           <div className="mb-2 flex items-center gap-2 text-amber-300">
             <HelpCircle className="h-4 w-4" />
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em]">Beacon</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em]">Open Question</p>
           </div>
           {node.uncertainty && (
             <p className="mb-2 flex items-center gap-2 text-xs text-rose-200">
@@ -85,6 +76,15 @@ export function BrochNodeCard({ node, stance, horizon }: BrochNodeCardProps) {
           <p className="text-sm leading-relaxed text-foreground/90">{node.openQuestion}</p>
         </div>
       )}
+
+      <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+        <Info label="Latitude" value={`${node.latitude} deg`} />
+        <Info label="Longitude" value={`${node.longitude} deg`} />
+        <Info label="Sector" value={node.sector} />
+        <Info label="Radius" value={`${node.influenceRadius} deg`} />
+        <Info label="Heritage" value={node.heritageDepth} />
+        <Info label="Influence" value={node.influenceDepth} />
+      </div>
     </div>
   );
 }

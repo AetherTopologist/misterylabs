@@ -42,18 +42,40 @@ export function BrochJourneyPanel({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-3">
-        {journeys.map((journey) => (
+      <div className="mt-4 space-y-2">
+        {journeys.filter((j) => j.primary).map((journey) => (
           <Button
             key={journey.id}
             type="button"
             variant={journey.id === activeJourney.id ? "secondary" : "outline"}
-            className="h-auto justify-start rounded-lg px-3 py-2 text-left"
+            className="h-auto w-full justify-start rounded-lg px-3 py-2.5 text-left"
             onClick={() => onJourneyChange(journey.id)}
           >
-            <span className="whitespace-normal text-xs">{journey.name}</span>
+            <span className="min-w-0">
+              <span className="block text-sm font-medium">{journey.name}</span>
+              <span className="mt-0.5 block whitespace-normal text-[11px] font-normal leading-snug opacity-70">
+                {journey.subtitle}
+              </span>
+            </span>
           </Button>
         ))}
+        <div className="flex flex-wrap gap-2 pt-1">
+          <p className="w-full font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+            Other paths
+          </p>
+          {journeys.filter((j) => !j.primary).map((journey) => (
+            <Button
+              key={journey.id}
+              type="button"
+              variant={journey.id === activeJourney.id ? "secondary" : "ghost"}
+              size="sm"
+              className="h-auto rounded-md px-2.5 py-1 text-xs"
+              onClick={() => onJourneyChange(journey.id)}
+            >
+              {journey.name}
+            </Button>
+          ))}
+        </div>
       </div>
 
       <div className="mt-4 rounded-md border border-border/40 bg-background/35 p-3">

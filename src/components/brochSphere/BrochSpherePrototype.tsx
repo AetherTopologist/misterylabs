@@ -378,14 +378,18 @@ function GraphEdge({ edge, active }: { edge: BrochEdge; active: boolean }) {
         ? "hsl(var(--destructive))"
         : "hsl(var(--instrument-line))";
 
+  // When the transfer event this edge belongs to is active, the crossing
+  // becomes solid — the strand boundary is live, not latent.
+  const dashed = (edge.kind === "te-crossing" || edge.kind === "beacon") && !active;
+
   return (
     <GraphLine
       from={from}
       to={to}
       color={color}
       width={active ? 3 : 1.3}
-      opacity={active ? 0.78 : 0.18}
-      dashed={edge.kind === "te-crossing" || edge.kind === "beacon"}
+      opacity={active ? 0.88 : 0.18}
+      dashed={dashed}
     />
   );
 }
@@ -433,6 +437,8 @@ function TransferGlyph({
   active: boolean;
   onSelect: () => void;
 }) {
+  const half = active ? 16 : 12;
+
   return (
     <g
       role="button"
@@ -444,22 +450,32 @@ function TransferGlyph({
       }}
       className="cursor-pointer outline-none"
     >
+      {active && (
+        <circle
+          cx={point.x}
+          cy={point.y}
+          r="28"
+          fill="hsl(var(--warning) / 0.08)"
+          stroke="hsl(var(--warning) / 0.28)"
+          strokeWidth="1"
+        />
+      )}
       <rect
-        x={point.x - 13}
-        y={point.y - 13}
-        width="26"
-        height="26"
+        x={point.x - half}
+        y={point.y - half}
+        width={half * 2}
+        height={half * 2}
         transform={`rotate(45 ${point.x} ${point.y})`}
         fill={active ? "hsl(var(--warning) / 0.45)" : "hsl(var(--warning) / 0.18)"}
         stroke={active ? "hsl(48 100% 78%)" : "hsl(var(--warning) / 0.6)"}
-        strokeWidth={active ? 3 : 1.5}
+        strokeWidth={active ? 2.5 : 1.5}
       />
       <text
         x={point.x}
-        y={point.y - 21}
+        y={point.y - (active ? 25 : 19)}
         textAnchor="middle"
         fill="hsl(var(--warning))"
-        fontSize="11"
+        fontSize={active ? "12" : "10"}
         fontFamily="JetBrains Mono, monospace"
         fontWeight="600"
       >
@@ -533,12 +549,24 @@ function NodeGlyph({
         filter={emphasis ? "url(#nodeGlow)" : undefined}
       />
       {node.openQuestion && (
-        <circle
-          cx={point.x + radius + 5}
-          cy={point.y - radius - 3}
-          r="4"
-          fill="hsl(var(--warning))"
-        />
+        <>
+          <circle
+            cx={point.x + radius + 6}
+            cy={point.y - radius - 4}
+            r="9"
+            fill="none"
+            stroke="hsl(var(--warning))"
+            strokeWidth="1"
+            opacity="0.32"
+          />
+          <circle
+            cx={point.x + radius + 6}
+            cy={point.y - radius - 4}
+            r="5"
+            fill="hsl(var(--warning))"
+            opacity="0.9"
+          />
+        </>
       )}
       {node.uncertainty && (
         <path
@@ -606,10 +634,10 @@ function SingleQuestionPanel({
 
 function BeaconPanel({ onSelect }: { onSelect: (selection: Selection) => void }) {
   const beacons = [
-    { id: "te-04", label: "TE-04 missing return path", type: "transfer" as const },
-    { id: "k-xprimery", label: "xPRIMEray unresolved destination", type: "node" as const },
-    { id: "b-tolkien", label: "Tolkien uncertain latitude", type: "node" as const },
-    { id: "s-interstellar", label: "Interstellar Physical-sector pull", type: "node" as const },
+    { id: "te-04", label: "When does TE-04 return?", type: "transfer" as const },
+    { id: "k-xprimery", label: "xPRIMEray: instrument or heir?", type: "node" as const },
+    { id: "b-tolkien", label: "Where does Tolkien actually sit?", type: "node" as const },
+    { id: "s-interstellar", label: "Did Interstellar move northward?", type: "node" as const },
   ];
 
   return (
