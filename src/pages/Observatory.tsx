@@ -159,11 +159,11 @@ const Observatory = () => {
       {/* HERO LANDING */}
       <section className="max-w-7xl mx-auto px-6 pt-10 pb-16 border-b border-border/40">
         <div className="max-w-4xl">
-          <div className="inline-flex items-center rounded-full bg-secondary/50 px-3 py-1 text-[10px] font-mono tracking-[0.2em] text-amber-500 dark:text-amber-400 mb-4 border border-border/40">
+          <div className="inline-flex items-center rounded-full bg-secondary/50 px-3 py-1 text-[10px] font-mono tracking-[0.2em] text-[hsl(var(--annotation-amber))] mb-4 border border-border/40">
             LAYER 2 — PUBLIC OBSERVATORY • ACTIVATING
           </div>
 
-          <h1 className="text-6xl md:text-7xl font-bold tracking-tighter leading-[0.95] mb-4">
+          <h1 className="[font-size:clamp(1.875rem,8vw,4.5rem)] font-bold tracking-tighter leading-[0.95] mb-4">
             xPRIMEray<br />Observatory Gallery
           </h1>
 
@@ -310,7 +310,7 @@ const Observatory = () => {
       {/* EXPERIMENTAL ARCHIVE */}
       <section id="experimental" className="max-w-7xl mx-auto px-6 pb-20 border-t border-border/30 pt-10">
         <div className="mb-5">
-          <div className="section-header text-amber-500 dark:text-amber-400">Layer 3 • Gated / Experimental</div>
+          <div className="section-header text-[hsl(var(--annotation-amber))]">Layer 3 • Gated / Experimental</div>
           <h2 className="text-3xl font-semibold tracking-tighter">Experimental Archive</h2>
           <p className="text-sm text-muted-foreground mt-1">Exploratory, internal, or carrying explicit PLACEHOLDER discipline. Not for public citation without context.</p>
         </div>
@@ -318,7 +318,7 @@ const Observatory = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
           {experimental.length > 0 ? experimental.map(f => <FixtureCard key={f.id} fixture={f} compact />) : null}
           <div className="diagnostic-frame p-4 rounded text-xs border border-border/30">
-            Cathedral Probe → corner_probe_reference <span className="text-amber-500 dark:text-amber-400">[PLACEHOLDER]</span>
+            Cathedral Probe → corner_probe_reference <span className="text-[hsl(var(--annotation-amber))]">[PLACEHOLDER]</span>
           </div>
           <div className="diagnostic-frame p-4 rounded text-xs border border-border/30">Resonance Chamber Overlay Trial</div>
           <div className="diagnostic-frame p-4 rounded text-xs border border-border/30">Triclock DOE Sandbox Plan</div>

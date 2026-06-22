@@ -515,6 +515,26 @@
     background: hsl(var(--layer-panel-strong));
     border-bottom: 1px solid hsl(var(--border) / 0.58);
   }
+
+  /* SVG node label backing rect — theme-aware via CSS class */
+  .broch-node-label-bg {
+    fill: hsl(var(--layer-panel) / 0.88);
+    stroke: hsl(var(--border) / 0.22);
+  }
+
+  html.light .broch-node-label-bg {
+    fill: hsl(var(--layer-panel-strong));
+    stroke: hsl(var(--border) / 0.60);
+  }
+
+  /* Fractal canvas: dark field that holds the fractal node rendering */
+  .fractal-canvas {
+    background: hsl(230 25% 8%);
+  }
+
+  html.light .fractal-canvas {
+    background: hsl(220 12% 12%);
+  }
 }
 
 /* SVG arc trace animations — referenced via inline style on SVG elements */

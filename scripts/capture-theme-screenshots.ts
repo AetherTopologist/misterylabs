@@ -8,27 +8,39 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 
 const BASE = "http://localhost:4173/misterylabs";
-const VIEWPORT = { width: 1440, height: 1100 };
-const SETTLE_MS = 1000;
+const SETTLE_MS = 1200;
 
 const TODAY = new Date().toISOString().slice(0, 10);
 const OUT_DIR = path.join(ROOT, "docs", "visual-audit", TODAY);
 
 const ROUTES: { slug: string; path: string }[] = [
-  { slug: "home", path: "/" },
-  { slug: "atlas", path: "/atlas" },
-  { slug: "observatory", path: "/observatory" },
-  { slug: "media", path: "/media" },
-  { slug: "observatory-force-graph", path: "/observatory/force-graph" },
-  { slug: "observatory-resonance-spheres", path: "/observatory/resonance-spheres" },
+  { slug: "home",                            path: "/"                                },
+  { slug: "atlas",                           path: "/atlas"                           },
+  { slug: "observatory",                     path: "/observatory"                     },
+  { slug: "media",                           path: "/media"                           },
+  { slug: "observatory-force-graph",         path: "/observatory/force-graph"         },
+  { slug: "observatory-resonance-spheres",   path: "/observatory/resonance-spheres"   },
   { slug: "observatory-fractal-inspiration", path: "/observatory/fractal-inspiration" },
-  { slug: "observatory-transport-sphere", path: "/observatory/transport-sphere" },
-  { slug: "observatory-poisson-dot", path: "/observatory/poisson-dot" },
-  { slug: "observatory-quaternion", path: "/observatory/quaternion" },
-  { slug: "observatory-higher-dimensional", path: "/observatory/higher-dimensional" },
+  { slug: "observatory-transport-sphere",    path: "/observatory/transport-sphere"    },
+  { slug: "observatory-poisson-dot",         path: "/observatory/poisson-dot"         },
+  { slug: "observatory-quaternion",          path: "/observatory/quaternion"          },
+  { slug: "observatory-higher-dimensional",  path: "/observatory/higher-dimensional"  },
+  { slug: "broch-sphere",                    path: "/broch-sphere"                    },
 ];
 
 const THEMES: ("dark" | "light")[] = ["dark", "light"];
+
+interface Viewport { name: string; width: number; height: number }
+
+const VIEWPORTS: Viewport[] = [
+  { name: "mobile-390",     width: 390,  height: 844  },
+  { name: "tablet-768",     width: 768,  height: 1024 },
+  { name: "laptop-sm-1024", width: 1024, height: 768  },
+  { name: "laptop-1366",    width: 1366, height: 768  },
+  { name: "desktop-1440",   width: 1440, height: 900  },
+  { name: "wide-1920",      width: 1920, height: 1080 },
+  { name: "ultra-2560",     width: 2560, height: 1440 },
+];
 
 async function isServerRunning(): Promise<boolean> {
   try {
@@ -51,12 +63,12 @@ async function waitForServer(maxMs = 30000): Promise<void> {
 async function captureRoute(
   page: Page,
   route: { slug: string; path: string },
-  theme: "dark" | "light"
+  theme: "dark" | "light",
+  viewport: Viewport,
 ): Promise<string> {
   const url = `${BASE}${route.path}`;
   await page.goto(url, { waitUntil: "networkidle" });
 
-  // Force theme via html class (same mechanism as useTheme hook)
   await page.evaluate((t: string) => {
     if (t === "light") {
       document.documentElement.classList.add("light");
@@ -65,13 +77,15 @@ async function captureRoute(
     }
   }, theme);
 
-  // Settle for fonts, canvas, SVG animations
   await page.waitForTimeout(SETTLE_MS);
 
+  const vpDir = path.join(OUT_DIR, viewport.name);
+  fs.mkdirSync(vpDir, { recursive: true });
+
   const filename = `${route.slug}-${theme}.png`;
-  const filepath = path.join(OUT_DIR, filename);
+  const filepath = path.join(vpDir, filename);
   await page.screenshot({ path: filepath, fullPage: false });
-  return filename;
+  return path.join(viewport.name, filename);
 }
 
 function buildIfNeeded(): void {
@@ -86,7 +100,6 @@ function buildIfNeeded(): void {
 
 async function main(): Promise<void> {
   buildIfNeeded();
-
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
   let previewProc: ChildProcess | null = null;
@@ -105,53 +118,72 @@ async function main(): Promise<void> {
     console.log("Preview server already running at localhost:4173.");
   }
 
-  const captured: string[] = [];
   const browser: Browser = await firefox.launch({ headless: true });
+  const captured: string[] = [];
+  const manifest: Record<string, Record<string, Record<string, string>>> = {};
 
   try {
-    const context = await browser.newContext({ viewport: VIEWPORT });
-    const page = await context.newPage();
+    for (const viewport of VIEWPORTS) {
+      console.log(`\n── ${viewport.name} (${viewport.width}×${viewport.height}) ──`);
+      manifest[viewport.name] = {};
 
-    for (const route of ROUTES) {
-      for (const theme of THEMES) {
-        process.stdout.write(`  ${route.slug} [${theme}]… `);
-        const filename = await captureRoute(page, route, theme);
-        captured.push(filename);
-        console.log("done");
+      const context = await browser.newContext({
+        viewport: { width: viewport.width, height: viewport.height },
+      });
+      const page = await context.newPage();
+
+      for (const route of ROUTES) {
+        manifest[viewport.name][route.slug] = {};
+        for (const theme of THEMES) {
+          process.stdout.write(`  ${route.slug} [${theme}]… `);
+          const relPath = await captureRoute(page, route, theme, viewport);
+          captured.push(relPath);
+          manifest[viewport.name][route.slug][theme] = relPath;
+          console.log("done");
+        }
       }
-    }
 
-    await context.close();
+      await context.close();
+    }
   } finally {
     await browser.close();
-    if (previewProc) {
-      previewProc.kill();
-    }
+    if (previewProc) previewProc.kill();
   }
 
-  // Generate README.md
+  // Write manifest JSON
+  fs.writeFileSync(
+    path.join(OUT_DIR, "audit-manifest.json"),
+    JSON.stringify({ date: TODAY, viewports: VIEWPORTS, routes: ROUTES, files: manifest }, null, 2),
+  );
+
+  // Write README index
   const now = new Date().toISOString().replace("T", " ").slice(0, 19) + " UTC";
-  const fileList = captured.map((f) => `- \`${f}\``).join("\n");
-  const routeList = ROUTES.map((r) => `- \`${r.slug}\` → \`${r.path}\``).join("\n");
+  const vpSection = VIEWPORTS.map((vp) => {
+    const rows = ROUTES.map((r) =>
+      THEMES.map((t) => `| ${r.slug} | ${t} | \`${vp.name}/${r.slug}-${t}.png\` |`).join("\n"),
+    ).join("\n");
+    return `### ${vp.name} (${vp.width}×${vp.height})\n\n| Route | Theme | File |\n|---|---|---|\n${rows}`;
+  }).join("\n\n");
 
   const readme = `# Visual Audit — ${TODAY}
 
-> Reference screenshots for visual/theme audit only.
 > Generated: ${now}
-> Viewport: ${VIEWPORT.width}×${VIEWPORT.height}
+> Routes: ${ROUTES.length} · Themes: ${THEMES.length} · Viewports: ${VIEWPORTS.length}
+> Total screenshots: ${captured.length}
 
-## Routes captured
+## Viewports
 
-${routeList}
+${VIEWPORTS.map((vp) => `- \`${vp.name}\` — ${vp.width}×${vp.height}`).join("\n")}
 
-## Screenshots
+## Screenshot Index
 
-${fileList}
+${vpSection}
 `;
 
   fs.writeFileSync(path.join(OUT_DIR, "README.md"), readme);
 
   console.log(`\nDone. ${captured.length} screenshots → docs/visual-audit/${TODAY}/`);
+  console.log(`Manifest: docs/visual-audit/${TODAY}/audit-manifest.json`);
 }
 
 main().catch((err) => {

@@ -133,7 +133,7 @@ export function BrochSpherePrototype() {
           </div>
         </div>
 
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="min-w-0">
             <BrochGraph
               activeConstellation={activeConstellation}
@@ -147,7 +147,7 @@ export function BrochSpherePrototype() {
             />
           </div>
 
-          <div className="space-y-4">
+          <div className="flex max-h-[580px] flex-col gap-4 overflow-y-auto">
             <BrochJourneyPanel
               journeys={brochJourneys}
               activeJourney={activeJourney}
@@ -163,20 +163,20 @@ export function BrochSpherePrototype() {
               activeStanceId={activeStanceId}
               onChange={setActiveStanceId}
             />
+            {selectedTransfer && <BrochTransferEventCard event={selectedTransfer} />}
+            {selectedNode && (
+              <BrochNodeCard
+                node={selectedNode}
+                stance={stance}
+                horizon={selection.type === "node" && selection.horizon}
+              />
+            )}
           </div>
         </div>
       </section>
 
       <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="space-y-5">
-          {selectedTransfer && <BrochTransferEventCard event={selectedTransfer} />}
-          {selectedNode && (
-            <BrochNodeCard
-              node={selectedNode}
-              stance={stance}
-              horizon={selection.type === "node" && selection.horizon}
-            />
-          )}
+        <div>
           <SingleQuestionPanel
             stanceId={activeStanceId}
             show={showSingleQuestion}
@@ -218,12 +218,12 @@ function BrochGraph({
   onSelect: (selection: Selection) => void;
 }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-border/50 bg-[hsl(var(--layer-diagram))] shadow-card">
+    <div className="overflow-x-auto rounded-lg border border-border/50 bg-[hsl(var(--layer-diagram))] shadow-card">
       <svg
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         role="img"
         aria-label="Broch Sphere 2D prototype graph"
-        className="h-[520px] w-full min-w-[720px]"
+        className="h-[420px] w-full min-w-[720px] lg:h-[520px]"
       >
         <defs>
           <radialGradient id="brochGlow" cx="50%" cy="50%" r="50%">
@@ -273,19 +273,32 @@ function BrochGraph({
 
         <g>
           {["FORMAL", "PHYSICAL", "ENGINEERING", "HISTORICAL", "CULTURAL", "PERSONAL"].map(
-            (sector, index) => (
-              <text
-                key={sector}
-                x={index * (WIDTH / 6) + 18}
-                y={HEIGHT - 18}
-                fill="hsl(var(--muted-foreground) / 0.48)"
-                fontSize="10"
-                fontFamily="JetBrains Mono, monospace"
-                letterSpacing="2"
-              >
-                {sector}
-              </text>
-            ),
+            (sector, index) => {
+              const sx = index * (WIDTH / 6) + 18;
+              const sy = HEIGHT - 18;
+              return (
+                <g key={sector}>
+                  <rect
+                    x={sx - 4}
+                    y={sy - 11}
+                    width={sector.length * 6.5 + 14}
+                    height={14}
+                    rx="2"
+                    fill="hsl(var(--layer-panel) / 0.80)"
+                  />
+                  <text
+                    x={sx}
+                    y={sy}
+                    fill="hsl(var(--muted-foreground) / 0.72)"
+                    fontSize="10"
+                    fontFamily="JetBrains Mono, monospace"
+                    letterSpacing="2"
+                  >
+                    {sector}
+                  </text>
+                </g>
+              );
+            },
           )}
         </g>
 
@@ -355,13 +368,24 @@ function BrochGraph({
         </g>
       </svg>
       <div className="flex flex-wrap items-center gap-3 border-t border-border/40 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-        <LegendDot className="bg-yellow-300" label="Star" />
+        <span className="inline-flex items-center gap-2">
+          <span className="relative h-4 w-4">
+            <span className="absolute left-1/2 top-0 h-4 w-px -translate-x-1/2 bg-yellow-300/70" />
+            <span className="absolute left-0 top-1/2 h-px w-4 -translate-y-1/2 bg-yellow-300/70" />
+            <span className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-yellow-300" />
+          </span>
+          Star
+        </span>
         <LegendDot className="bg-cyan-300" label="Knowledge" />
         <LegendDot className="bg-fuchsia-300" label="Story" />
         <LegendDot className="bg-emerald-300" label="Bridge" />
         <span className="inline-flex items-center gap-2">
           <span className="h-3 w-3 rotate-45 border border-amber-300 bg-amber-300/20" />
           Threshold
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="h-3.5 w-3.5 rounded-full border border-dashed border-amber-300" />
+          Beacon
         </span>
       </div>
     </div>
@@ -528,6 +552,17 @@ function NodeGlyph({
           opacity={horizon ? 0.75 : 0.3}
         />
       )}
+      {node.openQuestion && (
+        <circle
+          cx={point.x}
+          cy={point.y}
+          r={radius + 10}
+          fill="none"
+          stroke="hsl(var(--warning) / 0.74)"
+          strokeWidth="1.6"
+          strokeDasharray="3 5"
+        />
+      )}
       {horizon && (
         <circle
           cx={point.x}
@@ -539,6 +574,18 @@ function NodeGlyph({
           strokeDasharray="5 7"
         />
       )}
+      {node.kind === "star" && (
+        <g stroke="hsl(48 100% 82% / 0.82)" strokeLinecap="round" strokeWidth="1.5">
+          <line x1={point.x - 13} y1={point.y} x2={point.x - 8} y2={point.y} />
+          <line x1={point.x + 8} y1={point.y} x2={point.x + 13} y2={point.y} />
+          <line x1={point.x} y1={point.y - 13} x2={point.x} y2={point.y - 8} />
+          <line x1={point.x} y1={point.y + 8} x2={point.x} y2={point.y + 13} />
+          <line x1={point.x - 9} y1={point.y - 9} x2={point.x - 6} y2={point.y - 6} />
+          <line x1={point.x + 6} y1={point.y + 6} x2={point.x + 9} y2={point.y + 9} />
+          <line x1={point.x + 6} y1={point.y - 6} x2={point.x + 9} y2={point.y - 9} />
+          <line x1={point.x - 9} y1={point.y + 9} x2={point.x - 6} y2={point.y + 6} />
+        </g>
+      )}
       <circle
         cx={point.x}
         cy={point.y}
@@ -548,32 +595,21 @@ function NodeGlyph({
         strokeWidth={selected ? 3 : reached || constellation ? 2 : 1}
         filter={emphasis ? "url(#nodeGlow)" : undefined}
       />
-      {node.openQuestion && (
-        <>
-          <circle
-            cx={point.x + radius + 6}
-            cy={point.y - radius - 4}
-            r="9"
-            fill="none"
-            stroke="hsl(var(--warning))"
-            strokeWidth="1"
-            opacity="0.32"
-          />
-          <circle
-            cx={point.x + radius + 6}
-            cy={point.y - radius - 4}
-            r="5"
-            fill="hsl(var(--warning))"
-            opacity="0.9"
-          />
-        </>
-      )}
       {node.uncertainty && (
         <path
           d={`M ${point.x - radius - 8} ${point.y - radius - 8} l 8 0 l -4 8 z`}
           fill="hsl(var(--destructive))"
         />
       )}
+      <rect
+        x={point.x + 9}
+        y={point.y - 9}
+        width={node.label.length * (selected ? 7.5 : 6.5) + 10}
+        height={selected ? 18 : 15}
+        rx="2"
+        className="broch-node-label-bg"
+        strokeWidth="0.5"
+      />
       <text
         x={point.x + 12}
         y={point.y + 4}

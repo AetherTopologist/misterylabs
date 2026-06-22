@@ -504,7 +504,7 @@ export function FractalInspirationAtlas() {
 
         <div
           ref={containerRef}
-          className="relative mt-8 h-[640px] w-full overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-[#05070f] via-[#070912] to-[#04050b] shadow-glow"
+          className="fractal-canvas relative mt-8 h-[640px] w-full overflow-hidden rounded-2xl border border-border/60 shadow-glow"
           style={{
             backgroundImage:
               "radial-gradient(ellipse at center, rgba(99,170,255,0.06), transparent 70%), repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 48px), repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 48px)",

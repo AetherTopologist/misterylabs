@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "audit:links": "node scripts/audit-links.mjs",
+    "visual:qa": "tsx scripts/visual-qa.ts",
     "capture:screens": "tsx scripts/capture-theme-screenshots.ts",
     "contrast:check": "tsx scripts/contrast-check.ts"
   },

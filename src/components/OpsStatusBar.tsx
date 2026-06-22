@@ -111,7 +111,7 @@ function SmallReadout({
       : "text-status-launched";
   return (
     <div className="rounded border border-border/60 bg-background/40 px-2 py-1">
-      <div className="text-[8.5px]">{label}</div>
+      <div className="text-[9px]">{label}</div>
       <div className={`mt-0.5 readout text-[10.5px] normal-case tracking-wider ${color}`}>
         {value}
       </div>
@@ -132,7 +132,7 @@ function Kpi({
 }) {
   return (
     <div className="relative overflow-hidden rounded border border-border/60 bg-background/40 px-2.5 py-1.5">
-      <div className="font-mono text-[8.5px] uppercase tracking-[0.22em] text-muted-foreground">
+      <div className="font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
         {label}
       </div>
       <div className="mt-0.5 readout text-[18px] font-semibold leading-none text-foreground">

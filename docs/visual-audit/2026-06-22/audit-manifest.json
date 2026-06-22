@@ -1,0 +1,442 @@
+{
+  "date": "2026-06-22",
+  "viewports": [
+    {
+      "name": "mobile-390",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "tablet-768",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "name": "laptop-sm-1024",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "laptop-1366",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "name": "desktop-1440",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "wide-1920",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "name": "ultra-2560",
+      "width": 2560,
+      "height": 1440
+    }
+  ],
+  "routes": [
+    {
+      "slug": "home",
+      "path": "/"
+    },
+    {
+      "slug": "atlas",
+      "path": "/atlas"
+    },
+    {
+      "slug": "observatory",
+      "path": "/observatory"
+    },
+    {
+      "slug": "media",
+      "path": "/media"
+    },
+    {
+      "slug": "observatory-force-graph",
+      "path": "/observatory/force-graph"
+    },
+    {
+      "slug": "observatory-resonance-spheres",
+      "path": "/observatory/resonance-spheres"
+    },
+    {
+      "slug": "observatory-fractal-inspiration",
+      "path": "/observatory/fractal-inspiration"
+    },
+    {
+      "slug": "observatory-transport-sphere",
+      "path": "/observatory/transport-sphere"
+    },
+    {
+      "slug": "observatory-poisson-dot",
+      "path": "/observatory/poisson-dot"
+    },
+    {
+      "slug": "observatory-quaternion",
+      "path": "/observatory/quaternion"
+    },
+    {
+      "slug": "observatory-higher-dimensional",
+      "path": "/observatory/higher-dimensional"
+    },
+    {
+      "slug": "broch-sphere",
+      "path": "/broch-sphere"
+    }
+  ],
+  "files": {
+    "mobile-390": {
+      "home": {
+        "dark": "mobile-390/home-dark.png",
+        "light": "mobile-390/home-light.png"
+      },
+      "atlas": {
+        "dark": "mobile-390/atlas-dark.png",
+        "light": "mobile-390/atlas-light.png"
+      },
+      "observatory": {
+        "dark": "mobile-390/observatory-dark.png",
+        "light": "mobile-390/observatory-light.png"
+      },
+      "media": {
+        "dark": "mobile-390/media-dark.png",
+        "light": "mobile-390/media-light.png"
+      },
+      "observatory-force-graph": {
+        "dark": "mobile-390/observatory-force-graph-dark.png",
+        "light": "mobile-390/observatory-force-graph-light.png"
+      },
+      "observatory-resonance-spheres": {
+        "dark": "mobile-390/observatory-resonance-spheres-dark.png",
+        "light": "mobile-390/observatory-resonance-spheres-light.png"
+      },
+      "observatory-fractal-inspiration": {
+        "dark": "mobile-390/observatory-fractal-inspiration-dark.png",
+        "light": "mobile-390/observatory-fractal-inspiration-light.png"
+      },
+      "observatory-transport-sphere": {
+        "dark": "mobile-390/observatory-transport-sphere-dark.png",
+        "light": "mobile-390/observatory-transport-sphere-light.png"
+      },
+      "observatory-poisson-dot": {
+        "dark": "mobile-390/observatory-poisson-dot-dark.png",
+        "light": "mobile-390/observatory-poisson-dot-light.png"
+      },
+      "observatory-quaternion": {
+        "dark": "mobile-390/observatory-quaternion-dark.png",
+        "light": "mobile-390/observatory-quaternion-light.png"
+      },
+      "observatory-higher-dimensional": {
+        "dark": "mobile-390/observatory-higher-dimensional-dark.png",
+        "light": "mobile-390/observatory-higher-dimensional-light.png"
+      },
+      "broch-sphere": {
+        "dark": "mobile-390/broch-sphere-dark.png",
+        "light": "mobile-390/broch-sphere-light.png"
+      }
+    },
+    "tablet-768": {
+      "home": {
+        "dark": "tablet-768/home-dark.png",
+        "light": "tablet-768/home-light.png"
+      },
+      "atlas": {
+        "dark": "tablet-768/atlas-dark.png",
+        "light": "tablet-768/atlas-light.png"
+      },
+      "observatory": {
+        "dark": "tablet-768/observatory-dark.png",
+        "light": "tablet-768/observatory-light.png"
+      },
+      "media": {
+        "dark": "tablet-768/media-dark.png",
+        "light": "tablet-768/media-light.png"
+      },
+      "observatory-force-graph": {
+        "dark": "tablet-768/observatory-force-graph-dark.png",
+        "light": "tablet-768/observatory-force-graph-light.png"
+      },
+      "observatory-resonance-spheres": {
+        "dark": "tablet-768/observatory-resonance-spheres-dark.png",
+        "light": "tablet-768/observatory-resonance-spheres-light.png"
+      },
+      "observatory-fractal-inspiration": {
+        "dark": "tablet-768/observatory-fractal-inspiration-dark.png",
+        "light": "tablet-768/observatory-fractal-inspiration-light.png"
+      },
+      "observatory-transport-sphere": {
+        "dark": "tablet-768/observatory-transport-sphere-dark.png",
+        "light": "tablet-768/observatory-transport-sphere-light.png"
+      },
+      "observatory-poisson-dot": {
+        "dark": "tablet-768/observatory-poisson-dot-dark.png",
+        "light": "tablet-768/observatory-poisson-dot-light.png"
+      },
+      "observatory-quaternion": {
+        "dark": "tablet-768/observatory-quaternion-dark.png",
+        "light": "tablet-768/observatory-quaternion-light.png"
+      },
+      "observatory-higher-dimensional": {
+        "dark": "tablet-768/observatory-higher-dimensional-dark.png",
+        "light": "tablet-768/observatory-higher-dimensional-light.png"
+      },
+      "broch-sphere": {
+        "dark": "tablet-768/broch-sphere-dark.png",
+        "light": "tablet-768/broch-sphere-light.png"
+      }
+    },
+    "laptop-sm-1024": {
+      "home": {
+        "dark": "laptop-sm-1024/home-dark.png",
+        "light": "laptop-sm-1024/home-light.png"
+      },
+      "atlas": {
+        "dark": "laptop-sm-1024/atlas-dark.png",
+        "light": "laptop-sm-1024/atlas-light.png"
+      },
+      "observatory": {
+        "dark": "laptop-sm-1024/observatory-dark.png",
+        "light": "laptop-sm-1024/observatory-light.png"
+      },
+      "media": {
+        "dark": "laptop-sm-1024/media-dark.png",
+        "light": "laptop-sm-1024/media-light.png"
+      },
+      "observatory-force-graph": {
+        "dark": "laptop-sm-1024/observatory-force-graph-dark.png",
+        "light": "laptop-sm-1024/observatory-force-graph-light.png"
+      },
+      "observatory-resonance-spheres": {
+        "dark": "laptop-sm-1024/observatory-resonance-spheres-dark.png",
+        "light": "laptop-sm-1024/observatory-resonance-spheres-light.png"
+      },
+      "observatory-fractal-inspiration": {
+        "dark": "laptop-sm-1024/observatory-fractal-inspiration-dark.png",
+        "light": "laptop-sm-1024/observatory-fractal-inspiration-light.png"
+      },
+      "observatory-transport-sphere": {
+        "dark": "laptop-sm-1024/observatory-transport-sphere-dark.png",
+        "light": "laptop-sm-1024/observatory-transport-sphere-light.png"
+      },
+      "observatory-poisson-dot": {
+        "dark": "laptop-sm-1024/observatory-poisson-dot-dark.png",
+        "light": "laptop-sm-1024/observatory-poisson-dot-light.png"
+      },
+      "observatory-quaternion": {
+        "dark": "laptop-sm-1024/observatory-quaternion-dark.png",
+        "light": "laptop-sm-1024/observatory-quaternion-light.png"
+      },
+      "observatory-higher-dimensional": {
+        "dark": "laptop-sm-1024/observatory-higher-dimensional-dark.png",
+        "light": "laptop-sm-1024/observatory-higher-dimensional-light.png"
+      },
+      "broch-sphere": {
+        "dark": "laptop-sm-1024/broch-sphere-dark.png",
+        "light": "laptop-sm-1024/broch-sphere-light.png"
+      }
+    },
+    "laptop-1366": {
+      "home": {
+        "dark": "laptop-1366/home-dark.png",
+        "light": "laptop-1366/home-light.png"
+      },
+      "atlas": {
+        "dark": "laptop-1366/atlas-dark.png",
+        "light": "laptop-1366/atlas-light.png"
+      },
+      "observatory": {
+        "dark": "laptop-1366/observatory-dark.png",
+        "light": "laptop-1366/observatory-light.png"
+      },
+      "media": {
+        "dark": "laptop-1366/media-dark.png",
+        "light": "laptop-1366/media-light.png"
+      },
+      "observatory-force-graph": {
+        "dark": "laptop-1366/observatory-force-graph-dark.png",
+        "light": "laptop-1366/observatory-force-graph-light.png"
+      },
+      "observatory-resonance-spheres": {
+        "dark": "laptop-1366/observatory-resonance-spheres-dark.png",
+        "light": "laptop-1366/observatory-resonance-spheres-light.png"
+      },
+      "observatory-fractal-inspiration": {
+        "dark": "laptop-1366/observatory-fractal-inspiration-dark.png",
+        "light": "laptop-1366/observatory-fractal-inspiration-light.png"
+      },
+      "observatory-transport-sphere": {
+        "dark": "laptop-1366/observatory-transport-sphere-dark.png",
+        "light": "laptop-1366/observatory-transport-sphere-light.png"
+      },
+      "observatory-poisson-dot": {
+        "dark": "laptop-1366/observatory-poisson-dot-dark.png",
+        "light": "laptop-1366/observatory-poisson-dot-light.png"
+      },
+      "observatory-quaternion": {
+        "dark": "laptop-1366/observatory-quaternion-dark.png",
+        "light": "laptop-1366/observatory-quaternion-light.png"
+      },
+      "observatory-higher-dimensional": {
+        "dark": "laptop-1366/observatory-higher-dimensional-dark.png",
+        "light": "laptop-1366/observatory-higher-dimensional-light.png"
+      },
+      "broch-sphere": {
+        "dark": "laptop-1366/broch-sphere-dark.png",
+        "light": "laptop-1366/broch-sphere-light.png"
+      }
+    },
+    "desktop-1440": {
+      "home": {
+        "dark": "desktop-1440/home-dark.png",
+        "light": "desktop-1440/home-light.png"
+      },
+      "atlas": {
+        "dark": "desktop-1440/atlas-dark.png",
+        "light": "desktop-1440/atlas-light.png"
+      },
+      "observatory": {
+        "dark": "desktop-1440/observatory-dark.png",
+        "light": "desktop-1440/observatory-light.png"
+      },
+      "media": {
+        "dark": "desktop-1440/media-dark.png",
+        "light": "desktop-1440/media-light.png"
+      },
+      "observatory-force-graph": {
+        "dark": "desktop-1440/observatory-force-graph-dark.png",
+        "light": "desktop-1440/observatory-force-graph-light.png"
+      },
+      "observatory-resonance-spheres": {
+        "dark": "desktop-1440/observatory-resonance-spheres-dark.png",
+        "light": "desktop-1440/observatory-resonance-spheres-light.png"
+      },
+      "observatory-fractal-inspiration": {
+        "dark": "desktop-1440/observatory-fractal-inspiration-dark.png",
+        "light": "desktop-1440/observatory-fractal-inspiration-light.png"
+      },
+      "observatory-transport-sphere": {
+        "dark": "desktop-1440/observatory-transport-sphere-dark.png",
+        "light": "desktop-1440/observatory-transport-sphere-light.png"
+      },
+      "observatory-poisson-dot": {
+        "dark": "desktop-1440/observatory-poisson-dot-dark.png",
+        "light": "desktop-1440/observatory-poisson-dot-light.png"
+      },
+      "observatory-quaternion": {
+        "dark": "desktop-1440/observatory-quaternion-dark.png",
+        "light": "desktop-1440/observatory-quaternion-light.png"
+      },
+      "observatory-higher-dimensional": {
+        "dark": "desktop-1440/observatory-higher-dimensional-dark.png",
+        "light": "desktop-1440/observatory-higher-dimensional-light.png"
+      },
+      "broch-sphere": {
+        "dark": "desktop-1440/broch-sphere-dark.png",
+        "light": "desktop-1440/broch-sphere-light.png"
+      }
+    },
+    "wide-1920": {
+      "home": {
+        "dark": "wide-1920/home-dark.png",
+        "light": "wide-1920/home-light.png"
+      },
+      "atlas": {
+        "dark": "wide-1920/atlas-dark.png",
+        "light": "wide-1920/atlas-light.png"
+      },
+      "observatory": {
+        "dark": "wide-1920/observatory-dark.png",
+        "light": "wide-1920/observatory-light.png"
+      },
+      "media": {
+        "dark": "wide-1920/media-dark.png",
+        "light": "wide-1920/media-light.png"
+      },
+      "observatory-force-graph": {
+        "dark": "wide-1920/observatory-force-graph-dark.png",
+        "light": "wide-1920/observatory-force-graph-light.png"
+      },
+      "observatory-resonance-spheres": {
+        "dark": "wide-1920/observatory-resonance-spheres-dark.png",
+        "light": "wide-1920/observatory-resonance-spheres-light.png"
+      },
+      "observatory-fractal-inspiration": {
+        "dark": "wide-1920/observatory-fractal-inspiration-dark.png",
+        "light": "wide-1920/observatory-fractal-inspiration-light.png"
+      },
+      "observatory-transport-sphere": {
+        "dark": "wide-1920/observatory-transport-sphere-dark.png",
+        "light": "wide-1920/observatory-transport-sphere-light.png"
+      },
+      "observatory-poisson-dot": {
+        "dark": "wide-1920/observatory-poisson-dot-dark.png",
+        "light": "wide-1920/observatory-poisson-dot-light.png"
+      },
+      "observatory-quaternion": {
+        "dark": "wide-1920/observatory-quaternion-dark.png",
+        "light": "wide-1920/observatory-quaternion-light.png"
+      },
+      "observatory-higher-dimensional": {
+        "dark": "wide-1920/observatory-higher-dimensional-dark.png",
+        "light": "wide-1920/observatory-higher-dimensional-light.png"
+      },
+      "broch-sphere": {
+        "dark": "wide-1920/broch-sphere-dark.png",
+        "light": "wide-1920/broch-sphere-light.png"
+      }
+    },
+    "ultra-2560": {
+      "home": {
+        "dark": "ultra-2560/home-dark.png",
+        "light": "ultra-2560/home-light.png"
+      },
+      "atlas": {
+        "dark": "ultra-2560/atlas-dark.png",
+        "light": "ultra-2560/atlas-light.png"
+      },
+      "observatory": {
+        "dark": "ultra-2560/observatory-dark.png",
+        "light": "ultra-2560/observatory-light.png"
+      },
+      "media": {
+        "dark": "ultra-2560/media-dark.png",
+        "light": "ultra-2560/media-light.png"
+      },
+      "observatory-force-graph": {
+        "dark": "ultra-2560/observatory-force-graph-dark.png",
+        "light": "ultra-2560/observatory-force-graph-light.png"
+      },
+      "observatory-resonance-spheres": {
+        "dark": "ultra-2560/observatory-resonance-spheres-dark.png",
+        "light": "ultra-2560/observatory-resonance-spheres-light.png"
+      },
+      "observatory-fractal-inspiration": {
+        "dark": "ultra-2560/observatory-fractal-inspiration-dark.png",
+        "light": "ultra-2560/observatory-fractal-inspiration-light.png"
+      },
+      "observatory-transport-sphere": {
+        "dark": "ultra-2560/observatory-transport-sphere-dark.png",
+        "light": "ultra-2560/observatory-transport-sphere-light.png"
+      },
+      "observatory-poisson-dot": {
+        "dark": "ultra-2560/observatory-poisson-dot-dark.png",
+        "light": "ultra-2560/observatory-poisson-dot-light.png"
+      },
+      "observatory-quaternion": {
+        "dark": "ultra-2560/observatory-quaternion-dark.png",
+        "light": "ultra-2560/observatory-quaternion-light.png"
+      },
+      "observatory-higher-dimensional": {
+        "dark": "ultra-2560/observatory-higher-dimensional-dark.png",
+        "light": "ultra-2560/observatory-higher-dimensional-light.png"
+      },
+      "broch-sphere": {
+        "dark": "ultra-2560/broch-sphere-dark.png",
+        "light": "ultra-2560/broch-sphere-light.png"
+      }
+    }
+  }
+}
