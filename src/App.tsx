@@ -11,6 +11,7 @@ import Research from "./pages/Research.tsx";
 import Media from "./pages/Media.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import ProjectDetail from "./pages/ProjectDetail.tsx";
+import BrochSphere from "./pages/BrochSphere.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Auth from "./pages/Auth.tsx";
 import Observatory from "./pages/Observatory.tsx";
@@ -94,6 +95,7 @@ const App = () => (
             <Route path="/research" element={<Research />} />
             <Route path="/media" element={<Media />} />
             <Route path="/observatory" element={<Observatory />} />
+            <Route path="/broch-sphere" element={<BrochSphere />} />
             {/* Heavy demo routes — lazy-loaded */}
             <Route path="/observatory/force-graph"         element={<DemoWrapper><ForceGraphPage /></DemoWrapper>} />
             <Route path="/observatory/resonance-spheres"   element={<DemoWrapper><ResonanceSpheresPage /></DemoWrapper>} />
