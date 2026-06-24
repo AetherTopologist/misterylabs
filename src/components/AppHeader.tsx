@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { to: "/", label: "Home", exact: true },
   { to: "/atlas", label: "Atlas" },
   { to: "/observatory", label: "Observatory" },
+  { to: "/broch-sphere", label: "Broch Sphere" },
   { to: "/archive", label: "Archive" },
   { to: "/media", label: "Media" },
 ] as const;

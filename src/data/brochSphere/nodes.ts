@@ -172,17 +172,6 @@ export const brochNodes: BrochNode[] = [
     },
   },
   {
-    id: "s-myl",
-    label: "MisterY Labs",
-    kind: "story",
-    latitude: 15,
-    longitude: 125,
-    sector: "ENGINEERING",
-    heritageDepth: "SHALLOW",
-    influenceDepth: "SHALLOW",
-    influenceRadius: 22,
-  },
-  {
     id: "b-darwin",
     label: "Darwin",
     kind: "bridge",
