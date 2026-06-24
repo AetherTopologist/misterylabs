@@ -14,7 +14,8 @@
     "audit:links": "node scripts/audit-links.mjs",
     "visual:qa": "tsx scripts/visual-qa.ts",
     "capture:screens": "tsx scripts/capture-theme-screenshots.ts",
-    "contrast:check": "tsx scripts/contrast-check.ts"
+    "contrast:check": "tsx scripts/contrast-check.ts",
+    "observatory:audit": "tsx scripts/design-observatory.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
