@@ -14,6 +14,7 @@
     "audit:links": "node scripts/audit-links.mjs",
     "visual:qa": "tsx scripts/visual-qa.ts",
     "capture:screens": "tsx scripts/capture-theme-screenshots.ts",
+    "release:artifacts": "tsx scripts/generate-release-artifacts.ts",
     "contrast:check": "tsx scripts/contrast-check.ts",
     "observatory:audit": "tsx scripts/design-observatory.ts"
   },

@@ -1,0 +1,89 @@
+{
+  "generated_at": "2026-06-24T22:12:44.724Z",
+  "baseline_dir": "docs/visual-audit/2026-06-22",
+  "routes": [
+    {
+      "slug": "home",
+      "path": "/"
+    },
+    {
+      "slug": "atlas",
+      "path": "/atlas"
+    },
+    {
+      "slug": "observatory",
+      "path": "/observatory"
+    },
+    {
+      "slug": "media",
+      "path": "/media"
+    },
+    {
+      "slug": "observatory-force-graph",
+      "path": "/observatory/force-graph"
+    },
+    {
+      "slug": "observatory-resonance-spheres",
+      "path": "/observatory/resonance-spheres"
+    },
+    {
+      "slug": "observatory-fractal-inspiration",
+      "path": "/observatory/fractal-inspiration"
+    },
+    {
+      "slug": "observatory-transport-sphere",
+      "path": "/observatory/transport-sphere"
+    },
+    {
+      "slug": "observatory-poisson-dot",
+      "path": "/observatory/poisson-dot"
+    },
+    {
+      "slug": "observatory-quaternion",
+      "path": "/observatory/quaternion"
+    },
+    {
+      "slug": "observatory-higher-dimensional",
+      "path": "/observatory/higher-dimensional"
+    },
+    {
+      "slug": "broch-sphere",
+      "path": "/broch-sphere"
+    }
+  ],
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "tablet",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "screenshot_count": 72,
+  "changed_routes": [
+    "home",
+    "atlas",
+    "observatory",
+    "media",
+    "observatory-force-graph",
+    "observatory-resonance-spheres",
+    "observatory-fractal-inspiration",
+    "observatory-transport-sphere",
+    "observatory-poisson-dot",
+    "observatory-quaternion",
+    "observatory-higher-dimensional",
+    "broch-sphere"
+  ],
+  "missing_baselines": [],
+  "contact_sheet_path": "assets/Release/RC1/release_contact_sheet.png",
+  "summary_path": "assets/Release/RC1/release_summary.md"
+}
