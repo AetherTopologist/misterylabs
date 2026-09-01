@@ -49,11 +49,11 @@ export function AppHeader() {
               alt="xPRIMEray"
               className="h-8 w-auto opacity-90 transition-opacity group-hover:opacity-100 md:h-9"
             />
-            <div className="hidden leading-none sm:block">
+            <div className="leading-none">
               <div className="text-sm font-bold tracking-tight">
                 MisterY <span className="text-gradient">Labs</span>
               </div>
-              <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground hidden sm:block">
                 Gateway Observatory
               </div>
             </div>

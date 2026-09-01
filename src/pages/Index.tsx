@@ -102,43 +102,37 @@ const Index = () => {
             Light doesn't always<br /> travel straight.
           </h1>
 
-          <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.28em] text-amber-400/70">
+          <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-foreground/80 sm:text-base">
+            xPRIMEray is the upstream scientific instrument. MisterY Labs is the public laboratory surrounding it.
+          </p>
+
+          <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.28em] text-amber-400/70">
             Measured observability cutsheets for native geodesic ray tracing.
           </p>
 
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link
-              to="/atlas"
-              className={`inline-flex items-center rounded-lg border border-border/40 px-5 py-2 text-sm ${lm ? "bg-secondary hover:bg-secondary/80" : "bg-secondary/30 hover:bg-secondary/50"}`}
-            >
-              Enter the Observatory Gallery
-            </Link>
-            <a
-              href="/observatory/#optical-portal"
-              className={`inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded border ${lm ? "border-cyan-500/70 text-cyan-700 hover:bg-cyan-50/70" : "border-cyan-500/30 text-cyan-400 hover:bg-cyan-950/30"}`}
-            >
-              Optical Transport Illusion (demo + Suno teaser)
-            </a>
-            <Button
-              variant="outline"
-              asChild
-              className="border-border/55 text-foreground/80 backdrop-blur-sm hover:border-border hover:text-foreground"
-            >
-              <Link to="/atlas">Explore Observatories</Link>
-            </Button>
+          <div className="mt-8 flex flex-col items-center gap-3">
             <Button
               asChild
               className="border-amber-600/70 bg-amber-600/85 text-white hover:bg-amber-500 hover:border-amber-500"
             >
-              <a
-                href="https://github.com/AetherTopologist/GD_xPRIMEray"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Try Godot Demo
-                <ExternalLink className="ml-2 h-3.5 w-3.5 opacity-70" />
-              </a>
+              <Link to="/observatory/transport-sphere">
+                See the straight-vs-curved transport comparison
+              </Link>
             </Button>
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
+              <Link
+                to="/atlas"
+                className="text-sm text-muted-foreground/70 underline-offset-4 hover:text-foreground hover:underline"
+              >
+                Atlas
+              </Link>
+              <Link
+                to="/observatory#optical-portal"
+                className="text-sm text-muted-foreground/70 underline-offset-4 hover:text-foreground hover:underline"
+              >
+                Optical Transport Illusion
+              </Link>
+            </div>
           </div>
         </div>
       </section>
