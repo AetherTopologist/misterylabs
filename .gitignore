@@ -42,3 +42,6 @@ assets/xprimeray_outputs/**/*.jsonl
 assets/xprimeray_outputs/**/*.csv
 assets/xprimeray_outputs/**/*.jsonl
 assets/xprimeray_outputs/**/.capture-venv/**
+
+# Windows Mark-of-the-Web NTFS Alternate Data Stream artifacts
+*:Zone.Identifier
