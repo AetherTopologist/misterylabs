@@ -5,9 +5,21 @@
   <title>MisterY Labs</title>
   <!--
     GitHub Pages SPA fallback — rafgraph/spa-github-pages technique.
-    Encodes the full path into a query string and redirects to the
-    SPA root so React Router can handle it client-side.
-    pathSegmentsToKeep=1 preserves the /misterylabs/ repo prefix.
+
+    Direct paths such as /misterylabs/observatory/cavendish-pais have no
+    matching file, so Pages serves this 404.html. The script encodes the
+    missing path into a query string and redirects to the SPA root.
+
+    pathSegmentsToKeep = 1 preserves the /misterylabs/ project-page prefix.
+
+    Production builds also copy dist/index.html over dist/404.html so GitHub
+    Pages can boot the SPA at the original URL. This redirector remains the
+    source fallback if that copy step is skipped.
+
+    GitHub Pages ignores custom 404 pages smaller than 512 bytes.
+    ........................................................................
+    ........................................................................
+    ........................................................................
   -->
   <script>
     var pathSegmentsToKeep = 1;

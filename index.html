@@ -2,6 +2,23 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
+    <!-- Restore rafgraph spa-github-pages paths before the app boots.
+         404.html redirects /misterylabs/foo → /misterylabs/?/foo -->
+    <script>
+      (function (l) {
+        if (l.search[1] === "/") {
+          var decoded = l.search
+            .slice(1)
+            .split("&")
+            .map(function (s) {
+              return s.replace(/~and~/g, "&");
+            })
+            .join("?");
+          var base = l.pathname.slice(-1) === "/" ? l.pathname.slice(0, -1) : l.pathname;
+          window.history.replaceState(null, null, base + decoded + l.hash);
+        }
+      })(window.location);
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MisterY Labs — Home of Curved Transport Research</title>
     <meta name="description" content="MisterY Labs builds experimental tools for rendering, probing, and explaining curved photon paths through gradient fields, optical anomalies, and simulated space.">
@@ -24,20 +41,6 @@
 
   <body>
     <div id="root"></div>
-    <!-- Decode the path encoded by 404.html before React Router mounts -->
-    <script>
-      (function(l) {
-        if (l.search[1] === '/') {
-          var decoded = l.search.slice(1).split('&').map(function(s) {
-            return s.replace(/~and~/g, '&');
-          }).join('?');
-          window.history.replaceState(null, null,
-            l.pathname.slice(0, l.pathname.indexOf('/misterylabs') + '/misterylabs'.length) +
-            '/' + decoded + l.hash
-          );
-        }
-      }(window.location));
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
