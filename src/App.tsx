@@ -24,6 +24,7 @@ const TransportSpherePage   = lazy(() => import("./pages/observatory/TransportSp
 const PoissonDotPage        = lazy(() => import("./pages/observatory/PoissonDot.tsx"));
 const QuaternionPage        = lazy(() => import("./pages/observatory/Quaternion.tsx"));
 const HigherDimensionalPage = lazy(() => import("./pages/observatory/HigherDimensional.tsx"));
+const CavendishPaisPage     = lazy(() => import("./pages/observatory/CavendishPais.tsx"));
 
 function DemoLoading() {
   return (
@@ -81,6 +82,7 @@ const App = () => (
           <Route path="/observatory/poisson-dot"         element={<DemoWrapper><PoissonDotPage /></DemoWrapper>} />
           <Route path="/observatory/quaternion"          element={<DemoWrapper><QuaternionPage /></DemoWrapper>} />
           <Route path="/observatory/higher-dimensional"  element={<DemoWrapper><HigherDimensionalPage /></DemoWrapper>} />
+          <Route path="/observatory/cavendish-pais"      element={<DemoWrapper><CavendishPaisPage /></DemoWrapper>} />
           {/* Unadvertised maintainer surface — no auth gate, not in public nav */}
           <Route path="/mission" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />

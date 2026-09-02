@@ -137,6 +137,33 @@ const Index = () => {
         </div>
       </section>
 
+      {/* ── LATEST INSTRUMENT ─────────────────────────────── */}
+      <section className="border-t border-border/20 bg-featured-artifact">
+        <div className="container py-10">
+          <Link
+            to="/observatory/cavendish-pais"
+            className="diagnostic-frame mx-auto flex max-w-3xl flex-col gap-3 rounded-sm border border-cyan-500/25 bg-card/40 p-5 transition-base hover:border-cyan-500/50 sm:p-6"
+          >
+            <div className="font-mono text-[9px] uppercase tracking-[0.35em] text-amber-400/80">
+              New observatory demo
+            </div>
+            <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
+              Cavendish × Pais Effect
+            </h2>
+            <p className="text-base font-medium text-foreground/85">
+              Same destination.
+              <span className="text-muted-foreground"> Different journey.</span>
+            </p>
+            <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+              Explore how altered inertia and altered gravitational coupling produce different signatures in a torsion balance.
+            </p>
+            <span className="inline-flex items-center font-mono text-[11px] uppercase tracking-[0.22em] text-cyan-400">
+              Open observatory →
+            </span>
+          </Link>
+        </div>
+      </section>
+
       {/* ── FEATURED ARTIFACT ─────────────────────────────── */}
       {/*
         All 8 available offaxis_observe_delta diagnostic panels in a 2×4 grid.

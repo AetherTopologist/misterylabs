@@ -547,6 +547,49 @@
   to   { opacity: 1; }
 }
 
+@keyframes pais-spin {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -48; }
+}
+
+.pais-shell {
+  animation: pais-spin 8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pais-shell {
+    animation: none;
+  }
+}
+
+.cavendish-demo input[type="range"] {
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: hsl(var(--border));
+  outline: none;
+}
+.cavendish-demo input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: hsl(var(--annotation-cyan));
+  border: 2px solid hsl(var(--background));
+  box-shadow: 0 0 0 1px hsl(var(--annotation-cyan));
+}
+.cavendish-demo input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: hsl(var(--annotation-cyan));
+  border: 2px solid hsl(var(--background));
+  box-shadow: 0 0 0 1px hsl(var(--annotation-cyan));
+}
+.cavendish-demo input[type="range"]:disabled {
+  opacity: 0.4;
+}
+
 /* Quaternion Explorer slider thumb glows — one class per component */
 /* CubeNetExplorer face swatches in legend */
 @layer components {

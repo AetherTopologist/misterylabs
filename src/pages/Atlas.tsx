@@ -975,6 +975,15 @@ const DEMO_CARDS: Array<{
   maturity: Maturity;
 }> = [
   {
+    href: "/observatory/cavendish-pais",
+    label: "Cavendish × Pais Effect",
+    sub: "Hypothesis comparison · not a claim",
+    desc: "Same destination, different journey. Altered inertia vs altered gravitational coupling in a torsion balance.",
+    accent: "text-amber-400/70",
+    border: "border-amber-500/20 hover:border-amber-500/40",
+    maturity: "Experimental",
+  },
+  {
     href: "/observatory/force-graph",
     label: "Observatory Atlas",
     sub: "SYS // 04 · The Seed",
