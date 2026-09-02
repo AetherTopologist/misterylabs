@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft, Calendar, ExternalLink, Github, Plus, Save, Trash2, X, ShieldCheck, Search,
+  ArrowLeft, Calendar, ExternalLink, Github, Plus, Save, Trash2, X, ShieldCheck,
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { CategoryBadge, ConfidenceBadge, PriorityBadge, StatusBadge } from "@/components/Badges";
 import { EvidenceGallery } from "@/components/EvidenceGallery";
-import { GithubScanDialog } from "@/components/GithubScanDialog";
 import { projectStore, useProject } from "@/lib/store";
 import {
   CATEGORIES, CONFIDENCE, PRIORITIES, STATUSES,
@@ -34,7 +33,6 @@ const ProjectDetail = () => {
   const project = useProject(id);
 
   const [draft, setDraft] = useState<Project | null>(project ?? null);
-  const [scanOpen, setScanOpen] = useState(false);
 
   useEffect(() => {
     if (project) setDraft(project);
@@ -349,12 +347,7 @@ const ProjectDetail = () => {
           {/* Repository ingestion + Visual Evidence (shared with Evidence Vault) */}
           <Section
             title="Linked repository & visual evidence"
-            hint="Read-only GitHub scan via the server token. Imported snapshots and images are shared between Mission Control and the Evidence Vault."
-            action={
-              <Button size="sm" variant="secondary" className="gap-1.5" onClick={() => setScanOpen(true)}>
-                <Search className="h-3.5 w-3.5" /> Scan GitHub
-              </Button>
-            }
+            hint="Imported snapshots and images are shared between Mission Control and the Evidence Vault."
           >
             {project.github_snapshot ? (
               <a
@@ -375,7 +368,7 @@ const ProjectDetail = () => {
               </a>
             ) : (
               <p className="rounded-md border border-dashed border-border/60 p-3 text-center text-xs text-muted-foreground">
-                No repo snapshot attached. Click <span className="font-mono uppercase tracking-wider text-foreground">Scan GitHub</span> to import one.
+                No repo snapshot attached.
               </p>
             )}
             <div className="mt-3">
@@ -468,8 +461,6 @@ const ProjectDetail = () => {
           </div>
         </aside>
       </div>
-
-      <GithubScanDialog projectId={project.id} open={scanOpen} onOpenChange={setScanOpen} />
     </div>
   );
 };

@@ -1,21 +1,17 @@
 import { useState } from "react";
-import { Images, ExternalLink, X, Search, ImageOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Images, ExternalLink, X, ImageOff } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { PLACEHOLDER_GALLERY, type AttachedImage } from "@/lib/evidence";
 import { projectStore } from "@/lib/store";
 import type { Project } from "@/lib/types";
-import { GithubImageScanDialog } from "./GithubImageScanDialog";
 import { toast } from "sonner";
 
 export function EvidenceGallery({ project }: { project: Project }) {
-  const [scanOpen, setScanOpen] = useState(false);
   const [preview, setPreview] = useState<AttachedImage | null>(null);
 
   const real = (project.attached_images ?? []).filter((i) => i.source !== "placeholder");
   const showPlaceholders = real.length === 0;
   const images = showPlaceholders ? PLACEHOLDER_GALLERY : real;
-  const repoFullName = project.github_snapshot?.full_name ?? "";
 
   return (
     <div className="rounded-md border border-border/60 bg-card/60 p-3">
@@ -30,28 +26,11 @@ export function EvidenceGallery({ project }: { project: Project }) {
             </span>
           )}
         </div>
-        {repoFullName && (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-6 gap-1 px-1.5 text-[10px] font-mono uppercase tracking-wider text-primary-glow hover:bg-primary/10"
-            onClick={() => setScanOpen(true)}
-          >
-            <Search className="h-3 w-3" />
-            {real.length > 0 ? "Scan more" : "Scan repo images"}
-          </Button>
-        )}
       </div>
-
-      {!repoFullName && showPlaceholders && (
-        <p className="mb-2 text-[11px] text-muted-foreground">
-          Attach a GitHub repo first, then scan it to import visual artifacts.
-        </p>
-      )}
 
       {showPlaceholders && (
         <p className="mb-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-          Example placeholders — import a repo to replace
+          Example placeholders
         </p>
       )}
 
@@ -73,15 +52,6 @@ export function EvidenceGallery({ project }: { project: Project }) {
           />
         ))}
       </div>
-
-      {repoFullName && (
-        <GithubImageScanDialog
-          projectId={project.id}
-          repoFullName={repoFullName}
-          open={scanOpen}
-          onOpenChange={setScanOpen}
-        />
-      )}
 
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
         <DialogContent className="max-w-4xl">

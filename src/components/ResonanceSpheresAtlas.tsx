@@ -7,7 +7,6 @@ import { ExternalLink, X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-rea
 import { ResonanceSphere } from './ResonanceSphere';
 import { resonanceSpheresData, type InspirationNode, type InspirationMedia } from '@/data/resonance_spheres_data';
 import { useTheme } from '@/hooks/useTheme';
-import { supabase } from '@/integrations/supabase/client'; // optional, only used if configured
 
 /**
  * ResonanceSpheresAtlas
@@ -43,26 +42,7 @@ export const ResonanceSpheresAtlas: React.FC = () => {
   const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<ExpandedState>({ node: null, mediaIndex: 0 });
 
-  // Defensive Supabase + static data loader for ResonanceSpheresAtlas
-  // Prevents "supabaseUrl is required" crash when VITE_* env vars are missing (local dev, previews, etc.)
-  const loadResonanceData = (): { spheres: any[]; nodes: InspirationNode[]; edges: any[] } => {
-    try {
-      if (supabase) {
-        // Placeholder for future Supabase-backed dynamic data.
-        // Example (would need to be async):
-        // const { data, error } = await supabase.from('resonance_spheres').select('*');
-        // if (data && !error) return transformSupabaseData(data);
-      }
-      // Rich static mock fallback (Digital Circus Trophy Room + Nobel nodes etc.)
-      // This is the data used when Supabase is not configured.
-      return resonanceSpheresData || { spheres: [], nodes: [], edges: [] };
-    } catch (err) {
-      console.warn('[ResonanceSpheresAtlas] Supabase query/fetch failed or not configured — falling back to static mock data.', err);
-      return resonanceSpheresData || { spheres: [], nodes: [], edges: [] };
-    }
-  };
-
-  const data = loadResonanceData();
+  const data = resonanceSpheresData || { spheres: [], nodes: [], edges: [] };
   const { spheres = [], nodes = [], edges = [] } = data;
 
   if (!spheres.length || !nodes.length) {

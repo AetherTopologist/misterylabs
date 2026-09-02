@@ -40,7 +40,7 @@ const SORT_KEY = "xprime:sort";
 
 const PRIORITY_ORDER: Record<Priority, number> = { Critical: 0, High: 1, Medium: 2, Low: 3 };
 
-const Index = () => {
+const Dashboard = () => {
   const projects = useProjects();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<Status | "All">("All");
@@ -417,4 +417,4 @@ function EmptyState({ onClear, hasFilters }: { onClear: () => void; hasFilters: 
   );
 }
 
-export default Index;
+export default Dashboard;

@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, ExternalLink, Menu, X, Sun, Moon } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { ExternalLink, Menu, X, Sun, Moon } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL;
 import { Button } from "@/components/ui/button";
-import { QuickCreateDialog } from "./QuickCreateDialog";
-import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 
 const NAV_LINKS = [
@@ -19,22 +17,11 @@ const NAV_LINKS = [
 
 export function AppHeader() {
   const { pathname } = useLocation();
-  const navigate = useNavigate();
-  const { user, signOut } = useAuth();
   const { theme, toggle: toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth", { replace: true });
-  };
-
   const isActive = (to: string, exact: boolean) =>
-    exact
-      ? pathname === to
-      : pathname.startsWith(to) || (to === "/mission" && pathname === "/dashboard");
-
-  const initial = user?.email?.[0]?.toUpperCase() ?? "?";
+    exact ? pathname === to : pathname.startsWith(to);
 
   const closeMobile = () => setMobileOpen(false);
 
@@ -90,40 +77,7 @@ export function AppHeader() {
             </a>
           </nav>
 
-          {/* Right side: auth + mobile toggle */}
           <div className="flex items-center gap-2">
-            {user ? (
-              <>
-                <QuickCreateDialog />
-                <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-secondary/40 py-1 pl-1 pr-2">
-                  <span className="grid h-6 w-6 place-items-center rounded-md bg-primary/15 text-[11px] font-semibold text-primary">
-                    {initial}
-                  </span>
-                  <span className="hidden max-w-[140px] truncate text-xs text-muted-foreground sm:inline">
-                    {user.email}
-                  </span>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-6 w-6"
-                    onClick={handleSignOut}
-                    title="Sign out"
-                  >
-                    <LogOut className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <Button
-                asChild
-                size="sm"
-                variant="ghost"
-                className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground md:inline-flex"
-              >
-                <Link to="/auth">Sign in</Link>
-              </Button>
-            )}
-
             {/* Theme toggle */}
             <Button
               size="icon"
@@ -192,15 +146,6 @@ export function AppHeader() {
             >
               GitHub <ExternalLink className="h-3 w-3" />
             </a>
-            {!user && (
-              <Link
-                to="/auth"
-                onClick={closeMobile}
-                className="mt-1 rounded-lg border border-border/50 px-3 py-2.5 text-center text-sm font-medium text-muted-foreground transition-base hover:bg-secondary/60 hover:text-foreground"
-              >
-                Sign in
-              </Link>
-            )}
           </nav>
         </div>
       )}
