@@ -226,8 +226,8 @@ function SaturnScene({
         return (
           <circle
             key={i}
-            cx={CX + r * Math.cos(th)}
-            cy={CY + r * Math.sin(th)}
+            cx={+(CX + r * Math.cos(th)).toFixed(2)}
+            cy={+(CY + r * Math.sin(th)).toFixed(2)}
             r="4.4"
             fill={AMBER}
             stroke="hsl(42 100% 80%)"
