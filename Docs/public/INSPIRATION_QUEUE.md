@@ -27,6 +27,18 @@ Each entry should record:
 - Attribution status: published as a labeled reduced 2D eikonal, not engine-authoritative GRIN
 - Status: published
 
+## Saturn polar polygons (published as Saturn Polygon Lab)
+
+- Title: Saturn north-polar hexagon and newly reported south-polar decagon
+- Source / discovery URL: https://science.nasa.gov/mission/cassini/science/saturn/hexagon-in-motion/ · https://science.nasa.gov/missions/hubble/nasas-hubble-tracks-new-decagon-encircling-saturns-south-pole/
+- Original creator: Godfrey 1988 (hexagon) · Cassini imaging team · Agustín Sánchez-Lavega et al., *Science Advances* 2026-09-02 (south-polar decagon; Hubble)
+- Concept: A continuous circular jet with an integer azimuthal mode can read as a polygon
+- What misconception the demonstration dissolves: "A hexagon/decagon in a fluid must have been drawn as a polygon"
+- Possible MisterY Labs experiment: Saturn Polygon Lab (`/observatory/saturn-polygon`) — r(θ) = R + A cos(mθ + φ)
+- Possible xPRIMEray connection: none claimed; this is a wave-mode analogy, not GRIN optics
+- Attribution status: empirical observation cited; model explicitly labeled analogy, not a Saturn simulation
+- Status: published
+
 ## Agent-assisted creator/repository discovery and attribution
 
 - Title: Agent-assisted creator/repository discovery and attribution

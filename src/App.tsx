@@ -26,6 +26,7 @@ const QuaternionPage        = lazy(() => import("./pages/observatory/Quaternion.
 const HigherDimensionalPage = lazy(() => import("./pages/observatory/HigherDimensional.tsx"));
 const CavendishPaisPage     = lazy(() => import("./pages/observatory/CavendishPais.tsx"));
 const PolarGrinPage         = lazy(() => import("./pages/observatory/PolarGrin.tsx"));
+const SaturnPolygonPage     = lazy(() => import("./pages/observatory/SaturnPolygon.tsx"));
 
 function DemoLoading() {
   return (
@@ -85,6 +86,7 @@ const App = () => (
           <Route path="/observatory/higher-dimensional"  element={<DemoWrapper><HigherDimensionalPage /></DemoWrapper>} />
           <Route path="/observatory/cavendish-pais"      element={<DemoWrapper><CavendishPaisPage /></DemoWrapper>} />
           <Route path="/observatory/polar-grin"          element={<DemoWrapper><PolarGrinPage /></DemoWrapper>} />
+          <Route path="/observatory/saturn-polygon"      element={<DemoWrapper><SaturnPolygonPage /></DemoWrapper>} />
           {/* Unadvertised maintainer surface — no auth gate, not in public nav */}
           <Route path="/mission" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />

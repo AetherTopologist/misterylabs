@@ -166,6 +166,13 @@ const Index = () => {
               <div className="font-mono text-[8px] uppercase tracking-[0.28em] text-cyan-400/80">Polar GRIN</div>
               <div className="mt-1 text-sm font-semibold">Bend the path, not the object.</div>
             </Link>
+            <Link
+              to="/observatory/saturn-polygon"
+              className="diagnostic-frame rounded-sm border border-amber-500/20 bg-card/30 p-4 transition-base hover:border-amber-500/45"
+            >
+              <div className="font-mono text-[8px] uppercase tracking-[0.28em] text-amber-400/80">Saturn Polygon</div>
+              <div className="mt-1 text-sm font-semibold">When does a circle grow corners?</div>
+            </Link>
           </div>
         </div>
       </section>

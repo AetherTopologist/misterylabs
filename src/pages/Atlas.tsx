@@ -993,6 +993,15 @@ const DEMO_CARDS: Array<{
     maturity: "Experimental",
   },
   {
+    href: "/observatory/saturn-polygon",
+    label: "Saturn Polygon Lab",
+    sub: "When does a circle grow corners?",
+    desc: "A continuous circular jet with one integer azimuthal mode. m = 6 hexagon analog · m = 10 decagon analog.",
+    accent: "text-amber-400/70",
+    border: "border-amber-500/20 hover:border-amber-500/40",
+    maturity: "Experimental",
+  },
+  {
     href: "/observatory/force-graph",
     label: "Observatory Atlas",
     sub: "SYS // 04 · The Seed",
