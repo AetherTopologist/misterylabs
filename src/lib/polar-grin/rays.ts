@@ -60,7 +60,7 @@ export function insideApple(x: number, y: number): boolean {
 
 export function isPolarHit(x: number, y: number): boolean {
   const p = polePos();
-  return Math.hypot(x - p.x, y - p.y) < 46;
+  return Math.hypot(x - p.x, y - p.y) < 58;
 }
 
 export function indexAt(_x: number, _y: number, _s: number): number {
@@ -97,6 +97,7 @@ export function traceRay(
       return { points, fate: "escaped", hitPolar: false, impact };
     }
     if (insideApple(x, y)) {
+      points.push({ x, y });
       return { points, fate: "surface", hitPolar: isPolarHit(x, y), impact };
     }
     for (const w of WITNESS) {
@@ -116,7 +117,7 @@ export function traceRay(
     const rr = Math.hypot(rdx, rdy);
     if (s > 0 && rr > 12 && rr < 72 && x < p.x + 6) {
       const env = Math.exp(-(((rr - 32) / 18) * ((rr - 32) / 18)));
-      const kick = s * 0.05 * env * ds;
+      const kick = s * 0.09 * env * ds;
       ux_ += kick * (-rdy / rr);
       uy_ += kick * (rdx / rr);
     }
@@ -136,11 +137,11 @@ export function bundle(s: number): RayPath[] {
   const n = 11;
   for (let i = 0; i < n; i++) {
     const t = i / (n - 1);
-    // Cluster on the polar approach, slightly above through the cap.
-    const y = p.y - 8 + t * 34;
+    // Upper fan skims the dimple (can wrap). Lower fan strikes the fruit.
+    const y = 142 + t * 46;
     const x = 42;
-    const tx = p.x - 2;
-    const ty = p.y + (t - 0.35) * 14;
+    const tx = p.x - 8;
+    const ty = p.y + 8 + (t - 0.35) * 16;
     rays.push(traceRay(x, y, tx - x, ty - y, s));
   }
   return rays;

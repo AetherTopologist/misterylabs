@@ -131,6 +131,12 @@ function AppleScene({ s, rays }: { s: number; rays: RayPath[] }) {
     >
       <rect width="720" height="420" fill={DIAGRAM} />
       <Grid />
+      <defs>
+        <mask id="polar-ray-mask">
+          <rect width="720" height="420" fill="white" />
+          <path d={d} fill="black" />
+        </mask>
+      </defs>
 
       <text x="28" y="32" fill={MUTED} fontFamily={MONO} fontSize="9" letterSpacing="3.2">
         POLAR GRIN · AXISYMMETRIC CUSHION
@@ -189,9 +195,11 @@ function AppleScene({ s, rays }: { s: number; rays: RayPath[] }) {
         </g>
       ))}
 
-      {rays.map((ray, i) => (
-        <RayStroke key={i} ray={ray} />
-      ))}
+      <g mask="url(#polar-ray-mask)">
+        {rays.map((ray, i) => (
+          <RayStroke key={i} ray={ray} />
+        ))}
+      </g>
 
       <text x="28" y="400" fill={MUTED} fontFamily={MONO} fontSize="9" letterSpacing="2.4">
         OBSERVER FIXED · RAYS FROM LEFT

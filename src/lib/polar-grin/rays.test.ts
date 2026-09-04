@@ -16,7 +16,9 @@ describe("Polar GRIN reduced eikonal model", () => {
   it("at s=0 the polar-aimed bundle intersects the fruit", () => {
     const rays = bundle(0);
     const hits = rays.filter((r) => r.fate === "surface");
-    expect(hits.length).toBeGreaterThanOrEqual(6);
+    const missed = rays.filter((r) => r.fate === "escaped" || r.fate === "witness");
+    expect(hits.length).toBeGreaterThanOrEqual(8);
+    expect(missed.length).toBe(0);
     expect(hits.some((r) => r.hitPolar)).toBe(true);
     expect(stageOf(0, rays)).toBe("FIELD OFF");
   });
