@@ -39,6 +39,18 @@ Each entry should record:
 - Attribution status: empirical observation cited; model explicitly labeled analogy, not a Saturn simulation
 - Status: published
 
+## Classical interior dome inversion (published as Arcade)
+
+- Title: Concave interior dome read as convex via altered transport
+- Source / discovery URL: classical coffered-dome / Pantheon-oculus type; White House dome used only as artistic prompt
+- Original creator: UNRESOLVED as a specific photograph or building claim. Architectural type: coffered classical dome.
+- Concept: Geometry fixed, image mapping altered (interpolated circle inversion + reduced eikonal)
+- What misconception the demonstration dissolves: "If the ceiling looks convex, the architecture must have morphed"
+- Possible MisterY Labs experiment: Dome Inversion (`/arcade/dome-inversion`)
+- Possible xPRIMEray connection: none claimed — arcade thought experiment
+- Attribution status: artistic inspiration; not an explanation of any real White House phenomenon
+- Status: published
+
 ## Agent-assisted creator/repository discovery and attribution
 
 - Title: Agent-assisted creator/repository discovery and attribution

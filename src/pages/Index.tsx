@@ -173,6 +173,13 @@ const Index = () => {
               <div className="font-mono text-[8px] uppercase tracking-[0.28em] text-amber-400/80">Saturn Polygon</div>
               <div className="mt-1 text-sm font-semibold">When does a circle grow corners?</div>
             </Link>
+            <Link
+              to="/arcade/dome-inversion"
+              className="diagnostic-frame rounded-sm border border-amber-500/20 bg-card/30 p-4 transition-base hover:border-amber-500/45"
+            >
+              <div className="font-mono text-[8px] uppercase tracking-[0.28em] text-amber-400/80">Arcade</div>
+              <div className="mt-1 text-sm font-semibold">Can inside look outside?</div>
+            </Link>
           </div>
         </div>
       </section>

@@ -947,6 +947,7 @@ export default function AtlasPage() {
 
       <ObservatoryHeroSection />
       <DemoInstrumentsSection />
+      <ArcadeSection />
       <XenoCitationSection />
       <InspirationAtlasSection />
       <GetInvolvedSection />
@@ -1103,6 +1104,48 @@ function DemoInstrumentsSection() {
               </div>
             </Link>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ArcadeSection() {
+  return (
+    <section id="arcade" className="border-t border-border/35 bg-background">
+      <div className="container py-10">
+        <div className="flex items-center gap-3 mb-1">
+          <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">ARCADE // 01</span>
+          <div className="h-px w-12 bg-border/35" />
+          <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-amber-400/70">Optical play</span>
+        </div>
+        <h2 className="text-2xl font-bold tracking-tight md:text-3xl mb-1">MisterY Labs Arcade</h2>
+        <p className="text-sm text-muted-foreground max-w-xl mb-8">
+          Thought experiments. Geometry stays. Transport jokes.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Link
+            to="/arcade/dome-inversion"
+            className="group flex flex-col rounded-sm border border-amber-500/20 bg-card/20 p-5 transition-base hover:border-amber-500/40"
+          >
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="font-mono text-[8px] uppercase tracking-[0.3em] text-amber-400/70">
+                Can inside look outside?
+              </div>
+              <span className="shrink-0 rounded-sm border border-amber-500/30 bg-amber-950/20 px-1.5 py-0.5 font-mono text-[7px] uppercase tracking-[0.2em] text-amber-400/80">
+                Arcade
+              </span>
+            </div>
+            <div className="text-sm font-semibold text-foreground mb-2 group-hover:text-foreground/90">
+              Dome Inversion
+            </div>
+            <p className="text-xs leading-relaxed text-muted-foreground/60 flex-1">
+              Stand beneath a coffered dome. A bounded GRIN-inspired field rewrites concave interior as a convex reading. The lantern is not faded — rays either sample it or they do not.
+            </p>
+            <div className="mt-3 pt-3 border-t border-border/20 font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/35 group-hover:text-primary/50 transition-colors">
+              Open arcade cabinet →
+            </div>
+          </Link>
         </div>
       </div>
     </section>
