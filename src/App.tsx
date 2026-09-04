@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,6 +25,7 @@ const PoissonDotPage        = lazy(() => import("./pages/observatory/PoissonDot.
 const QuaternionPage        = lazy(() => import("./pages/observatory/Quaternion.tsx"));
 const HigherDimensionalPage = lazy(() => import("./pages/observatory/HigherDimensional.tsx"));
 const CavendishPaisPage     = lazy(() => import("./pages/observatory/CavendishPais.tsx"));
+const PolarGrinPage         = lazy(() => import("./pages/observatory/PolarGrin.tsx"));
 
 function DemoLoading() {
   return (
@@ -38,12 +39,12 @@ function DemoError() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center">
       <p className="text-sm text-muted-foreground">This instrument failed to initialize.</p>
-      <a
-        href="/misterylabs/atlas"
+      <Link
+        to="/atlas"
         className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary/60 transition-colors hover:text-primary"
       >
         ← Back to Atlas
-      </a>
+      </Link>
     </div>
   );
 }
@@ -65,7 +66,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter basename="/misterylabs">
+      <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, "")}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/atlas" element={<Atlas />} />
@@ -83,6 +84,7 @@ const App = () => (
           <Route path="/observatory/quaternion"          element={<DemoWrapper><QuaternionPage /></DemoWrapper>} />
           <Route path="/observatory/higher-dimensional"  element={<DemoWrapper><HigherDimensionalPage /></DemoWrapper>} />
           <Route path="/observatory/cavendish-pais"      element={<DemoWrapper><CavendishPaisPage /></DemoWrapper>} />
+          <Route path="/observatory/polar-grin"          element={<DemoWrapper><PolarGrinPage /></DemoWrapper>} />
           {/* Unadvertised maintainer surface — no auth gate, not in public nav */}
           <Route path="/mission" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />

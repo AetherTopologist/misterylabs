@@ -562,14 +562,16 @@
   }
 }
 
-.cavendish-demo input[type="range"] {
+.cavendish-demo input[type="range"],
+.instrument-demo input[type="range"] {
   appearance: none;
   height: 4px;
   border-radius: 999px;
   background: hsl(var(--border));
   outline: none;
 }
-.cavendish-demo input[type="range"]::-webkit-slider-thumb {
+.cavendish-demo input[type="range"]::-webkit-slider-thumb,
+.instrument-demo input[type="range"]::-webkit-slider-thumb {
   appearance: none;
   width: 18px;
   height: 18px;
@@ -578,7 +580,8 @@
   border: 2px solid hsl(var(--background));
   box-shadow: 0 0 0 1px hsl(var(--annotation-cyan));
 }
-.cavendish-demo input[type="range"]::-moz-range-thumb {
+.cavendish-demo input[type="range"]::-moz-range-thumb,
+.instrument-demo input[type="range"]::-moz-range-thumb {
   width: 18px;
   height: 18px;
   border-radius: 999px;
@@ -586,7 +589,8 @@
   border: 2px solid hsl(var(--background));
   box-shadow: 0 0 0 1px hsl(var(--annotation-cyan));
 }
-.cavendish-demo input[type="range"]:disabled {
+.cavendish-demo input[type="range"]:disabled,
+.instrument-demo input[type="range"]:disabled {
   opacity: 0.4;
 }
 

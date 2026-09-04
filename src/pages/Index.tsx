@@ -142,10 +142,10 @@ const Index = () => {
         <div className="container py-10">
           <Link
             to="/observatory/cavendish-pais"
-            className="diagnostic-frame mx-auto flex max-w-3xl flex-col gap-3 rounded-sm border border-cyan-500/25 bg-card/40 p-5 transition-base hover:border-cyan-500/50 sm:p-6"
+            className="diagnostic-frame mx-auto mb-3 flex max-w-3xl flex-col gap-3 rounded-sm border border-cyan-500/25 bg-card/40 p-5 transition-base hover:border-cyan-500/50 sm:p-6"
           >
             <div className="font-mono text-[9px] uppercase tracking-[0.35em] text-amber-400/80">
-              New observatory demo
+              Observatory demo
             </div>
             <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
               Cavendish × Pais Effect
@@ -154,13 +154,19 @@ const Index = () => {
               Same destination.
               <span className="text-muted-foreground"> Different journey.</span>
             </p>
-            <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Explore how altered inertia and altered gravitational coupling produce different signatures in a torsion balance.
-            </p>
             <span className="inline-flex items-center font-mono text-[11px] uppercase tracking-[0.22em] text-cyan-400">
               Open observatory →
             </span>
           </Link>
+          <div className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-3">
+            <Link
+              to="/observatory/polar-grin"
+              className="diagnostic-frame rounded-sm border border-cyan-500/20 bg-card/30 p-4 transition-base hover:border-cyan-500/45"
+            >
+              <div className="font-mono text-[8px] uppercase tracking-[0.28em] text-cyan-400/80">Polar GRIN</div>
+              <div className="mt-1 text-sm font-semibold">Bend the path, not the object.</div>
+            </Link>
+          </div>
         </div>
       </section>
 

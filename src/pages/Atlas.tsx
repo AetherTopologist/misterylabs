@@ -984,6 +984,15 @@ const DEMO_CARDS: Array<{
     maturity: "Experimental",
   },
   {
+    href: "/observatory/polar-grin",
+    label: "Polar GRIN Apple",
+    sub: "Bend the path, not the object.",
+    desc: "Same apple, same camera, different transport. A polar index field redirects rays around a pole without deleting the fruit.",
+    accent: "text-cyan-400/70",
+    border: "border-cyan-500/20 hover:border-cyan-500/40",
+    maturity: "Experimental",
+  },
+  {
     href: "/observatory/force-graph",
     label: "Observatory Atlas",
     sub: "SYS // 04 · The Seed",
