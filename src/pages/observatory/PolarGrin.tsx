@@ -12,17 +12,21 @@ export default function PolarGrinPage() {
         <div className="container py-14">
           <div className="mb-4 flex items-center gap-3">
             <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-cyan-400/70">
-              Public observatory · Constrained GRIN demo
+              Experimental · Polar GRIN
             </span>
             <div className="h-px flex-1 bg-border/20" />
           </div>
           <h1 className="max-w-3xl text-2xl font-bold tracking-tight md:text-3xl">
-            Polar GRIN Apple
+            Apple of the Eye
           </h1>
-          <p className="mt-4 mb-8 max-w-2xl text-sm leading-relaxed text-muted-foreground/80 sm:text-base">
-            Can a continuous refractive-index field redirect rays around a polar
-            surface region without deleting the geometry itself? Watch the bundle.
-            The fruit stays put.
+          <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+            Polar GRIN · Optical Accessibility
+          </p>
+          <p className="mt-4 mb-2 max-w-2xl text-sm leading-relaxed text-muted-foreground/80 sm:text-base">
+            The object remains. What reaches the witness changes.
+          </p>
+          <p className="mb-8 font-mono text-[9px] uppercase tracking-[0.28em] text-cyan-400/80">
+            One field · two readouts
           </p>
           <div className="spectral-bar mb-8" aria-hidden />
 
@@ -42,22 +46,22 @@ function Teaching() {
     {
       k: "01",
       title: "What you are looking at",
-      body: "A recognizable apple in a dark observatory bay. A fixed camera. A ray bundle aimed at one pole. The fruit is an opaque body — if a ray meets it, the ray stops.",
+      body: "An opaque apple. Eleven probe rays. One bounded positive-index field. If a ray meets stem, leaf, divot, or red surface, it stops. The fruit is never faded.",
     },
     {
       k: "02",
       title: "The field",
-      body: "A bounded polar halo around that pole. Strength 0 is vacuum — rays march straight. Strength 1 applies an incident-side angular kick proportional to field strength so some rays miss the cap. Occupancy never changes.",
+      body: "n = 1 + A g(x,y; w) with A ≥ 0, so n stays at least 1. w scales the spatial support — Gaussian σ and ring thickness — not a painted halo. θ rotates the apple and the field as one rigid assembly. Feature scale resizes stem and leaf from the pole. Recess deepens the polar dent; 1× is the design silhouette. Recess and scale change the object. Field strength does not. The probe bundle stays in the lab. Rays bend toward increasing n.",
     },
     {
       k: "03",
-      title: "The sequence",
-      body: "Field off → bend → shadow → wrap → reveal. Reveal means far-side witness beads become ray-accessible. It does not mean the apple vanished.",
+      title: "Two readouts",
+      body: "MIND draws the paths. HEART-EYE is the same records as a categorical scan. Tap a cell to inspect that ray. There is no second ray population.",
     },
     {
       k: "04",
-      title: "Key insight",
-      body: "Same object. Same camera. Different transport. Accessibility is a property of the path, not of the surface's opacity.",
+      title: "Witness",
+      body: "Witness = a modeled sampling/readout boundary. Accessibility is a property of the path, not of the surface’s opacity.",
     },
   ];
 
@@ -87,15 +91,16 @@ function ScienceBoundary() {
         Science boundary
       </div>
       <p className="mt-3 text-sm leading-relaxed text-foreground/90">
-        This is a reduced illustrative ray model: straight march at zero field,
-        then a polar-halo angular kick that scales with field strength. It is
-        not xPRIMEray engine transport, not a laboratory GRIN metamaterial,
-        and not an invisibility-cloak claim.
+        The model computes what reaches the witness. It does not compute what experience is.
       </p>
       <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-        Inspired by gradient-index optics (Maxwell, Gordon metric, transformation-optics
-        cloaks). The polar apple is a constrained public instrument: one control,
-        visible paths, object remains.
+        Witness = a modeled sampling/readout boundary. Material colors are categorical
+        classifications, not a biological or spectral simulation. This is a reduced 2D
+        geometric-optics instrument, not xPRIMEray engine transport, not a laboratory
+        metamaterial, and not an observer-effect claim.
+      </p>
+      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+        Where does measurement end and experience begin?
       </p>
     </aside>
   );

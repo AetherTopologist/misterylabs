@@ -986,9 +986,9 @@ const DEMO_CARDS: Array<{
   },
   {
     href: "/observatory/polar-grin",
-    label: "Polar GRIN Apple",
-    sub: "Bend the path, not the object.",
-    desc: "Same apple, same camera, different transport. A polar index field redirects rays around a pole without deleting the fruit.",
+    label: "Apple of the Eye",
+    sub: "Polar GRIN · Optical Accessibility",
+    desc: "Same apple, same probes, different transport. A bounded positive-index field. HEART-EYE is the same ray records.",
     accent: "text-cyan-400/70",
     border: "border-cyan-500/20 hover:border-cyan-500/40",
     maturity: "Experimental",

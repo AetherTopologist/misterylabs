@@ -1,172 +1,267 @@
 /**
- * Polar GRIN Apple — reduced illustrative ray model.
+ * Reduced 2D geometric-optics marcher.
  *
- * Straight-line march at s = 0. For s > 0, an incident-side polar-halo
- * angular kick ∝ s sends rays over the north pole. The apple occupancy
- * never changes: if a ray meets the fruit, it stops.
- *
- * This is NOT xPRIMEray transport and NOT laboratory GRIN. It is a
- * constrained public instrument for ray accessibility.
+ * Euler step of d/ds (n û) = ∇n. Not xPRIMEray. Fruit occupancy is opaque:
+ * the first non-outside classification terminates the ray.
  */
 
-export const W = 720;
-export const H = 420;
+import {
+  FEATURE_SCALE_DEFAULT,
+  RECESS_DEFAULT,
+  classifyHit,
+  polePos,
+} from "./geometry";
+import { WIDTH_DEFAULT, sampleField } from "./field";
+import {
+  H,
+  RAY_COUNT,
+  W,
+  type FieldConfig,
+  type LaunchGeom,
+  type MaterialClass,
+  type Pt,
+  type RayPath,
+} from "./types";
 
-export const APPLE = {
-  cx: 392,
-  cy: 232,
-  r: 98,
-} as const;
+const DS = 0.85;
+const MAX_STEPS = 980;
 
-/** Witness beads on the far side of the polar cap — the REVEAL targets. */
-export const WITNESS = [
-  { x: 510, y: 92 },
-  { x: 548, y: 124 },
-] as const;
+/**
+ * Fixed launch. Aimed fan from the west-northwest, slightly
+ * compressed onto the stem / leaf / divot corridor.
+ * One graze (ray 01) clears the cap at A=0; the field captures it.
+ */
+export const LAUNCH: LaunchGeom = {
+  x: 80,
+  y0: 8,
+  ySpan: 190,
+  tx0: 440,
+  ty0: 100,
+  tx1: 362,
+  ty1: 232,
+};
 
-export type RayFate = "surface" | "escaped" | "witness" | "maxsteps";
+/** Measured best zero-escape in the declared (A, w, profile) range at θ=0, scale=1, recess=1. */
+export const BEST_ZERO_ESCAPE: FieldConfig = {
+  profile: "annular-high",
+  strength: 0.3,
+  width: 0.7,
+  theta: 0,
+  featureScale: FEATURE_SCALE_DEFAULT,
+  recessDepth: RECESS_DEFAULT,
+};
 
-export interface Pt {
-  x: number;
-  y: number;
+/**
+ * Frozen extreme snapshot (θ=0, scale=0.5, recess=3, annular A=1.2 w=2.4).
+ * ESC 0. Not 11/11 red: ray 04 terminates on the recessed cup (DIVOT).
+ * FIELD OFF at this same target has no stem/leaf/divot.
+ */
+export const SNAPSHOT_EXTREME: FieldConfig = {
+  profile: "annular-high",
+  strength: 1.2,
+  width: 2.4,
+  theta: 0,
+  featureScale: 0.5,
+  recessDepth: 3,
+};
+
+export function fieldOff(
+  width = WIDTH_DEFAULT,
+  theta = 0,
+  featureScale = FEATURE_SCALE_DEFAULT,
+  recessDepth = RECESS_DEFAULT,
+): FieldConfig {
+  return { profile: "off", strength: 0, width, theta, featureScale, recessDepth };
 }
 
-export interface RayPath {
-  points: Pt[];
-  fate: RayFate;
-  hitPolar: boolean;
-  impact: number;
+function hitToMaterial(hit: ReturnType<typeof classifyHit>): MaterialClass | null {
+  if (hit === "outside") return null;
+  return hit;
 }
 
-export function polePos(): Pt {
-  // Dimple sits slightly inside the bounding circle.
-  return { x: APPLE.cx, y: APPLE.cy - APPLE.r + 10 };
+function thetaOf(cfg: FieldConfig): number {
+  return Number.isFinite(cfg.theta) ? cfg.theta : 0;
 }
 
-/** Apple silhouette radius. θ = 0 at +x, canvas y-down, pole near −π/2. */
-export function appleRadius(theta: number): number {
-  const d = theta + Math.PI / 2;
-  const dent = 0.24 * Math.exp(-(d * d) / 0.042);
-  const waist = 0.05 * Math.cos(2 * theta);
-  return APPLE.r * (1 - dent + waist);
+function scaleOf(cfg: FieldConfig): number {
+  return Number.isFinite(cfg.featureScale) ? cfg.featureScale : FEATURE_SCALE_DEFAULT;
 }
 
-export function insideApple(x: number, y: number): boolean {
-  const dx = x - APPLE.cx;
-  const dy = y - APPLE.cy;
-  const theta = Math.atan2(dy, dx);
-  return Math.hypot(dx, dy) < appleRadius(theta) - 0.6;
-}
-
-export function isPolarHit(x: number, y: number): boolean {
-  const p = polePos();
-  return Math.hypot(x - p.x, y - p.y) < 58;
-}
-
-export function indexAt(_x: number, _y: number, _s: number): number {
-  return 1;
-}
-
-function gradN(x: number, y: number, s: number): { nx: number; ny: number; n: number } {
-  const e = 0.85;
-  const n = indexAt(x, y, s);
-  const nx = (indexAt(x + e, y, s) - indexAt(x - e, y, s)) / (2 * e);
-  const ny = (indexAt(x, y + e, s) - indexAt(x, y - e, s)) / (2 * e);
-  return { nx, ny, n };
+function recessOf(cfg: FieldConfig): number {
+  return Number.isFinite(cfg.recessDepth) ? cfg.recessDepth : RECESS_DEFAULT;
 }
 
 export function traceRay(
+  id: number,
   x0: number,
   y0: number,
-  ux: number,
-  uy: number,
-  s: number,
+  ux0: number,
+  uy0: number,
+  cfg: FieldConfig,
 ): RayPath {
-  const mag0 = Math.hypot(ux, uy) || 1;
+  const mag0 = Math.hypot(ux0, uy0) || 1;
   let x = x0;
   let y = y0;
-  let ux_ = ux / mag0;
-  let uy_ = uy / mag0;
+  let ux = ux0 / mag0;
+  let uy = uy0 / mag0;
+  const launch: Pt = { x, y };
+  const direction: Pt = { x: ux, y: uy };
   const points: Pt[] = [{ x, y }];
-  const ds = 0.85;
-  const maxSteps = 980;
-  const impact = y0 - polePos().y;
+  let maxCurvature = 0;
+  const theta = thetaOf(cfg);
+  const featureScale = scaleOf(cfg);
+  const recess = recessOf(cfg);
 
-  for (let i = 0; i < maxSteps; i++) {
+  for (let i = 0; i < MAX_STEPS; i++) {
     if (x < -30 || x > W + 40 || y < -30 || y > H + 30) {
-      return { points, fate: "escaped", hitPolar: false, impact };
+      const terminal = { x, y };
+      return {
+        id,
+        launch,
+        direction,
+        points,
+        terminal,
+        material: "escaped",
+        escaped: true,
+        maxCurvature,
+      };
     }
-    if (insideApple(x, y)) {
-      points.push({ x, y });
-      return { points, fate: "surface", hitPolar: isPolarHit(x, y), impact };
+
+    const cls = hitToMaterial(classifyHit(x, y, theta, featureScale, recess));
+    if (cls) {
+      const terminal = { x, y };
+      points.push(terminal);
+      return {
+        id,
+        launch,
+        direction,
+        points,
+        terminal,
+        material: cls,
+        escaped: false,
+        maxCurvature,
+      };
     }
-    for (const w of WITNESS) {
-      if (Math.hypot(x - w.x, y - w.y) < 9) {
-        points.push({ x: w.x, y: w.y });
-        return { points, fate: "witness", hitPolar: false, impact };
-      }
-    }
-    const g = gradN(x, y, s);
-    const n = Math.max(g.n, 0.18);
-    const udot = ux_ * g.nx + uy_ * g.ny;
-    ux_ += ((g.nx - ux_ * udot) / n) * ds;
-    uy_ += ((g.ny - uy_ * udot) / n) * ds;
-    const p = polePos();
-    const rdx = x - p.x;
-    const rdy = y - p.y;
-    const rr = Math.hypot(rdx, rdy);
-    if (s > 0 && rr > 12 && rr < 72 && x < p.x + 6) {
-      const env = Math.exp(-(((rr - 32) / 18) * ((rr - 32) / 18)));
-      const kick = s * 0.09 * env * ds;
-      ux_ += kick * (-rdy / rr);
-      uy_ += kick * (rdx / rr);
-    }
-    const mag = Math.hypot(ux_, uy_) || 1;
-    ux_ /= mag;
-    uy_ /= mag;
-    x += ux_ * ds;
-    y += uy_ * ds;
+
+    const g = sampleField(x, y, cfg);
+    const n = Math.max(g.n, 1);
+    const udot = ux * g.nx + uy * g.ny;
+    const dux = ((g.nx - ux * udot) / n) * DS;
+    const duy = ((g.ny - uy * udot) / n) * DS;
+    const curv = Math.hypot(dux, duy) / DS;
+    if (curv > maxCurvature) maxCurvature = curv;
+    ux += dux;
+    uy += duy;
+    const mag = Math.hypot(ux, uy) || 1;
+    ux /= mag;
+    uy /= mag;
+    x += ux * DS;
+    y += uy * DS;
     if (i % 2 === 0) points.push({ x, y });
   }
-  return { points, fate: "maxsteps", hitPolar: false, impact };
+
+  const terminal = { x, y };
+  return {
+    id,
+    launch,
+    direction,
+    points,
+    terminal,
+    material: "escaped",
+    escaped: true,
+    maxCurvature,
+  };
 }
 
-export function bundle(s: number): RayPath[] {
-  const p = polePos();
+export function bundleAt(launch: LaunchGeom, cfg: FieldConfig): RayPath[] {
   const rays: RayPath[] = [];
-  const n = 11;
+  const n = RAY_COUNT;
   for (let i = 0; i < n; i++) {
     const t = i / (n - 1);
-    // Upper fan skims the dimple (can wrap). Lower fan strikes the fruit.
-    const y = 142 + t * 46;
-    const x = 42;
-    const tx = p.x - 8;
-    const ty = p.y + 8 + (t - 0.35) * 16;
-    rays.push(traceRay(x, y, tx - x, ty - y, s));
+    const y = launch.y0 + t * launch.ySpan;
+    const tx = launch.tx0 + t * (launch.tx1 - launch.tx0);
+    const ty = launch.ty0 + t * (launch.ty1 - launch.ty0);
+    rays.push(traceRay(i + 1, launch.x, y, tx - launch.x, ty - y, cfg));
   }
   return rays;
 }
 
-export type Stage = "FIELD OFF" | "BEND" | "SHADOW" | "WRAP" | "REVEAL";
-
-export function stageOf(s: number, rays: RayPath[]): Stage {
-  const polarHits = rays.filter((r) => r.fate === "surface" && r.hitPolar).length;
-  const wrapped = rays.filter((r) => r.fate === "escaped" || r.fate === "witness").length;
-  const witness = rays.filter((r) => r.fate === "witness").length;
-  if (s < 0.05) return "FIELD OFF";
-  if (s < 0.25) return "BEND";
-  if (witness >= 1 && s >= 0.78) return "REVEAL";
-  if (wrapped >= 3 && polarHits <= 6) return s >= 0.78 ? "REVEAL" : "WRAP";
-  if (s >= 0.52) return wrapped >= 2 ? "WRAP" : "SHADOW";
-  return "SHADOW";
+export function bundle(cfg: FieldConfig): RayPath[] {
+  return bundleAt(LAUNCH, cfg);
 }
 
-export function appleSamples(count = 72): Pt[] {
-  const pts: Pt[] = [];
-  for (let i = 0; i <= count; i++) {
-    const th = -Math.PI + (2 * Math.PI * i) / count;
-    const r = appleRadius(th);
-    pts.push({ x: APPLE.cx + r * Math.cos(th), y: APPLE.cy + r * Math.sin(th) });
+export function countMaterials(rays: RayPath[]): Record<MaterialClass, number> {
+  const c: Record<MaterialClass, number> = {
+    red: 0,
+    stem: 0,
+    leaf: 0,
+    divot: 0,
+    escaped: 0,
+  };
+  for (const r of rays) c[r.material] += 1;
+  return c;
+}
+
+export function redCoverage(rays: RayPath[]): number {
+  if (!rays.length) return 0;
+  return countMaterials(rays).red / rays.length;
+}
+
+/** Strength samples used for the persistence sweep at current width / pose. */
+export const SWEEP_STRENGTHS = [0, 0.3, 0.6, 0.9, 1.2] as const;
+
+export interface PersistentChannel {
+  id: number;
+  materials: MaterialClass[];
+}
+
+export function persistentChannels(
+  width = WIDTH_DEFAULT,
+  theta = 0,
+  featureScale = FEATURE_SCALE_DEFAULT,
+  recessDepth = RECESS_DEFAULT,
+): PersistentChannel[] {
+  const profiles: FieldConfig[] = [
+    { profile: "off", strength: 0, width, theta, featureScale, recessDepth },
+    ...SWEEP_STRENGTHS.filter((s) => s > 0).flatMap((s) => [
+      {
+        profile: "center-high" as const,
+        strength: s,
+        width,
+        theta,
+        featureScale,
+        recessDepth,
+      },
+      {
+        profile: "annular-high" as const,
+        strength: s,
+        width,
+        theta,
+        featureScale,
+        recessDepth,
+      },
+    ]),
+  ];
+  const byRay = new Map<number, Set<MaterialClass>>();
+  for (const cfg of profiles) {
+    for (const ray of bundle(cfg)) {
+      let set = byRay.get(ray.id);
+      if (!set) {
+        set = new Set();
+        byRay.set(ray.id, set);
+      }
+      set.add(ray.material);
+    }
   }
-  return pts;
+  const out: PersistentChannel[] = [];
+  for (const [id, set] of byRay) {
+    if (!set.has("red")) {
+      out.push({ id, materials: [...set] });
+    }
+  }
+  return out.sort((a, b) => a.id - b.id);
+}
+
+export function pole(recess = RECESS_DEFAULT): Pt {
+  return polePos(recess);
 }

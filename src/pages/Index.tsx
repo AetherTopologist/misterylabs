@@ -163,8 +163,8 @@ const Index = () => {
               to="/observatory/polar-grin"
               className="diagnostic-frame rounded-sm border border-cyan-500/20 bg-card/30 p-4 transition-base hover:border-cyan-500/45"
             >
-              <div className="font-mono text-[8px] uppercase tracking-[0.28em] text-cyan-400/80">Polar GRIN</div>
-              <div className="mt-1 text-sm font-semibold">Bend the path, not the object.</div>
+              <div className="font-mono text-[8px] uppercase tracking-[0.28em] text-cyan-400/80">Apple of the Eye</div>
+              <div className="mt-1 text-sm font-semibold">Same object. Different transport.</div>
             </Link>
             <Link
               to="/observatory/saturn-polygon"
