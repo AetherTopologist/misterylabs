@@ -16,6 +16,8 @@
 
 import type { ResonanceSpheresData } from '@/types/inspiration'; // or inline if no shared yet
 
+const BASE = import.meta.env.BASE_URL;
+
 export const resonanceSpheresData: ResonanceSpheresData = {
   spheres: [
     {
@@ -24,7 +26,7 @@ export const resonanceSpheresData: ResonanceSpheresData = {
       // Proxy texture: a strong portal/wormhole image standing in for the Digital Circus Trophy Room 
       // rendered with xPRIMEray-style curved-ray / GRIN refraction + wormhole-edge distortion.
       // In prod: replace with the actual generated equirectangular from xprimeray overspace_trophy_room_demo + shader.
-      textureUrl: "/assets/overview/wormhole_structure_contact_sheet.png", // proxy for Trophy Room + xPRIMEray distortion (copy real from assets/misterylabs_artifacts/visuals/ to public/assets/observatory/ for prod)
+      textureUrl: `${BASE}assets/overview/wormhole_structure_contact_sheet.png`, // proxy for Trophy Room + xPRIMEray distortion (copy real from assets/misterylabs_artifacts/visuals/ to public/assets/observatory/ for prod)
       radius: 1.0,
       orbitingNodeIds: [
         "glitch-digital-circus-trophy-room",
@@ -49,7 +51,7 @@ export const resonanceSpheresData: ResonanceSpheresData = {
       media: [
         {
           type: "image",
-          url: "/assets/overview/wormhole_structure_contact_sheet.png", // proxy for Trophy Room hero; replace with actual distorted render from xprimeray + artifacts/visuals/
+          url: `${BASE}assets/overview/wormhole_structure_contact_sheet.png`, // proxy for Trophy Room hero; replace with actual distorted render from xprimeray + artifacts/visuals/
           caption: "Trophy Room hero — mapped as central sphere texture with xPRIMEray-style GRIN refraction on portals and wormhole boundary distortion.",
           alt: "The Amazing Digital Circus Trophy Room interior with ringmaster portals, rendered with curved transport distortion (proxy using strong xPRIMEray wormhole observatory render)",
           standardSize: "hero",

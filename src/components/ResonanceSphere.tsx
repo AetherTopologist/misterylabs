@@ -11,6 +11,17 @@ import { useEffect, useRef } from "react";
  * 
  * For full integration: composite with the force graph or place behind the canvas in Atlas/Observatory sections.
  */
+function canvasColor(value: string, fallback: string): string {
+  const v = value.trim();
+  if (!v) return fallback;
+  // Tailwind HSL channel tokens ("186 90% 58%" or "186 90% 58% / 0.35")
+  // are not parseable by CanvasGradient.addColorStop until wrapped.
+  if (/^[\d.]+\s+[\d.]+%\s+[\d.]+%(?:\s*\/\s*[\d.]+%?)?$/.test(v)) {
+    return `hsl(${v})`;
+  }
+  return v;
+}
+
 interface ResonanceSphereProps {
   textureUrl?: string;
   className?: string;
@@ -55,7 +66,7 @@ export function ResonanceSphere({
       const getVar = (name: string, fallback: string) => {
         if (!root) return fallback;
         const v = getComputedStyle(root).getPropertyValue(name).trim();
-        return v || fallback;
+        return canvasColor(v, fallback);
       };
 
       const baseColor = isDark ? '#0a0c16' : getVar('--sphere-base', '#fafafa');

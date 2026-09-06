@@ -426,13 +426,14 @@ function GraphLine({
   opacity,
   dashed,
 }: {
-  from: BrochNode;
-  to: BrochNode;
+  from: BrochNode | undefined;
+  to: BrochNode | undefined;
   color: string;
   width: number;
   opacity: number;
   dashed?: boolean;
 }) {
+  if (!from || !to) return null;
   const a = nodeToPoint(from);
   const b = nodeToPoint(to);
   return (
