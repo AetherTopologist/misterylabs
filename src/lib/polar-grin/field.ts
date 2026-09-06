@@ -21,7 +21,7 @@ import { RECESS_DEFAULT, clampRecess, polePos } from "./geometry";
 import { toLocal } from "./frame";
 import type { FieldConfig, FieldProfile, FieldSample } from "./types";
 
-export const A_MAX = 1.2;
+export const A_MAX = 1.5;
 export const N_MIN = 1.0;
 export const N_MAX = 1 + A_MAX;
 

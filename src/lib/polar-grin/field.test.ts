@@ -68,4 +68,15 @@ describe("positive-index field", () => {
     const b = { ...a, featureScale: 1.5 };
     expect(indexAt(p.x, p.y, a)).toBe(indexAt(p.x, p.y, b));
   });
+
+  it("A=1.5 is the same equation with a higher bound, not a new field", () => {
+    const p = polePos();
+    const cfg = C({ profile: "center-high", strength: 1.5, width: 1 });
+    const n = indexAt(p.x, p.y, cfg);
+    expect(n).toBeGreaterThan(1);
+    expect(n).toBeLessThanOrEqual(1 + A_MAX + 1e-12);
+    expect(A_MAX).toBe(1.5);
+    const weaker = C({ profile: "center-high", strength: 1.2, width: 1 });
+    expect(indexAt(p.x, p.y, cfg)).toBeGreaterThan(indexAt(p.x, p.y, weaker));
+  });
 });

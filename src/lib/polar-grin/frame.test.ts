@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { APPLE } from "./types";
-import { THETA_MAX, THETA_MIN, toLab, toLocal } from "./frame";
+import { THETA_MAX, THETA_MIN, clampTheta, toLab, toLocal } from "./frame";
 import { classifyHit, polePos } from "./geometry";
 
 describe("target frame", () => {
@@ -11,16 +11,22 @@ describe("target frame", () => {
 
   it("toLab and toLocal invert", () => {
     const src = { x: 418, y: 108 };
-    for (const th of [-90, -45, 0]) {
+    for (const th of [-90, -45, 0, 45, 90]) {
       const lab = toLab(src.x, src.y, th);
       const back = toLocal(lab.x, lab.y, th);
       expect(Math.hypot(back.x - src.x, back.y - src.y)).toBeLessThan(1e-9);
     }
   });
 
-  it("UI experimental range is [−90, 0]", () => {
+  it("UI experimental range is [−90, +90]", () => {
     expect(THETA_MIN).toBe(-90);
-    expect(THETA_MAX).toBe(0);
+    expect(THETA_MAX).toBe(90);
+    expect(clampTheta(45)).toBe(45);
+    expect(clampTheta(-45)).toBe(-45);
+    expect(clampTheta(90)).toBe(90);
+    expect(clampTheta(-90)).toBe(-90);
+    expect(clampTheta(91)).toBe(90);
+    expect(clampTheta(-91)).toBe(-90);
   });
 
   it("hit tests follow the same R as toLab", () => {

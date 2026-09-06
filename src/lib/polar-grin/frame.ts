@@ -9,7 +9,7 @@
 import { APPLE, type Pt } from "./types";
 
 export const THETA_MIN = -90;
-export const THETA_MAX = 0;
+export const THETA_MAX = 90;
 
 export function clampTheta(deg: number): number {
   if (!Number.isFinite(deg)) return 0;
