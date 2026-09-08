@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Eye, Compass, Telescope, Orbit, ArrowRight, ScrollText } from "lucide-react";
+import { Eye, Compass, Orbit, ArrowRight, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -148,12 +148,6 @@ export function SeeingIsNotOpeningYourEyes() {
               <Link to="/archive">
                 Explore the Vault
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to="/mission">
-                <Telescope className="mr-2 h-4 w-4" />
-                Enter MisterY Labs
               </Link>
             </Button>
           </div>
