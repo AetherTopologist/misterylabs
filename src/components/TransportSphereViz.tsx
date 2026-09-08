@@ -15,6 +15,21 @@ const RIGHT_CLIP = `M ${CX},${TOP} A ${R},${R} 0 0,1 ${CX},${BOT} L ${CX},${TOP}
 
 const MONO = "ui-monospace,SFMono-Regular,Menlo,monospace";
 
+// Annotation chips sit in the upper quadrants. Home uses this SVG at ~100svh
+// with preserveAspectRatio slice, so a 390×844 viewport only shows ~323 user-x
+// units centered on CX. The previous 200-wide chips (x=368–832) spilled past
+// that window and clipped STRAIGHT/CURVED TRANSPORT. Keep chips inside
+// approximately [448, 752] so both labels stay fully visible. Ray geometry
+// below is unchanged.
+const CHIP_W = 140;
+const CHIP_H = 34;
+const CHIP_GAP = 16;
+const CHIP_Y = TOP + 13;
+const CHIP_LEFT_X = CX - CHIP_GAP / 2 - CHIP_W;
+const CHIP_RIGHT_X = CX + CHIP_GAP / 2;
+const CHIP_LEFT_CX = CHIP_LEFT_X + CHIP_W / 2;
+const CHIP_RIGHT_CX = CHIP_RIGHT_X + CHIP_W / 2;
+
 type LeftRay  = { d: string; op: number };
 type RightRay = { d: string; op: number; variant: "violet" | "cyan" };
 
@@ -202,13 +217,13 @@ export function TransportSphereViz({ className }: { className?: string }) {
       </g>
 
       {/* ── Quadrant label annotation chips (doctrine: labels need a dedicated surface) ── */}
-      <rect x={CX - 232} y={TOP + 13} width={200} height={34} rx="3" ry="3" fill={c.labelBg} stroke={c.labelBgBdr} strokeWidth="0.6" />
-      <rect x={CX + 32}  y={TOP + 13} width={200} height={34} rx="3" ry="3" fill={c.labelBg} stroke={c.labelBgBdr} strokeWidth="0.6" />
+      <rect x={CHIP_LEFT_X} y={CHIP_Y} width={CHIP_W} height={CHIP_H} rx="3" ry="3" fill={c.labelBg} stroke={c.labelBgBdr} strokeWidth="0.6" />
+      <rect x={CHIP_RIGHT_X} y={CHIP_Y} width={CHIP_W} height={CHIP_H} rx="3" ry="3" fill={c.labelBg} stroke={c.labelBgBdr} strokeWidth="0.6" />
       {/* ── Quadrant labels ───────────────────────────────── */}
-      <text x={CX - 132} y={TOP + 26} textAnchor="middle" fontFamily={MONO} fontSize="9"  fill={c.labelStr}  letterSpacing={2.5}>STRAIGHT TRANSPORT</text>
-      <text x={CX - 132} y={TOP + 39} textAnchor="middle" fontFamily={MONO} fontSize="8"  fill={c.labelSub}  letterSpacing={1.5}>Reference Reality</text>
-      <text x={CX + 132} y={TOP + 26} textAnchor="middle" fontFamily={MONO} fontSize="9"  fill={c.labelCyan} letterSpacing={2.5}>CURVED TRANSPORT</text>
-      <text x={CX + 132} y={TOP + 39} textAnchor="middle" fontFamily={MONO} fontSize="8"  fill={c.labelSub}  letterSpacing={1.5}>GRIN Field Reality</text>
+      <text x={CHIP_LEFT_CX} y={TOP + 26} textAnchor="middle" fontFamily={MONO} fontSize="9"  fill={c.labelStr}  letterSpacing={1.2}>STRAIGHT TRANSPORT</text>
+      <text x={CHIP_LEFT_CX} y={TOP + 39} textAnchor="middle" fontFamily={MONO} fontSize="8"  fill={c.labelSub}  letterSpacing={0.8}>Reference Reality</text>
+      <text x={CHIP_RIGHT_CX} y={TOP + 26} textAnchor="middle" fontFamily={MONO} fontSize="9"  fill={c.labelCyan} letterSpacing={1.2}>CURVED TRANSPORT</text>
+      <text x={CHIP_RIGHT_CX} y={TOP + 39} textAnchor="middle" fontFamily={MONO} fontSize="8"  fill={c.labelSub}  letterSpacing={0.8}>GRIN Field Reality</text>
 
       {/* ── Axis annotations ──────────────────────────────── */}
       <text x={CX - R - 14} y={CY + 4}  textAnchor="end"    fontFamily={MONO} fontSize="9" fill={c.axisMuted} letterSpacing={1.5}>n(x)</text>
