@@ -46,3 +46,9 @@ Historical captures in `docs/visual-audit/` and
 `reports/visual-qa/2026-06-22/` are frozen provenance.
 Do not add new files there.
 Do not treat a 7-viewport × 12-route sweep as a public-UI commit archive.
+
+
+For current MisterY Labs public-development sequencing and accepted
+architecture decisions, read `Docs/public/PUBLIC_FOUNDATION_ROADMAP.md`.
+
+The roadmap is subordinate to the Public Charter and ratified charter.
