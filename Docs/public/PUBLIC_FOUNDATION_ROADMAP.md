@@ -11,8 +11,8 @@
 > This document may evolve as milestones land. It does not redefine
 > xPRIMEray engine authority.
 
-**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1 landed  
-**Updated after:** `ee84d3740a7d84943e804a3c046744155578e339` — `fix(public): remove misleading Mission Control CTA`
+**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed  
+**Updated after:** `f357d6a46ad1c93cea6ea62a56157f7f80e57512` — `fix(public): remove stale Broch Sphere s-myl references`
 
 ---
 
@@ -49,7 +49,7 @@ Claude's repository/history inspection established that:
 
 **MisterY Labs is the navigator/container, not a node inside its own graph.**
 
-Follow-up should mechanically remove or convert the remaining `s-myl` references without changing Broch Sphere topology or inventing a replacement node.
+M3 mechanically removed the remaining `s-myl` references without changing Broch Sphere topology or inventing a replacement node.
 
 ---
 
@@ -114,9 +114,7 @@ Visual evidence and runtime verification must exist before a milestone is marked
 
 ## 6. Current execution state
 
-**LANDED:** M1 — Home CTA honesty (`ee84d374`)  
-**NOW:** M2 — mobile hero legibility  
-**NEXT:** M3 — Broch Sphere `s-myl` cleanup  
+**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`)  
 **ARCHITECTURE GATE:** M4 — Experience coherence
 
 ---
@@ -166,41 +164,62 @@ Neither belongs in M1.
 
 ---
 
-### M2 — NOW — Orientation: mobile hero legibility
+### M2 — LANDED — Orientation: mobile hero legibility
 
-Fix clipping of the `STRAIGHT TRANSPORT` / `CURVED TRANSPORT` chips at approximately 390 px in the shared Transport Sphere visual.
+**Status:** Complete  
+**Commit:** `ccb3cc62a1d24395e635646f90be2be4a8cdc003`  
+**Message:** `fix(public): improve mobile transport labels`  
+**Visual QA:** `reports/visual-qa/public/699ac73-improve-mobile-transport-labels/`
 
-Do not alter transport geometry, scientific semantics, route structure, or Transport Sphere behavior beyond presentation required for legibility.
+Moved and narrowed the `STRAIGHT TRANSPORT` / `CURVED TRANSPORT` chips in the shared Transport Sphere visual so both labels remain fully legible at approximately 390 px.
 
-Expected owner:
+Owning component:
 
 `src/components/TransportSphereViz.tsx`
 
-This component is shared by Home and `/observatory/transport-sphere`, so both consuming surfaces must be verified.
+Ray paths, transport geometry, scientific semantics, route structure, and Transport Sphere behavior beyond presentation were not changed.
+
+Verification passed at:
+
+- Home 390×844 and 1440×900, light and dark
+- `/observatory/transport-sphere` 390×844 and 1440×900, light and dark
+- no new console errors
+- no document `overflowX`
+
+**Deferred from M2:**
+
+- Axis labels `n(x)` / `n(0)` still clip at 390×844 on Home and on `/observatory/transport-sphere` (they sit at the sphere's left/right extremities, outside the slice window).
 
 ---
 
-### M3 — NEXT — Foundation: Broch Sphere `s-myl` cleanup
+### M3 — LANDED — Foundation: Broch Sphere `s-myl` cleanup
 
-Remove or convert the remaining dangling `s-myl` references left after the historical node deletion.
+**Status:** Complete  
+**Commit:** `f357d6a46ad1c93cea6ea62a56157f7f80e57512`  
+**Message:** `fix(public): remove stale Broch Sphere s-myl references`  
+**Visual QA:** `reports/visual-qa/public/320e11b-remove-stale-s-myl/`
 
-Known references were previously identified in:
+Mechanically removed remaining dangling `s-myl` references from active Broch Sphere data without adding `s-myl` as a node and without inventing replacement topology.
 
-- `src/data/brochSphere/constellations.ts`
-- `src/data/brochSphere/journeys.ts`
-- `src/data/brochSphere/observerStances.ts`
+Changed files:
 
-The journey step may be removed or rewritten as narration only if that preserves meaning without implying a graph node.
+- `src/data/brochSphere/journeys.ts` — removed Observer's Path last step (`s-myl`, “sits south of the high-confidence chain”) and edges `observer-x-myl` / `story-interstellar-myl`; path is now Galileo → Sagan → xPRIMEray
+- `src/data/brochSphere/constellations.ts` — Story Arc `nodeIds` dropped `s-myl`
+- `src/data/brochSphere/observerStances.ts` — Receiver `visibleNodeIds` dropped `s-myl`
 
-Do not add `s-myl`.
+Preserved:
 
-Keep the defensive render guard as cheap runtime insurance.
+- `GraphLine` missing-endpoint guard in `src/components/brochSphere/BrochSpherePrototype.tsx`
+- Navigator Stack semantics
+- default `/broch-sphere` landing (Return Path)
 
-Acceptance target:
+Verification passed:
 
-- no `s-myl` string remains in active Broch Sphere data;
-- `/broch-sphere` still renders cleanly;
-- no topology or Navigator Stack reinterpretation.
+- no `s-myl` string remains in active Broch Sphere data (`src/`)
+- `/broch-sphere` renders cleanly at 390×844 and 1440×900
+- Observer's Path last step is `Step 3 / 3` with the xPRIMEray caption and node card
+- no new console errors
+- no document `overflowX`
 
 ---
 
@@ -298,103 +317,19 @@ If one pair of screenshots cannot show the relevant change, add route-specific f
 
 ---
 
-## 9. Next Grok implementation brief — M2 only
+## 9. Next Grok implementation brief
 
-### Title
+None. M4 is an **ARCHITECTURE GATE**, not a Grok implementation task.
 
-**Fix mobile Transport Sphere label clipping**
+It requires Claude architecture review and Billy hands-on interaction acceptance before any implementation brief is written.
 
-### Mode
-
-Implementation is approved and intentionally bounded.
-
-### Scope
-
-Expected implementation file:
-
-`src/components/TransportSphereViz.tsx`
-
-If repository inspection shows the clipping is owned elsewhere, stop and report the actual owner rather than expanding scope.
-
-### Problem
-
-At approximately 390 px viewport width, the shared Transport Sphere visual clips or partially cuts off the label chips:
-
-- `STRAIGHT TRANSPORT`
-- `CURVED TRANSPORT`
-
-This affects at least:
-
-- Home
-- `/observatory/transport-sphere`
-
-The visual itself is otherwise working.
-
-### Do
-
-1. Reproduce the clipping at approximately 390×844 before changing code.
-2. Identify the smallest presentation-only cause.
-3. Fix the chip sizing, positioning, wrapping, or responsive treatment required to make both labels fully legible.
-4. Preserve desktop hierarchy and theme behavior.
-5. Verify both consuming routes.
-6. Capture before/after visual evidence at:
-   - 390×844
-   - 1440×900
-7. Verify light and dark theme if the component renders differently by theme.
-8. Archive evidence under the canonical `reports/visual-qa/public/` convention.
-
-### Do not
-
-- alter ray paths;
-- alter straight/curved transport geometry;
-- change scientific semantics;
-- add Transport Sphere interactivity;
-- redesign Home;
-- change CTA copy;
-- touch Mission Control;
-- touch Broch Sphere data;
-- touch Arcade/Experience demos;
-- rename routes;
-- change Vite or basename configuration;
-- change xPRIMEray engine semantics or documentation;
-- advance M3 or any deferred work.
-
-### Acceptance criteria
-
-- `STRAIGHT TRANSPORT` is fully legible at 390×844.
-- `CURVED TRANSPORT` is fully legible at 390×844.
-- no horizontal overflow is introduced;
-- Home remains visually coherent;
-- `/observatory/transport-sphere` remains visually coherent;
-- desktop 1440×900 remains correct;
-- no new console errors;
-- no ray-path or transport-geometry change;
-- only the approved implementation and visual-QA evidence are included.
-
-### Commit
-
-If verification passes:
-
-`fix(public): improve mobile transport labels`
-
-If the repair requires broader structural changes than expected, stop and report rather than expanding scope.
-
-### Report back with
-
-- commit SHA;
-- exact file diff;
-- root cause of the clipping;
-- Home mobile/desktop PASS/FAIL;
-- Transport Sphere mobile/desktop PASS/FAIL;
-- light/dark PASS/FAIL where relevant;
-- visual-QA folder;
-- adjacent findings, reported but not fixed.
+Do not invent an M4 implementation brief yet.
 
 ---
 
 ## 10. Deliberately deferred
 
-Do not let these hijack M2:
+Do not let these hijack M4:
 
 - `NotFound.tsx` exposing Mission in 404 recovery
 - Mission Control sticky-header overlap
@@ -407,7 +342,7 @@ Do not let these hijack M2:
 - external Supabase project decommissioning
 - stale Supabase/auth documentation cleanup
 - Transport Sphere interactivity
-- Broch Sphere `s-myl` cleanup until M3
+- Transport Sphere axis labels `n(x)` / `n(0)` mobile clipping
 - xPRIMEray engine work
 
 ---
