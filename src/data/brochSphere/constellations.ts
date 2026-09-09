@@ -21,7 +21,7 @@ export const brochConstellations: BrochConstellation[] = [
     id: "story-arc",
     name: "The Story Arc",
     stanceId: "receiver",
-    nodeIds: ["star-homer", "s-wells", "s-2001", "s-interstellar", "s-myl"],
+    nodeIds: ["star-homer", "s-wells", "s-2001", "s-interstellar"],
     reading:
       "Narrators who gave the cosmos a shape people could hold. Not popularizers: original form-makers.",
   },

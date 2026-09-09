@@ -46,7 +46,6 @@ export const observerStances: ObserverStance[] = [
       "b-darwin",
       "b-sagan",
       "b-galileo",
-      "s-myl",
       "star-press",
       "k-xprimery",
     ],

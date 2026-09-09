@@ -65,11 +65,6 @@ export const brochJourneys: BrochJourney[] = [
         id: "k-xprimery",
         caption: "It returns the question to the instrument: build it again, see further.",
       },
-      {
-        type: "node",
-        id: "s-myl",
-        caption: "MisterY Labs sits south of the high-confidence chain, still forming.",
-      },
     ],
   },
   {
@@ -119,11 +114,9 @@ export const brochEdges: BrochEdge[] = [
   { id: "geometry-einstein-penrose", from: "k-einstein", to: "k-penrose", kind: "strand" },
   { id: "observer-galileo-sagan", from: "b-galileo", to: "b-sagan", kind: "great-circle" },
   { id: "observer-sagan-x", from: "b-sagan", to: "k-xprimery", kind: "great-circle" },
-  { id: "observer-x-myl", from: "k-xprimery", to: "s-myl", kind: "beacon", transferEventId: "te-04" },
   { id: "story-homer-wells", from: "star-homer", to: "s-wells", kind: "great-circle" },
   { id: "story-wells-2001", from: "s-wells", to: "s-2001", kind: "great-circle" },
   { id: "story-2001-interstellar", from: "s-2001", to: "s-interstellar", kind: "great-circle" },
-  { id: "story-interstellar-myl", from: "s-interstellar", to: "s-myl", kind: "great-circle" },
   { id: "darwin-wells", from: "b-darwin", to: "s-wells", kind: "te-crossing", transferEventId: "te-02" },
   { id: "return-einstein-2001", from: "k-einstein", to: "s-2001", kind: "te-crossing", transferEventId: "te-03" },
   { id: "return-interstellar-x", from: "s-interstellar", to: "k-xprimery", kind: "beacon", transferEventId: "te-04" },
