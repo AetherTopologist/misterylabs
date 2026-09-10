@@ -11,7 +11,6 @@ const ROUTES = [
   { to: "/archive", label: "Archive" },
   { to: "/research", label: "Research" },
   { to: "/media", label: "Media" },
-  { to: "/mission", label: "Mission" },
 ];
 
 export default function NotFound() {
