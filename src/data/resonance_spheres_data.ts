@@ -56,18 +56,6 @@ export const resonanceSpheresData: ResonanceSpheresData = {
           alt: "The Amazing Digital Circus Trophy Room interior with ringmaster portals, rendered with curved transport distortion (proxy using strong xPRIMEray wormhole observatory render)",
           standardSize: "hero",
           resonanceNote: "Ringmaster portals = wormhole mouths; recursive rooms = infinite mirror recursion; the 'game' rules = hermetic fixture contracts."
-        },
-        {
-          type: "image",
-          url: "/assets/observatory_atlas/observer-disagreement-hero.png", // good grid-style proxy from artifacts (copy visuals to public if needed)
-          caption: "Thumbnail grid variant — observer disagreement in the nexus",
-          standardSize: "grid"
-        },
-        {
-          type: "youtube",
-          url: "https://www.youtube.com/embed/PLACEHOLDER_DIGITAL_CIRCUS_TROPHY", // replace with real episode/trailer clip
-          caption: "Trophy Room sequence — observe the portal transitions and spatial recursion",
-          thumbnail: "/assets/observatory_atlas/hermetic-closure-hero.png"
         }
       ],
       externalLinks: [
@@ -87,20 +75,7 @@ export const resonanceSpheresData: ResonanceSpheresData = {
       tags: ["curved-spacetime", "gravitational-lensing", "black-hole", "visualization", "nobel"],
       summary: "Nobel laureate physicist whose work on wormholes (Morris–Thorne metric) and black hole lensing (Interstellar) directly parallels xPRIMEray's Gordon effective metric and GRIN null-geodesic integration.",
       xprimeRayAlignment: "Core technical kinship: Thorne's Morris-Thorne traversable wormhole requires exotic matter to keep the throat open — xPRIMEray's wormhole fixtures and overspace topology explicitly test throat stability under curved transport. His gravitational lensing work for Interstellar (Gargantua) is the gold-standard cinematic curved-ray benchmark. xPRIMEray's 'Dual Reality' and 'Observer Disagreement' chapters are the scientific instrument version of what Thorne did for film: show the difference between naive straight transport and real geodesic curvature, with measurable, falsifiable outputs.",
-      media: [
-        {
-          type: "image",
-          url: "/assets/observatory_atlas/wormhole-dual-reality-curvature-map.png", // strong curved lensing proxy from artifacts
-          caption: "Gravitational lensing around a spinning black hole — the visual that made curved null geodesics mainstream",
-          standardSize: "hero",
-          resonanceNote: "Direct ancestor of xPRIMEray's curved_view.gdshader and the dual-reality comparison pipeline."
-        },
-        {
-          type: "youtube",
-          url: "https://www.youtube.com/embed/PLACEHOLDER_KIP_THORNE",
-          caption: "Thorne on the science of Interstellar lensing and wormholes"
-        }
-      ],
+      media: [],
       externalLinks: [
         { label: "Kip Thorne Nobel Prize", url: "https://www.nobelprize.org/prizes/physics/2017/thorne/facts/" },
         { label: "The Science of Interstellar (book)", url: "https://en.wikipedia.org/wiki/The_Science_of_Interstellar" }
@@ -117,15 +92,7 @@ export const resonanceSpheresData: ResonanceSpheresData = {
       tags: ["trapped-surfaces", "penrose-diagram", "causal-structure", "singularity", "nobel"],
       summary: "Penrose diagrams and trapped surface theorems are the mathematical language for the causal structure that xPRIMEray's hermetic closure and boundary event ledger make observable in rendered pixels.",
       xprimeRayAlignment: "The 'hermetic fixture contract' (100% pixel classification, zero unresolved exits) is a computational embodiment of Penrose's trapped surface and causal boundary ideas. When rays in xPRIMEray hit a 'trapped' region (high-curvature GRIN shell or wormhole throat), the closure diagnostics and ownership graphs reveal the same topological features Penrose diagrams abstract. The 'unresolved island' in the transport oracle is a pixel-level Penrose singularity made visible.",
-      media: [
-        {
-          type: "image",
-          url: "/assets/observatory_atlas/hermetic-closure-hero.png",
-          caption: "Trapped surfaces and causal boundaries made visible in hermetic pixel classification",
-          standardSize: "hero",
-          resonanceNote: "Pixel-perfect realization of Penrose causal structure in transport diagnostics."
-        }
-      ],
+      media: [],
       externalLinks: [
         { label: "Roger Penrose Nobel Prize", url: "https://www.nobelprize.org/prizes/physics/2020/penrose/facts/" }
       ],
@@ -141,14 +108,7 @@ export const resonanceSpheresData: ResonanceSpheresData = {
       tags: ["curved-spacetime", "null-geodesics", "cinematic-rendering", "observer-perspective"],
       summary: "The gold-standard cinematic visualization of a spinning black hole and its accretion disk, achieved through real general-relativistic ray tracing.",
       xprimeRayAlignment: "The exact question xPRIMEray answers with instruments instead of film VFX: what does curved null geodesic transport actually look like to an observer on either side of the boundary? xPRIMEray's off-axis observe delta and dual-reality pipelines are the scientific, measurable version of the Gargantua render pipeline.",
-      media: [
-        {
-          type: "image",
-          url: "/assets/observatory_atlas/wormhole-dual-reality-full-stack.png",
-          caption: "Gargantua-style curved transport — straight vs. real geodesic comparison (xPRIMEray dual-reality style)",
-          standardSize: "hero"
-        }
-      ],
+      media: [],
       externalLinks: [
         { label: "The Science of Interstellar", url: "https://www.interstellarmovie.net/" }
       ],
@@ -164,14 +124,7 @@ export const resonanceSpheresData: ResonanceSpheresData = {
       tags: ["bsp", "portals", "real-time-rendering", "spatial-cognition", "prediction"],
       summary: "The original real-time social engine of speed. BSP traversal, portal culling, and client-side prediction taught spatial intuition at inhuman velocity.",
       xprimeRayAlignment: "Direct ancestor of transport island detection, observer-relative coordinate framing, and the need for hermetic closure under curved fields. The same problems (visibility, prediction, low-latency spatial coherence) that xPRIMEray solves at the diagnostic layer.",
-      media: [
-        {
-          type: "image",
-          url: "/assets/observatory_atlas/hermetic-hit-closure-storyboard.png",
-          caption: "Classic engine portal culling meets modern curved transport closure",
-          standardSize: "grid"
-        }
-      ],
+      media: [],
       externalLinks: [
         { label: "Quake III Arena", url: "https://en.wikipedia.org/wiki/Quake_III_Arena" }
       ],

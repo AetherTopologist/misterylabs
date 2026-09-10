@@ -99,15 +99,6 @@ const PRIMARIES: Array<Omit<AtlasNode, "x" | "y" | "vx" | "vy" | "kind" | "radiu
     xprimeConcept: "Null geodesic path tracing and curved transport visualization",
     keywords: ["curved spacetime", "black hole lensing", "temporal perception"],
     hue: 320,
-    media: [
-      {
-        type: "image",
-        url: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800", // placeholder; replace with actual Gargantua render or public asset
-        caption: "Gargantua black hole lensing",
-        alt: "Dramatic curved spacetime visualization of a black hole with accretion disk and gravitational lensing",
-        resonanceNote: "Direct visual ancestor for null-geodesic and GRIN ray deflection in xPRIMEray."
-      }
-    ]
   },
   {
     id: "digital-circus",
@@ -118,21 +109,6 @@ const PRIMARIES: Array<Omit<AtlasNode, "x" | "y" | "vx" | "vy" | "kind" | "radiu
     xprimeConcept: "Nested portals, bulk-boundary emergence, curated 'inspiration spheres' as observable diagnostic fields, ray-trapped 'audience' perspectives.",
     keywords: ["portals", "traversal", "glitch", "immersive rendering", "nexus", "curation"],
     hue: 280,
-    media: [
-      {
-        type: "image",
-        url: "https://picsum.photos/id/1015/800/600", // TODO: replace with actual high-res Trophy Room / portal screenshot from Glitch Productions
-        caption: "Trophy Room portal nexus",
-        alt: "Glitchy, ornate portal room with floating trophies, multiple doorways and curved thresholds to other digital worlds",
-        resonanceNote: "Exceptional alignment with nested portals, event-horizon-like trapping at boundaries, and curated 'bulk' worlds. Strong xPRIMEray portal DNA."
-      },
-      {
-        type: "youtube",
-        url: "https://www.youtube.com/embed/dQw4w9wgccc", // placeholder — replace with actual relevant Digital Circus clip or trailer if available
-        caption: "Portal traversal sequence",
-        resonanceNote: "Observe the tactile portal 'hand-off' and spatial reorientation — mirrors GRIN field boundary crossing."
-      }
-    ]
   },
 ];
 
