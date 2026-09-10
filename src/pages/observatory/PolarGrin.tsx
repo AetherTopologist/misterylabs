@@ -56,7 +56,7 @@ function Teaching() {
     {
       k: "03",
       title: "Two readouts",
-      body: "MIND draws the paths. HEART-EYE is the same records as a categorical scan. Tap a cell to inspect that ray. There is no second ray population.",
+      body: "MIND draws the paths. HEART-EYE is the same records as MIND, shown as a categorical scan. Tap a cell to inspect that ray. There is no second ray population.",
     },
     {
       k: "04",

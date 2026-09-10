@@ -904,11 +904,8 @@ const OFFAXIS_PANELS: ObsPanel[] = [
 
 const ATLAS_NAV = [
   { href: "#observatory-hero",    label: "Observatory" },
-  { href: "#quaternion-explorer", label: "Quaternion" },
-  { href: "#higher-dimensional",  label: "Instruments" },
   { href: "#xeno-citations",      label: "XenoCitations" },
   { href: "#inspiration-atlas",   label: "Atlas" },
-  { href: "#signals",             label: "Lineage" },
   { href: "#get-involved",        label: "Get Involved" },
 ] as const;
 
@@ -988,7 +985,7 @@ const DEMO_CARDS: Array<{
     href: "/observatory/polar-grin",
     label: "Apple of the Eye",
     sub: "Polar GRIN · Optical Accessibility",
-    desc: "Same apple, same probes, different transport. A bounded positive-index field. HEART-EYE is the same ray records.",
+    desc: "Same apple, same probes, different transport. A bounded positive-index field. HEART-EYE is the same ray records as MIND.",
     accent: "text-cyan-400/70",
     border: "border-cyan-500/20 hover:border-cyan-500/40",
     maturity: "Experimental",
