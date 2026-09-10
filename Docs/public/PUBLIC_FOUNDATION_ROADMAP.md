@@ -11,8 +11,8 @@
 > This document may evolve as milestones land. It does not redefine
 > xPRIMEray engine authority.
 
-**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed  
-**Updated after:** `f357d6a46ad1c93cea6ea62a56157f7f80e57512` — `fix(public): remove stale Broch Sphere s-myl references`
+**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed  
+**Updated after:** `379efe4781cc5ee6ac98aa805896ef113e778bf6` — `fix(public): remove Mission Control from 404 recovery`
 
 ---
 
@@ -114,8 +114,11 @@ Visual evidence and runtime verification must exist before a milestone is marked
 
 ## 6. Current execution state
 
-**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`)  
-**ARCHITECTURE GATE:** M4 — Experience coherence
+**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`)  
+**NOW:** Public Reality Audit  
+**ARCHITECTURE GATE (after reality-audit / pruning):** M4 — Experience coherence  
+
+**Mission Control:** INTERNAL / MAINTAINER — direct `/mission` preserved; public discoverability removed.
 
 ---
 
@@ -157,10 +160,9 @@ Verification passed at:
 
 **Deferred from M1:**
 
-- `src/pages/NotFound.tsx` still exposes `{ to: "/mission", label: "Mission" }` in 404 recovery.
 - Mission Control has a pre-existing header-overlap issue with the sticky site header.
 
-Neither belongs in M1.
+The 404 Mission recovery link was closed in H1. Neither the 404 chip nor the header overlap belonged in M1.
 
 ---
 
@@ -223,7 +225,41 @@ Verification passed:
 
 ---
 
+### H1 — LANDED — Foundation: 404 Mission discoverability
+
+**Status:** Complete  
+**Commit:** `379efe4781cc5ee6ac98aa805896ef113e778bf6`  
+**Message:** `fix(public): remove Mission Control from 404 recovery`  
+**Visual QA:** `reports/visual-qa/public/2fb657f-remove-404-mission/`
+
+Removed `{ to: "/mission", label: "Mission" }` from the 404 Known Routes grid.
+
+Owning file:
+
+`src/pages/NotFound.tsx` (`ROUTES` array only)
+
+Preserved:
+
+- Home, Atlas, Archive, Research, Media
+- 404 copy, layout, and primary Return to Observatory CTA
+- `/mission` as a direct route
+- `/dashboard`
+- `/projects/:id`
+
+**Mission Control classification:** INTERNAL / MAINTAINER. Direct route preserved; public discoverability removed.
+
+Verification passed:
+
+- 404 at 390×844 and 1440×900 no longer exposes Mission
+- direct `/mission` HTTP 200, Mission Control renders, no login wall
+- no new console errors
+- no document `overflowX`
+
+---
+
 ### M4 — ARCHITECTURE GATE — Experience coherence
+
+Follows Public Reality Audit / pruning work. Not the current execution pointer.
 
 Reconcile the recent interactive exhibits into a coherent visitor-facing **Experience** presentation.
 
@@ -319,9 +355,9 @@ If one pair of screenshots cannot show the relevant change, add route-specific f
 
 ## 9. Next Grok implementation brief
 
-None. M4 is an **ARCHITECTURE GATE**, not a Grok implementation task.
+None. Current work is a **Public Reality Audit**, not an M4 implementation task.
 
-It requires Claude architecture review and Billy hands-on interaction acceptance before any implementation brief is written.
+M4 remains the next architecture milestone after reality-audit / pruning work. It still requires Claude architecture review and Billy hands-on interaction acceptance before any implementation brief is written.
 
 Do not invent an M4 implementation brief yet.
 
@@ -329,9 +365,8 @@ Do not invent an M4 implementation brief yet.
 
 ## 10. Deliberately deferred
 
-Do not let these hijack M4:
+Do not let these hijack the Public Reality Audit:
 
-- `NotFound.tsx` exposing Mission in 404 recovery
 - Mission Control sticky-header overlap
 - Experience/Arcade landing architecture
 - Cavendish × Pais missing visual-QA evidence
