@@ -11,8 +11,8 @@
 > This document may evolve as milestones land. It does not redefine
 > xPRIMEray engine authority.
 
-**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1 landed  
-**Updated after:** `dee31a0d4d28b1c1190efc431bb928a6f9f5373f` — `fix(public): remove placeholder and broken media from inspiration exhibits`
+**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1–RA-2 landed  
+**Updated after:** `da644bf014bec14483ddb08f573b09c79d73cc51` — `fix(public): prune dead Atlas navigation`
 
 ---
 
@@ -116,8 +116,8 @@ Visual evidence and runtime verification must exist before a milestone is marked
 
 ## 6. Current execution state
 
-**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`); RA-1 — prune inspiration media (`dee31a0`)  
-**NOW:** RA-2  
+**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`); RA-1 — prune inspiration media (`dee31a0`); RA-2 — prune dead Atlas navigation (`da644bf`)  
+**NOW:** RA-3  
 **BLOCKED (readiness gate after RA-1…RA-8):** M4 — Experience coherence  
 
 **Mission Control:** INTERNAL / MAINTAINER — direct `/mission` preserved; public discoverability removed.  
@@ -269,7 +269,7 @@ Placeholder / unavailable media is a **BROKEN** condition, not WIP.
 
 `npm run audit:links` is **unsafe** until RA-8 repairs `scripts/audit-links.mjs`. The current script uses a stale known-route set (`/`, `/auth`, `/dashboard`, `/projects/:id`), overwrites `LINK_AUDIT.md`, and does not understand production basename `/misterylabs/` or public Observatory routes. Do not run it as a production-readiness source of truth.
 
-**NOW:** RA-2
+**NOW:** RA-3
 
 M4 remains blocked behind this pruning sequence and the existing architecture / hands-on readiness gate. Do not invent an M4 implementation brief.
 
@@ -299,11 +299,42 @@ Preserved remaining valid media (`wormhole_structure_contact_sheet.png` on the T
 
 Verification passed at `/observatory/fractal-inspiration` and `/observatory/resonance-spheres` (390×844 and 1440×900), including opened-node modals.
 
-#### RA-2 — NOW
+#### RA-2 — LANDED — Remove dead Atlas navigation and repair HEART-EYE copy
 
-Next pruning item from the completed Public Reality Audit. Execute only when a bounded implementation brief is recorded here. Do not invent that brief in this commit.
+**Status:** Complete  
+**Commit:** `da644bf014bec14483ddb08f573b09c79d73cc51`  
+**Message:** `fix(public): prune dead Atlas navigation`  
+**Visual QA:** `reports/visual-qa/public/6513e72-prune-dead-atlas-nav/`
 
-#### RA-3 … RA-7
+Removed dead Atlas section-nav entries whose hash targets do not exist on `/atlas`.
+
+Changed files:
+
+- `src/pages/Atlas.tsx` — `ATLAS_NAV` and polar-grin `DEMO_CARDS` desc
+- `src/pages/observatory/PolarGrin.tsx` — Teaching item 03 HEART-EYE sentence
+
+Removed destinations:
+
+- `Quaternion` → `#quaternion-explorer`
+- `Instruments` → `#higher-dimensional`
+- `Lineage` → `#signals`
+
+Preserved Observatory, XenoCitations, Atlas, Get Involved.
+
+HEART-EYE copy:
+
+- Atlas: `HEART-EYE is the same ray records.` → `HEART-EYE is the same ray records as MIND.`
+- PolarGrin: `HEART-EYE is the same records as a categorical scan.` → `HEART-EYE is the same records as MIND, shown as a categorical scan.`
+
+Did not add replacement destinations. Did not delete unmounted `SignalsSection`.
+
+Verification passed at `/atlas` 390×844 and 1440×900.
+
+#### RA-3 — NOW
+
+Remaining sequenced pruning item from the completed Public Reality Audit. Do not invent an implementation brief here.
+
+#### RA-4 … RA-7
 
 Remaining sequenced pruning items from the completed Public Reality Audit. Not current. Do not invent their implementation briefs here.
 
@@ -413,9 +444,9 @@ If one pair of screenshots cannot show the relevant change, add route-specific f
 
 ## 9. Next Grok implementation brief
 
-None. Current work is **RA-2** from Reality-Audit Pruning.
+None. Current work is **RA-3** from Reality-Audit Pruning.
 
-Do not invent an RA-2 implementation brief here.
+Do not invent an RA-3 implementation brief here.
 Do not invent an M4 implementation brief yet.
 Do not run `npm run audit:links` until RA-8 repairs the script.
 
@@ -423,7 +454,7 @@ Do not run `npm run audit:links` until RA-8 repairs the script.
 
 ## 10. Deliberately deferred
 
-Do not let these hijack RA-2:
+Do not let these hijack RA-3:
 
 - Mission Control sticky-header overlap
 - Experience/Arcade landing architecture
