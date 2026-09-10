@@ -11,8 +11,8 @@
 > This document may evolve as milestones land. It does not redefine
 > xPRIMEray engine authority.
 
-**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed  
-**Updated after:** `379efe4781cc5ee6ac98aa805896ef113e778bf6` — `fix(public): remove Mission Control from 404 recovery`
+**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1 landed  
+**Updated after:** `dee31a0d4d28b1c1190efc431bb928a6f9f5373f` — `fix(public): remove placeholder and broken media from inspiration exhibits`
 
 ---
 
@@ -96,6 +96,8 @@ Useful public maturity states:
 
 A broken/offline surface should generally not be normally discoverable until repaired.
 
+Placeholder or unavailable media presented as exhibit content is a **BROKEN** condition, not WIP.
+
 This should eventually become a shared presentation component and vocabulary rather than the several overlapping status systems currently present across Atlas, Observatory, Research, and individual demos.
 
 ---
@@ -114,11 +116,13 @@ Visual evidence and runtime verification must exist before a milestone is marked
 
 ## 6. Current execution state
 
-**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`)  
-**NOW:** Public Reality Audit  
-**ARCHITECTURE GATE (after reality-audit / pruning):** M4 — Experience coherence  
+**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`); RA-1 — prune inspiration media (`dee31a0`)  
+**NOW:** RA-2  
+**BLOCKED (readiness gate after RA-1…RA-8):** M4 — Experience coherence  
 
-**Mission Control:** INTERNAL / MAINTAINER — direct `/mission` preserved; public discoverability removed.
+**Mission Control:** INTERNAL / MAINTAINER — direct `/mission` preserved; public discoverability removed.  
+**Placeholder media:** BROKEN, not WIP.  
+**`npm run audit:links`:** unsafe until RA-8 repairs the script.
 
 ---
 
@@ -257,9 +261,63 @@ Verification passed:
 
 ---
 
+### Reality-Audit Pruning — RA-1…RA-8
+
+Public Reality Audit: **complete**.
+
+Placeholder / unavailable media is a **BROKEN** condition, not WIP.
+
+`npm run audit:links` is **unsafe** until RA-8 repairs `scripts/audit-links.mjs`. The current script uses a stale known-route set (`/`, `/auth`, `/dashboard`, `/projects/:id`), overwrites `LINK_AUDIT.md`, and does not understand production basename `/misterylabs/` or public Observatory routes. Do not run it as a production-readiness source of truth.
+
+**NOW:** RA-2
+
+M4 remains blocked behind this pruning sequence and the existing architecture / hands-on readiness gate. Do not invent an M4 implementation brief.
+
+#### RA-1 — LANDED — Remove placeholder and broken media from Inspiration exhibits
+
+**Status:** Complete  
+**Commit:** `dee31a0d4d28b1c1190efc431bb928a6f9f5373f`  
+**Message:** `fix(public): remove placeholder and broken media from inspiration exhibits`  
+**Visual QA:** `reports/visual-qa/public/388a7d5-prune-inspiration-media/`
+
+Removed only the placeholder/broken media identified by the audit. Did not replace any media. Affected nodes render text-only. Existing `media.length > 0` guards already hide empty carousel/media shells.
+
+Changed files:
+
+- `src/components/FractalInspirationAtlas.tsx`
+- `src/data/resonance_spheres_data.ts`
+
+Removed:
+
+- Unsplash placeholder image
+- picsum placeholder image
+- Rick Astley YouTube embed
+- six `/assets/observatory_atlas/*` broken image references
+- two `PLACEHOLDER_*` YouTube embeds
+
+Preserved remaining valid media (`wormhole_structure_contact_sheet.png` on the Trophy Room node), node text, tags, graph position, tier, category, resonance notes, layout, and xPRIMEray semantics.
+
+Verification passed at `/observatory/fractal-inspiration` and `/observatory/resonance-spheres` (390×844 and 1440×900), including opened-node modals.
+
+#### RA-2 — NOW
+
+Next pruning item from the completed Public Reality Audit. Execute only when a bounded implementation brief is recorded here. Do not invent that brief in this commit.
+
+#### RA-3 … RA-7
+
+Remaining sequenced pruning items from the completed Public Reality Audit. Not current. Do not invent their implementation briefs here.
+
+#### RA-8 — Repair `npm run audit:links`
+
+Repair `scripts/audit-links.mjs` before treating link audit output as production evidence.
+
+Until then the script is unsafe: stale known-route set, overwrites `LINK_AUDIT.md`, misses production basename and public Observatory routes.
+
+---
+
 ### M4 — ARCHITECTURE GATE — Experience coherence
 
-Follows Public Reality Audit / pruning work. Not the current execution pointer.
+Blocked behind the Reality-Audit Pruning readiness gate (RA-1…RA-8) plus Claude architecture review and Billy hands-on acceptance. Not the current execution pointer.
 
 Reconcile the recent interactive exhibits into a coherent visitor-facing **Experience** presentation.
 
@@ -355,17 +413,17 @@ If one pair of screenshots cannot show the relevant change, add route-specific f
 
 ## 9. Next Grok implementation brief
 
-None. Current work is a **Public Reality Audit**, not an M4 implementation task.
+None. Current work is **RA-2** from Reality-Audit Pruning.
 
-M4 remains the next architecture milestone after reality-audit / pruning work. It still requires Claude architecture review and Billy hands-on interaction acceptance before any implementation brief is written.
-
+Do not invent an RA-2 implementation brief here.
 Do not invent an M4 implementation brief yet.
+Do not run `npm run audit:links` until RA-8 repairs the script.
 
 ---
 
 ## 10. Deliberately deferred
 
-Do not let these hijack the Public Reality Audit:
+Do not let these hijack RA-2:
 
 - Mission Control sticky-header overlap
 - Experience/Arcade landing architecture
