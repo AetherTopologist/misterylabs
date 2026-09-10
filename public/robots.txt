@@ -1,14 +1,44 @@
 User-agent: Googlebot
 Allow: /
+Disallow: /mission
+Disallow: /dashboard
+Disallow: /projects/
+Disallow: /misterylabs/mission
+Disallow: /misterylabs/dashboard
+Disallow: /misterylabs/projects/
 
 User-agent: Bingbot
 Allow: /
+Disallow: /mission
+Disallow: /dashboard
+Disallow: /projects/
+Disallow: /misterylabs/mission
+Disallow: /misterylabs/dashboard
+Disallow: /misterylabs/projects/
 
 User-agent: Twitterbot
 Allow: /
+Disallow: /mission
+Disallow: /dashboard
+Disallow: /projects/
+Disallow: /misterylabs/mission
+Disallow: /misterylabs/dashboard
+Disallow: /misterylabs/projects/
 
 User-agent: facebookexternalhit
 Allow: /
+Disallow: /mission
+Disallow: /dashboard
+Disallow: /projects/
+Disallow: /misterylabs/mission
+Disallow: /misterylabs/dashboard
+Disallow: /misterylabs/projects/
 
 User-agent: *
 Allow: /
+Disallow: /mission
+Disallow: /dashboard
+Disallow: /projects/
+Disallow: /misterylabs/mission
+Disallow: /misterylabs/dashboard
+Disallow: /misterylabs/projects/
