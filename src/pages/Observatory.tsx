@@ -7,9 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { FixtureCard, type Fixture } from "@/components/observatory/FixtureCard";
+import { FixtureCard } from "@/components/observatory/FixtureCard";
 import { ResonanceSpheresAtlas } from "@/components/ResonanceSpheresAtlas";
-import { ResonanceSphere } from "@/components/ResonanceSphere";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 const BASE = import.meta.env.BASE_URL;
@@ -87,15 +86,6 @@ const FIXTURES: Fixture[] = [
     tags: ["Eigenmode", "Atomic Orbital", "GRIN"],
   },
   {
-    id: "cathedral-probe",
-    title: "Cathedral Probe / Corner Reference",
-    layer: 3,
-    status: "placeholder",
-    desc: "Exploratory probe architecture. Currently mapped as corner_probe_reference [PLACEHOLDER].",
-    tags: ["Probe", "Exploratory"],
-    note: "PLACEHOLDER — not for citation",
-  },
-  {
     id: "curved-minimal-backdrop",
     title: "CurvedMinimal Backdrop Fixture",
     layer: 1,
@@ -104,21 +94,6 @@ const FIXTURES: Fixture[] = [
     tags: ["Backdrop", "Regression", "Reorder"],
   },
 ];
-
-// Simple status color mapping matching site aesthetic
-const statusClass = (status: FixtureStatus) => {
-  if (status === "mature") return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
-  if (status === "public") return "bg-cyan-500/15 text-cyan-400 border-cyan-500/30";
-  if (status === "research") return "bg-blue-500/15 text-blue-400 border-blue-500/30";
-  if (status === "experimental") return "bg-amber-500/15 text-amber-400 border-amber-500/30";
-  return "bg-secondary/40 text-muted-foreground border-border/40"; // placeholder
-};
-
-const layerLabel = (layer: Layer) => {
-  if (layer === 1) return "Instrument Validation";
-  if (layer === 2) return "Public Observatory";
-  return "Performance (Gated)";
-};
 
 const Observatory = () => {
   const [filter, setFilter] = useState<"all" | FixtureStatus>("all");
@@ -135,7 +110,6 @@ const Observatory = () => {
 
   const canonical = filtered.filter(f => f.layer <= 2 && (f.status === "mature" || f.status === "public"));
   const research = filtered.filter(f => f.status === "research");
-  const experimental = filtered.filter(f => ["experimental", "placeholder"].includes(f.status));
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -229,7 +203,6 @@ const Observatory = () => {
             <Button variant={filter === "mature" ? "default" : "outline"} size="sm" onClick={() => setFilter("mature")}>Mature</Button>
             <Button variant={filter === "public" ? "default" : "outline"} size="sm" onClick={() => setFilter("public")}>Public</Button>
             <Button variant={filter === "research" ? "default" : "outline"} size="sm" onClick={() => setFilter("research")}>Research</Button>
-            <Button variant={filter === "experimental" ? "default" : "outline"} size="sm" onClick={() => setFilter("experimental")}>Experimental / Placeholder</Button>
           </div>
 
           <Input
@@ -290,40 +263,6 @@ const Observatory = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {research.length > 0 ? research.map(f => <FixtureCard key={f.id} fixture={f} />) : <div className="text-sm text-muted-foreground">No current research fixtures match filter.</div>}
-          {/* Difference Fixture Teaser */}
-          <Card className="border-amber-500/30 bg-card">
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="border-amber-500/40 text-amber-400">TEASER</Badge>
-                <span className="text-[10px] text-amber-400">DIFFERENCE FIXTURE</span>
-              </div>
-              <CardTitle className="text-lg">Difference / Delta Classification Fixture</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              Classification delta pipeline and observer disagreement heatmaps. Straight vs curved terminal classification comparison. 
-              See Atlas “offaxis_observe_delta” and CLASSIFICATION_DELTA_PIPELINE_V01 for current state.
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* EXPERIMENTAL ARCHIVE */}
-      <section id="experimental" className="max-w-7xl mx-auto px-6 pb-20 border-t border-border/30 pt-10">
-        <div className="mb-5">
-          <div className="section-header text-[hsl(var(--annotation-amber))]">Layer 3 • Gated / Experimental</div>
-          <h2 className="text-3xl font-semibold tracking-tighter">Experimental Archive</h2>
-          <p className="text-sm text-muted-foreground mt-1">Exploratory, internal, or carrying explicit PLACEHOLDER discipline. Not for public citation without context.</p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-          {experimental.length > 0 ? experimental.map(f => <FixtureCard key={f.id} fixture={f} compact />) : null}
-          <div className="diagnostic-frame p-4 rounded text-xs border border-border/30">
-            Cathedral Probe → corner_probe_reference <span className="text-[hsl(var(--annotation-amber))]">[PLACEHOLDER]</span>
-          </div>
-          <div className="diagnostic-frame p-4 rounded text-xs border border-border/30">Resonance Chamber Overlay Trial</div>
-          <div className="diagnostic-frame p-4 rounded text-xs border border-border/30">Triclock DOE Sandbox Plan</div>
-          <div className="diagnostic-frame p-4 rounded text-xs border border-border/30">Overspace Architecture Layer</div>
-          <div className="diagnostic-frame p-4 rounded text-xs border border-border/30">Phase Coherence Field (early)</div>
         </div>
       </section>
 
