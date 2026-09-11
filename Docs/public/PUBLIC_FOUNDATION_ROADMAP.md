@@ -11,8 +11,8 @@
 > This document may evolve as milestones land. It does not redefine
 > xPRIMEray engine authority.
 
-**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1–RA-4 landed  
-**Updated after:** `600444f7dc5e946d9ce24cd458981f24b674f49a` — `fix(public): prune Observatory experimental archive`
+**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1–RA-5 landed  
+**Updated after:** `23cf9d1416643332b973fe179c3397e509d844a7` — `fix(public): crystallize public capability claims`
 
 ---
 
@@ -116,8 +116,8 @@ Visual evidence and runtime verification must exist before a milestone is marked
 
 ## 6. Current execution state
 
-**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`); RA-1 — prune inspiration media (`dee31a0`); RA-2 — prune dead Atlas navigation (`da644bf`); RA-3 — hide maintainer routes from crawlers (`392ff90`); RA-4 — prune Observatory experimental archive (`600444f`)  
-**NOW:** RA-5  
+**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`); RA-1 — prune inspiration media (`dee31a0`); RA-2 — prune dead Atlas navigation (`da644bf`); RA-3 — hide maintainer routes from crawlers (`392ff90`); RA-4 — prune Observatory experimental archive (`600444f`); RA-5 — crystallize public claims (`23cf9d1`)  
+**NOW:** RA-6  
 **BLOCKED (readiness gate after RA-1…RA-8):** M4 — Experience coherence  
 
 **Mission Control:** INTERNAL / MAINTAINER — direct `/mission` preserved; public discoverability removed.  
@@ -269,7 +269,7 @@ Placeholder / unavailable media is a **BROKEN** condition, not WIP.
 
 `npm run audit:links` is **unsafe** until RA-8 repairs `scripts/audit-links.mjs`. The current script uses a stale known-route set (`/`, `/auth`, `/dashboard`, `/projects/:id`), overwrites `LINK_AUDIT.md`, and does not understand production basename `/misterylabs/` or public Observatory routes. Do not run it as a production-readiness source of truth.
 
-**NOW:** RA-5
+**NOW:** RA-6
 
 M4 remains blocked behind this pruning sequence and the existing architecture / hands-on readiness gate. Do not invent an M4 implementation brief.
 
@@ -377,11 +377,28 @@ Preserved Canonical and Research fixtures, Resonance Spheres embed, `#optical-po
 
 Verification passed at `/observatory` 390×844 and 1440×900.
 
-#### RA-5 — NOW
+#### RA-5 — LANDED — Crystallize public capability claims
+
+**Status:** Complete  
+**Commit:** `23cf9d1416643332b973fe179c3397e509d844a7`  
+**Message:** `fix(public): crystallize public capability claims`  
+**Visual QA:** `reports/visual-qa/public/cd76392-crystallize-public-claims/`
+
+Changed files:
+
+- `src/pages/Index.tsx`
+- `src/components/SiteFooter.tsx`
+- `src/pages/Observatory.tsx`
+
+Removed Home Release Status 16/4/13. Renamed three flagship cards in place (hrefs unchanged). Featured Artifact kicker now pairs 23.8% with 30,839 px; dominant-transition 27,619 px left on the later strip. Removed Active + pulse from Home Observatory label. Removed footer Nominal + pulse. Optical portal badge `LIVE GODOT` → `GODOT SOURCE`; dolly-export sentence removed. ACTIVATING left untouched.
+
+Verification passed at `/` and `/observatory` 390×844 and 1440×900, light and dark. Atlas and Research footers remain coherent.
+
+#### RA-6 — NOW
 
 Remaining sequenced pruning item from the completed Public Reality Audit. Do not invent an implementation brief here.
 
-#### RA-6 … RA-7
+#### RA-7
 
 Remaining sequenced pruning items from the completed Public Reality Audit. Not current. Do not invent their implementation briefs here.
 
@@ -491,9 +508,9 @@ If one pair of screenshots cannot show the relevant change, add route-specific f
 
 ## 9. Next Grok implementation brief
 
-None. Current work is **RA-5** from Reality-Audit Pruning.
+None. Current work is **RA-6** from Reality-Audit Pruning.
 
-Do not invent an RA-5 implementation brief here.
+Do not invent an RA-6 implementation brief here.
 Do not invent an M4 implementation brief yet.
 Do not run `npm run audit:links` until RA-8 repairs the script.
 
@@ -501,7 +518,7 @@ Do not run `npm run audit:links` until RA-8 repairs the script.
 
 ## 10. Deliberately deferred
 
-Do not let these hijack RA-5:
+Do not let these hijack RA-6:
 
 - Mission Control sticky-header overlap
 - Experience/Arcade landing architecture
