@@ -33,10 +33,10 @@ const FLAGSHIP_CARDS: {
   href: string;
 }[] = [
   {
-    title: "Transport Engine",
-    desc: "Real-time curved ray path simulation and render harness.",
+    title: "Atlas Instruments",
+    desc: "Observatory instruments, Arcade, and inspiration atlas.",
     icon: Orbit,
-    tag: "CORE",
+    tag: "ATLAS",
     lineage: null,
     href: "/atlas",
   },
@@ -49,18 +49,18 @@ const FLAGSHIP_CARDS: {
     href: "/research",
   },
   {
-    title: "Validation Cockpit",
-    desc: "Instrumentation, probes, metrics, and visual regression.",
+    title: "Media Diagnostics",
+    desc: "Contact sheets, heatmaps, and diagnostic image gallery.",
     icon: Activity,
-    tag: "DIAGNOSTICS",
+    tag: "MEDIA",
     lineage: null,
     href: "/media",
   },
   {
-    title: "Island Classifier",
-    desc: "Detecting and classifying bounded transport anomalies.",
+    title: "Transport Islands",
+    desc: "Island fixtures and observer-disagreement diagnostics — still researching.",
     icon: CircleDot,
-    tag: "ANALYSIS",
+    tag: "RESEARCH",
     lineage: null,
     href: "/observatory",
   },
@@ -201,7 +201,7 @@ const Index = () => {
               Off-Axis Observer Disagreement
             </h2>
             <p className="mt-2.5 font-mono text-[10px] text-muted-foreground/40">
-              23.8% classification redistribution · 27,619 px · 480×270
+              23.8% classification redistribution · 30,839 px · 480×270
             </p>
           </div>
 
@@ -341,12 +341,9 @@ const Index = () => {
               SYS // 02
             </span>
             <div className="h-px w-12 bg-border/35" />
-            <div className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-success animate-signal-pulse" />
-              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-success">
-                Active Observatory
-              </span>
-            </div>
+            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground/45">
+              Observatory
+            </span>
           </div>
 
           {/* Title block */}
@@ -453,39 +450,6 @@ const Index = () => {
               >
                 View cutsheet →
               </Link>
-            </div>
-          </div>
-
-          {/* Release status row */}
-          <div className="mt-6 border-t border-border/25 pt-6">
-            <div className="mb-4 flex items-center gap-3">
-              <span className="font-mono text-[9px] uppercase tracking-[0.35em] text-muted-foreground/45">
-                Release Status
-              </span>
-              <div className="h-px flex-1 bg-border/25" />
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <ObsMetric
-                value={16}
-                label="Ship-Ready Features"
-                sublabel="Core transport, GRIN fields, validation, overlays"
-                variant="success"
-                href="https://xprimeray.github.io/GD_xPRIMEray/FEATURE_INDEX/"
-              />
-              <ObsMetric
-                value={4}
-                label="In Progress"
-                sublabel="TestBench recipe, wormhole rig, atomic orbital fixtures"
-                variant="warning"
-                href="https://xprimeray.github.io/GD_xPRIMEray/FEATURE_INDEX/"
-              />
-              <ObsMetric
-                value={13}
-                label="Proposed Overlays"
-                sublabel="Celestial Boundary, Curvature Domain Map, Transport Memory..."
-                variant="info"
-                href="https://xprimeray.github.io/GD_xPRIMEray/Observatory/OVERLAY_MASTER_LIST/"
-              />
             </div>
           </div>
         </div>
@@ -619,44 +583,4 @@ const Index = () => {
 };
 
 export default Index;
-
-// ── Sub-components ────────────────────────────────────────
-
-
-function ObsMetric({
-  value,
-  label,
-  sublabel,
-  variant,
-  href,
-}: {
-  value: number;
-  label: string;
-  sublabel: string;
-  variant: "success" | "warning" | "info";
-  href: string;
-}) {
-  const variantCls = {
-    success: { num: "text-success", dot: "bg-success", border: "hover:border-success/40" },
-    warning: { num: "text-warning", dot: "bg-warning", border: "hover:border-warning/40" },
-    info:    { num: "text-info",    dot: "bg-info",    border: "hover:border-info/40" },
-  }[variant];
-
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`group relative rounded-sm border border-border/35 bg-card/25 p-4 transition-base hover:bg-card/45 ${variantCls.border}`}
-    >
-      <span className={`absolute right-3 top-3 h-1.5 w-1.5 rounded-full ${variantCls.dot}`} />
-      <div className={`text-3xl font-bold tabular-nums ${variantCls.num}`}>{value}</div>
-      <div className="mt-1 text-xs font-medium text-foreground/80">{label}</div>
-      <div className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground/60">{sublabel}</div>
-      <div className="mt-3 font-mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground/30 transition-base group-hover:text-muted-foreground/60">
-        Feature Index →
-      </div>
-    </a>
-  );
-}
 

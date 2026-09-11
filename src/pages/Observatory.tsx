@@ -165,12 +165,12 @@ const Observatory = () => {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-cyan-400 border-cyan-500/30">PUBLIC INTUITION LAYER • v0.1+</Badge>
-                <Badge className="bg-amber-500/20 text-amber-400">LIVE GODOT</Badge>
+                <Badge className="bg-amber-500/20 text-amber-400">GODOT SOURCE</Badge>
               </div>
               <CardTitle className="text-2xl tracking-tight">Optical Transport Illusion</CardTitle>
               <CardDescription>
                 Walkable nested portals, RK4-driven witness orbs, ray trapping (darkness/event horizon analog), GRIN curvature, and bulk reveal.
-                Bee B/q sigil • Peacock queen iridescence • J&amp;B pillars. 20s cinematic dolly export ready.
+                Bee B/q sigil • Peacock queen iridescence • J&amp;B pillars.
               </CardDescription>
             </CardHeader>
             <CardContent>
