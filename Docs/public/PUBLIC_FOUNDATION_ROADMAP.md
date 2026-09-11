@@ -11,8 +11,8 @@
 > This document may evolve as milestones land. It does not redefine
 > xPRIMEray engine authority.
 
-**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1–RA-3 landed  
-**Updated after:** `392ff9076118a88f6ee1d772aea90e34b7ec5424` — `chore(public): hide maintainer routes from crawlers`
+**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1–RA-4 landed  
+**Updated after:** `600444f7dc5e946d9ce24cd458981f24b674f49a` — `fix(public): prune Observatory experimental archive`
 
 ---
 
@@ -116,8 +116,8 @@ Visual evidence and runtime verification must exist before a milestone is marked
 
 ## 6. Current execution state
 
-**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`); RA-1 — prune inspiration media (`dee31a0`); RA-2 — prune dead Atlas navigation (`da644bf`); RA-3 — hide maintainer routes from crawlers (`392ff90`)  
-**NOW:** RA-4  
+**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`); RA-1 — prune inspiration media (`dee31a0`); RA-2 — prune dead Atlas navigation (`da644bf`); RA-3 — hide maintainer routes from crawlers (`392ff90`); RA-4 — prune Observatory experimental archive (`600444f`)  
+**NOW:** RA-5  
 **BLOCKED (readiness gate after RA-1…RA-8):** M4 — Experience coherence  
 
 **Mission Control:** INTERNAL / MAINTAINER — direct `/mission` preserved; public discoverability removed.  
@@ -269,7 +269,7 @@ Placeholder / unavailable media is a **BROKEN** condition, not WIP.
 
 `npm run audit:links` is **unsafe** until RA-8 repairs `scripts/audit-links.mjs`. The current script uses a stale known-route set (`/`, `/auth`, `/dashboard`, `/projects/:id`), overwrites `LINK_AUDIT.md`, and does not understand production basename `/misterylabs/` or public Observatory routes. Do not run it as a production-readiness source of truth.
 
-**NOW:** RA-4
+**NOW:** RA-5
 
 M4 remains blocked behind this pruning sequence and the existing architecture / hands-on readiness gate. Do not invent an M4 implementation brief.
 
@@ -353,11 +353,35 @@ Basename-prefixed paths were added because production `vite` `base` is `/mistery
 
 No visual QA — no rendered surface changed.
 
-#### RA-4 — NOW
+#### RA-4 — LANDED — Prune Observatory Experimental Archive & dead code
+
+**Status:** Complete  
+**Commit:** `600444f7dc5e946d9ce24cd458981f24b674f49a`  
+**Message:** `fix(public): prune Observatory experimental archive`  
+**Visual QA:** `reports/visual-qa/public/82f06c1-prune-observatory-experimental-archive/`
+
+Changed file:
+
+- `src/pages/Observatory.tsx` only
+
+Removed:
+
+- `cathedral-probe` from `FIXTURES`
+- Difference Fixture teaser card
+- `<section id="experimental">` Experimental Archive
+- derived `experimental` array
+- Experimental / Placeholder filter button
+- unused `statusClass`, `layerLabel`, `ResonanceSphere` import, and imported `type Fixture`
+
+Preserved Canonical and Research fixtures, Resonance Spheres embed, `#optical-portal`, and filters All / Mature / Public / Research.
+
+Verification passed at `/observatory` 390×844 and 1440×900.
+
+#### RA-5 — NOW
 
 Remaining sequenced pruning item from the completed Public Reality Audit. Do not invent an implementation brief here.
 
-#### RA-5 … RA-7
+#### RA-6 … RA-7
 
 Remaining sequenced pruning items from the completed Public Reality Audit. Not current. Do not invent their implementation briefs here.
 
@@ -467,9 +491,9 @@ If one pair of screenshots cannot show the relevant change, add route-specific f
 
 ## 9. Next Grok implementation brief
 
-None. Current work is **RA-4** from Reality-Audit Pruning.
+None. Current work is **RA-5** from Reality-Audit Pruning.
 
-Do not invent an RA-4 implementation brief here.
+Do not invent an RA-5 implementation brief here.
 Do not invent an M4 implementation brief yet.
 Do not run `npm run audit:links` until RA-8 repairs the script.
 
@@ -477,7 +501,7 @@ Do not run `npm run audit:links` until RA-8 repairs the script.
 
 ## 10. Deliberately deferred
 
-Do not let these hijack RA-4:
+Do not let these hijack RA-5:
 
 - Mission Control sticky-header overlap
 - Experience/Arcade landing architecture
