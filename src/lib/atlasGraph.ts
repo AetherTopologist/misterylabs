@@ -11,8 +11,8 @@
  * - Living, mysterious, high-end research / observatory feel
  */
 
-import { INSPIRATIONS } from "../pages/Atlas"; // existing data source
-import type { InspirationNode } from "../pages/Atlas";
+import { INSPIRATIONS } from "@/data/atlasInspirations";
+import type { InspirationNode } from "@/data/atlasInspirations";
 
 // ── New Tier System (as requested) ─────────────────────────────
 export type AtlasGraphTier =
