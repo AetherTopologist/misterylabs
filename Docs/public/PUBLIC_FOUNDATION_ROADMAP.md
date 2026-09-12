@@ -11,8 +11,8 @@
 > This document may evolve as milestones land. It does not redefine
 > xPRIMEray engine authority.
 
-**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1–RA-5 landed  
-**Updated after:** `23cf9d1416643332b973fe179c3397e509d844a7` — `fix(public): crystallize public capability claims`
+**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1–RA-6 landed  
+**Updated after:** `25ac366bcb94e1655fe4ba1def2ff543d618c58c` — `refactor(public): isolate Atlas inspiration graph data`
 
 ---
 
@@ -116,8 +116,8 @@ Visual evidence and runtime verification must exist before a milestone is marked
 
 ## 6. Current execution state
 
-**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`); RA-1 — prune inspiration media (`dee31a0`); RA-2 — prune dead Atlas navigation (`da644bf`); RA-3 — hide maintainer routes from crawlers (`392ff90`); RA-4 — prune Observatory experimental archive (`600444f`); RA-5 — crystallize public claims (`23cf9d1`)  
-**NOW:** RA-6  
+**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`); RA-1 — prune inspiration media (`dee31a0`); RA-2 — prune dead Atlas navigation (`da644bf`); RA-3 — hide maintainer routes from crawlers (`392ff90`); RA-4 — prune Observatory experimental archive (`600444f`); RA-5 — crystallize public claims (`23cf9d1`); RA-6 — isolate Atlas inspiration graph data (`25ac366`)  
+**NOW:** RA-7  
 **BLOCKED (readiness gate after RA-1…RA-8):** M4 — Experience coherence  
 
 **Mission Control:** INTERNAL / MAINTAINER — direct `/mission` preserved; public discoverability removed.  
@@ -269,7 +269,7 @@ Placeholder / unavailable media is a **BROKEN** condition, not WIP.
 
 `npm run audit:links` is **unsafe** until RA-8 repairs `scripts/audit-links.mjs`. The current script uses a stale known-route set (`/`, `/auth`, `/dashboard`, `/projects/:id`), overwrites `LINK_AUDIT.md`, and does not understand production basename `/misterylabs/` or public Observatory routes. Do not run it as a production-readiness source of truth.
 
-**NOW:** RA-6
+**NOW:** RA-7
 
 M4 remains blocked behind this pruning sequence and the existing architecture / hands-on readiness gate. Do not invent an M4 implementation brief.
 
@@ -394,13 +394,30 @@ Removed Home Release Status 16/4/13. Renamed three flagship cards in place (href
 
 Verification passed at `/` and `/observatory` 390×844 and 1440×900, light and dark. Atlas and Research footers remain coherent.
 
-#### RA-6 — NOW
+#### RA-6 — LANDED — Isolate Atlas inspiration graph data
+
+**Status:** Complete  
+**Commit:** `25ac366bcb94e1655fe4ba1def2ff543d618c58c`  
+**Message:** `refactor(public): isolate Atlas inspiration graph data`  
+**Visual QA:** `reports/visual-qa/public/e8818e2-prune-dead-atlas-inspiration/`
+
+Changed files:
+
+- `src/pages/Atlas.tsx`
+- `src/lib/atlasGraph.ts`
+- `src/data/atlasInspirations.ts` (new)
+
+Deleted unmounted Atlas lineage UI (`SignalsSection`, `InspirationCard`, `SIGNAL_CATEGORIES`, `TIER_CARD_CLS`, `TIER_BADGE`). Relocated `INSPIRATIONS` / `InspirationNode` / `InspirationTier` verbatim into `src/data/atlasInspirations.ts` because they are a live dependency of `/observatory/force-graph`. `atlasGraph.ts` now imports from that module.
+
+Force-graph node count unchanged: 39 (1 core + 5 personal-resonance + 33 INSPIRATIONS).
+
+Did not merge the three lineage/provenance models. Did not modify `ObservatoryForceGraph.tsx`.
+
+Verification passed at `/atlas` and `/observatory/force-graph` 390×844 and 1440×900.
+
+#### RA-7 — NOW
 
 Remaining sequenced pruning item from the completed Public Reality Audit. Do not invent an implementation brief here.
-
-#### RA-7
-
-Remaining sequenced pruning items from the completed Public Reality Audit. Not current. Do not invent their implementation briefs here.
 
 #### RA-8 — Repair `npm run audit:links`
 
@@ -508,9 +525,9 @@ If one pair of screenshots cannot show the relevant change, add route-specific f
 
 ## 9. Next Grok implementation brief
 
-None. Current work is **RA-6** from Reality-Audit Pruning.
+None. Current work is **RA-7** from Reality-Audit Pruning.
 
-Do not invent an RA-6 implementation brief here.
+Do not invent an RA-7 implementation brief here.
 Do not invent an M4 implementation brief yet.
 Do not run `npm run audit:links` until RA-8 repairs the script.
 
@@ -518,14 +535,15 @@ Do not run `npm run audit:links` until RA-8 repairs the script.
 
 ## 10. Deliberately deferred
 
-Do not let these hijack RA-6:
+Do not let these hijack RA-7:
 
 - Mission Control sticky-header overlap
 - Experience/Arcade landing architecture
 - Cavendish × Pais missing visual-QA evidence
 - Dome Inversion's unexplained `White House Arcade` label
 - broader status-vocabulary consolidation
-- inspiration-model consolidation
+- inspiration-model consolidation — three unresolved lineage/provenance systems remain: `INSPIRATIONS` (force-graph lineage in `src/data/atlasInspirations.ts`), `XENO_CITATIONS` (rendered citation model), `ATLAS_ENTRIES` (richest public inspiration/provenance model). RA-6 made ownership clearer; it did not reconcile them.
+- orphan `src/components/ObservatoryForceGraph.tsx` — adjacent finding only; live `/observatory/force-graph` uses `ObservatoryGraph.tsx`. Not resolved in RA-6.
 - historical visual-QA naming drift
 - external Supabase project decommissioning
 - stale Supabase/auth documentation cleanup
