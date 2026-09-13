@@ -11,8 +11,8 @@
 > This document may evolve as milestones land. It does not redefine
 > xPRIMEray engine authority.
 
-**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1–RA-7 landed  
-**Updated after:** `f1a5c2ff9495104a15da1f61147ee626e3d9d4c5` — `fix(public): crystallize misleading public copy`
+**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1–RA-8 landed  
+**Updated after:** `e7e8e08d304d5f869fe3f786a47a7a2c47d7d296` — `fix(tooling): repair public link audit`
 
 ---
 
@@ -116,13 +116,13 @@ Visual evidence and runtime verification must exist before a milestone is marked
 
 ## 6. Current execution state
 
-**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`); RA-1 — prune inspiration media (`dee31a0`); RA-2 — prune dead Atlas navigation (`da644bf`); RA-3 — hide maintainer routes from crawlers (`392ff90`); RA-4 — prune Observatory experimental archive (`600444f`); RA-5 — crystallize public claims (`23cf9d1`); RA-6 — isolate Atlas inspiration graph data (`25ac366`); RA-7 — crystallize public copy (`f1a5c2f`)  
-**NOW:** RA-8  
+**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`); RA-1 — prune inspiration media (`dee31a0`); RA-2 — prune dead Atlas navigation (`da644bf`); RA-3 — hide maintainer routes from crawlers (`392ff90`); RA-4 — prune Observatory experimental archive (`600444f`); RA-5 — crystallize public claims (`23cf9d1`); RA-6 — isolate Atlas inspiration graph data (`25ac366`); RA-7 — crystallize public copy (`f1a5c2f`); RA-8 — repair public link audit (`e7e8e08`)  
+**NOW:** Reality-Audit Pruning complete — M4 remains blocked behind architecture / hands-on readiness  
 **BLOCKED (readiness gate after RA-1…RA-8):** M4 — Experience coherence  
 
 **Mission Control:** INTERNAL / MAINTAINER — direct `/mission` preserved; public discoverability removed.  
 **Placeholder media:** BROKEN, not WIP.  
-**`npm run audit:links`:** unsafe until RA-8 repairs the script.
+**`npm run audit:links`:** repaired in RA-8. Static public-readiness check; maintainer routes are not public-nav requirements.
 
 ---
 
@@ -267,11 +267,9 @@ Public Reality Audit: **complete**.
 
 Placeholder / unavailable media is a **BROKEN** condition, not WIP.
 
-`npm run audit:links` is **unsafe** until RA-8 repairs `scripts/audit-links.mjs`. The current script uses a stale known-route set (`/`, `/auth`, `/dashboard`, `/projects/:id`), overwrites `LINK_AUDIT.md`, and does not understand production basename `/misterylabs/` or public Observatory routes. Do not run it as a production-readiness source of truth.
+`npm run audit:links` was repaired in RA-8 (`e7e8e08`). The auditor now derives public routes from `src/App.tsx`, header nav from `AppHeader.tsx`, maintainer disallows from `public/robots.txt`, and production basename `/misterylabs/` from `vite.config.ts`. Maintainer routes are classified, not required as public navigation.
 
-**NOW:** RA-8
-
-M4 remains blocked behind this pruning sequence and the existing architecture / hands-on readiness gate. Do not invent an M4 implementation brief.
+**NOW:** Reality-Audit Pruning complete. M4 remains blocked behind the existing architecture / hands-on readiness gate. Do not invent an M4 implementation brief.
 
 #### RA-1 — LANDED — Remove placeholder and broken media from Inspiration exhibits
 
@@ -437,11 +435,24 @@ XenoCitation `feature:` values HOLD — not modified.
 
 Verification passed at `/atlas`, `/broch-sphere`, `/archive`, `/arcade/dome-inversion`, `/observatory/saturn-polygon`, and a 404 at 390×844 and 1440×900, light and dark.
 
-#### RA-8 — Repair `npm run audit:links`
+#### RA-8 — LANDED — Repair public link audit
 
-Repair `scripts/audit-links.mjs` before treating link audit output as production evidence.
+**Status:** Complete  
+**Commit:** `e7e8e08d304d5f869fe3f786a47a7a2c47d7d296`  
+**Message:** `fix(tooling): repair public link audit`
 
-Until then the script is unsafe: stale known-route set, overwrites `LINK_AUDIT.md`, misses production basename and public Observatory routes.
+Changed files:
+
+- `scripts/audit-links.mjs`
+- `LINK_AUDIT.md` (regenerated)
+
+`npm run audit:links` exits 0 (PASS).
+
+Audit result: 155 files scanned; 18 public routes derived; maintainer set `/mission`, `/dashboard`, `/projects/`, `/projects/:id`; 61 public internal links; 2 maintainer links (ProjectDetail → `/mission` only); 5 hash anchors; 81 external URLs (58 unique); 11 assets; 1 intentional empty placeholder (`ae-001` social href). Broken public routes: 0. Broken hash anchors: 0. Missing assets: 0.
+
+`/auth` is no longer a known route. Observatory/demo routes are first-class. Basename `/misterylabs/` does not create false positives.
+
+Adjacent (not fixed): `Research.tsx` still references unverified `cathedral_probe_architecture` on xprimeray.github.io.
 
 ---
 
@@ -543,17 +554,16 @@ If one pair of screenshots cannot show the relevant change, add route-specific f
 
 ## 9. Next Grok implementation brief
 
-None. Current work is **RA-8** from Reality-Audit Pruning.
+None. Reality-Audit Pruning (RA-1…RA-8) is complete.
 
-Do not invent an RA-8 implementation brief here beyond the existing repair note for `scripts/audit-links.mjs`.
+M4 remains blocked behind Claude architecture review and Billy hands-on acceptance.
 Do not invent an M4 implementation brief yet.
-Do not run `npm run audit:links` until RA-8 repairs the script.
 
 ---
 
 ## 10. Deliberately deferred
 
-Do not let these hijack RA-8:
+Do not let these hijack the M4 readiness gate:
 
 - Mission Control sticky-header overlap
 - Experience/Arcade landing architecture
