@@ -14,6 +14,7 @@ Each entry should record:
 - Possible xPRIMEray connection
 - Attribution status
 - Status: captured / researching / prototype / published
+- Next action (optional)
 
 ## Polar GRIN / transformation optics (published as Apple of the Eye)
 
@@ -62,3 +63,17 @@ Each entry should record:
 - Possible xPRIMEray connection: repository/artifact lineage for instrument provenance
 - Attribution status: captured from retired implementation
 - Status: captured
+
+
+### Coherence Machine — EUV Lithography / Semiconductor Scale
+
+- Title: Coherence Machine — Photon → Pattern → Particle → Processor
+- Source / discovery URL: Veritasium, *The World's Most Important Machine* — EUV lithography / advanced semiconductor fabrication
+- Original creator: UNRESOLVED — provenance research required across the historical EUV research chain, laboratories, ASML, ZEISS, source-development teams, and semiconductor manufacturing ecosystem
+- Concept: Engineered coherence across light generation, plasma physics, optics, vacuum, positioning, vibration control, masks, metrology, contamination control, and process integration can open a technological regime that no component reaches independently
+- What misconception the demonstration dissolves: "Advanced semiconductor scaling is achieved simply by using a smaller laser"
+- Possible MisterY Labs experiment: Coherence Machine demo chain — Diffraction Wall → Make the Invisible Light → Mirror Maze → Coherence Machine → Pattern → Processor → Particle → Yield
+- Possible xPRIMEray connection: conceptual bridge only — constraint → coordinated dynamics → newly accessible regime. EUV is established engineering and must not be presented as evidence for speculative spacetime engineering or Pais-effect claims
+- Attribution status: discovery anchor captured from Veritasium; primary provenance unresolved. Credit should trace explainer → researchers → laboratories → optical/source engineering → manufacturing ecosystem. Bell Labs connection UNRESOLVED and must be verified before public attribution
+- Status: captured
+- Next action: research provenance before prototype; verify the Bell Labs connection, identify primary EUV historical sources and ASML/ZEISS/source-development contributions, establish defensible lithography-resolution and contamination/yield primitives, then scope the smallest interactive exhibit — likely Diffraction Wall
