@@ -11,8 +11,8 @@
 > This document may evolve as milestones land. It does not redefine
 > xPRIMEray engine authority.
 
-**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1–RA-6 landed  
-**Updated after:** `25ac366bcb94e1655fe4ba1def2ff543d618c58c` — `refactor(public): isolate Atlas inspiration graph data`
+**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1–RA-7 landed  
+**Updated after:** `f1a5c2ff9495104a15da1f61147ee626e3d9d4c5` — `fix(public): crystallize misleading public copy`
 
 ---
 
@@ -116,8 +116,8 @@ Visual evidence and runtime verification must exist before a milestone is marked
 
 ## 6. Current execution state
 
-**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`); RA-1 — prune inspiration media (`dee31a0`); RA-2 — prune dead Atlas navigation (`da644bf`); RA-3 — hide maintainer routes from crawlers (`392ff90`); RA-4 — prune Observatory experimental archive (`600444f`); RA-5 — crystallize public claims (`23cf9d1`); RA-6 — isolate Atlas inspiration graph data (`25ac366`)  
-**NOW:** RA-7  
+**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`); RA-1 — prune inspiration media (`dee31a0`); RA-2 — prune dead Atlas navigation (`da644bf`); RA-3 — hide maintainer routes from crawlers (`392ff90`); RA-4 — prune Observatory experimental archive (`600444f`); RA-5 — crystallize public claims (`23cf9d1`); RA-6 — isolate Atlas inspiration graph data (`25ac366`); RA-7 — crystallize public copy (`f1a5c2f`)  
+**NOW:** RA-8  
 **BLOCKED (readiness gate after RA-1…RA-8):** M4 — Experience coherence  
 
 **Mission Control:** INTERNAL / MAINTAINER — direct `/mission` preserved; public discoverability removed.  
@@ -269,7 +269,7 @@ Placeholder / unavailable media is a **BROKEN** condition, not WIP.
 
 `npm run audit:links` is **unsafe** until RA-8 repairs `scripts/audit-links.mjs`. The current script uses a stale known-route set (`/`, `/auth`, `/dashboard`, `/projects/:id`), overwrites `LINK_AUDIT.md`, and does not understand production basename `/misterylabs/` or public Observatory routes. Do not run it as a production-readiness source of truth.
 
-**NOW:** RA-7
+**NOW:** RA-8
 
 M4 remains blocked behind this pruning sequence and the existing architecture / hands-on readiness gate. Do not invent an M4 implementation brief.
 
@@ -415,9 +415,27 @@ Did not merge the three lineage/provenance models. Did not modify `ObservatoryFo
 
 Verification passed at `/atlas` and `/observatory/force-graph` 390×844 and 1440×900.
 
-#### RA-7 — NOW
+#### RA-7 — LANDED — Crystallize misleading public copy
 
-Remaining sequenced pruning item from the completed Public Reality Audit. Do not invent an implementation brief here.
+**Status:** Complete  
+**Commit:** `f1a5c2ff9495104a15da1f61147ee626e3d9d4c5`  
+**Message:** `fix(public): crystallize misleading public copy`  
+**Visual QA:** `reports/visual-qa/public/cb3adbd-crystallize-public-copy/`
+
+Changed files:
+
+- `src/pages/Atlas.tsx`
+- `src/components/brochSphere/BrochSpherePrototype.tsx`
+- `src/pages/Archive.tsx`
+- `src/pages/arcade/DomeInversion.tsx`
+- `src/pages/observatory/SaturnPolygon.tsx`
+- `src/pages/NotFound.tsx`
+
+Atlas hero retitled to Off-Axis Observer Disagreement; Get Involved duplicate removed; ae-001 placeholder bracket text removed. Broch Sphere badge 22→18. Archive copy made singular. Dome Inversion h1 dropped unexplained White House prefix. Saturn Polygon ScienceBoundary gained a clickable NASA/Hubble provenance link already recorded in the inspiration queue. 404 recovery now matches header NAV_LINKS; Research removed.
+
+XenoCitation `feature:` values HOLD — not modified.
+
+Verification passed at `/atlas`, `/broch-sphere`, `/archive`, `/arcade/dome-inversion`, `/observatory/saturn-polygon`, and a 404 at 390×844 and 1440×900, light and dark.
 
 #### RA-8 — Repair `npm run audit:links`
 
@@ -525,9 +543,9 @@ If one pair of screenshots cannot show the relevant change, add route-specific f
 
 ## 9. Next Grok implementation brief
 
-None. Current work is **RA-7** from Reality-Audit Pruning.
+None. Current work is **RA-8** from Reality-Audit Pruning.
 
-Do not invent an RA-7 implementation brief here.
+Do not invent an RA-8 implementation brief here beyond the existing repair note for `scripts/audit-links.mjs`.
 Do not invent an M4 implementation brief yet.
 Do not run `npm run audit:links` until RA-8 repairs the script.
 
@@ -535,12 +553,12 @@ Do not run `npm run audit:links` until RA-8 repairs the script.
 
 ## 10. Deliberately deferred
 
-Do not let these hijack RA-7:
+Do not let these hijack RA-8:
 
 - Mission Control sticky-header overlap
 - Experience/Arcade landing architecture
 - Cavendish × Pais missing visual-QA evidence
-- Dome Inversion's unexplained `White House Arcade` label
+- Dome Inversion ScienceBoundary still mentions White House; the unexplained h1 prefix was removed in RA-7
 - broader status-vocabulary consolidation
 - inspiration-model consolidation — three unresolved lineage/provenance systems remain: `INSPIRATIONS` (force-graph lineage in `src/data/atlasInspirations.ts`), `XENO_CITATIONS` (rendered citation model), `ATLAS_ENTRIES` (richest public inspiration/provenance model). RA-6 made ownership clearer; it did not reconcile them.
 - orphan `src/components/ObservatoryForceGraph.tsx` — adjacent finding only; live `/observatory/force-graph` uses `ObservatoryGraph.tsx`. Not resolved in RA-6.
