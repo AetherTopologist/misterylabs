@@ -26,8 +26,9 @@ export default function ArchivePage() {
             Predecessor research lineage · Evidence snapshots
           </p>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Validated repository snapshots, visual artifacts, and historical milestones that
-            establish the research lineage feeding into the active xPRIMEray observatory.
+            A validated Research Object and its evidence trail — repository snapshots and milestones that
+            establish research lineage feeding into the active xPRIMEray observatory. This record
+            grows as more work is validated.
           </p>
 
           <div className="mt-8">

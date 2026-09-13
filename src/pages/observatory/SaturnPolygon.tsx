@@ -93,6 +93,16 @@ function ScienceBoundary() {
       <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
         Observation (hexagon, reported south-polar decagon) is separate from this
         toy azimuthal perturbation. Provenance lives in the inspiration queue.
+        See Agustín Sánchez-Lavega et al., Science Advances (Sept. 2026) and{" "}
+        <a
+          href="https://science.nasa.gov/missions/hubble/nasas-hubble-tracks-new-decagon-encircling-saturns-south-pole/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline underline-offset-2 hover:text-foreground"
+        >
+          NASA/Hubble
+        </a>
+        .
       </p>
     </aside>
   );

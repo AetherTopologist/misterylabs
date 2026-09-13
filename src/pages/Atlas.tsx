@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Github, MessageSquare } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 
@@ -76,8 +76,8 @@ const ATLAS_ENTRIES: AtlasEntry[] = [
           type: "website",
         },
         {
-          label: "X / @[REPLACE_WITH_HANDLE]",
-          href: "https://x.com/[REPLACE_WITH_HANDLE]",
+          label: "X / Social — pending",
+          href: "",
           type: "social",
           placeholder: true,
         },
@@ -348,7 +348,6 @@ const ATLAS_NAV = [
   { href: "#observatory-hero",    label: "Observatory" },
   { href: "#xeno-citations",      label: "XenoCitations" },
   { href: "#inspiration-atlas",   label: "Atlas" },
-  { href: "#get-involved",        label: "Get Involved" },
 ] as const;
 
 function AtlasInstrumentNav() {
@@ -389,7 +388,6 @@ export default function AtlasPage() {
       <ArcadeSection />
       <XenoCitationSection />
       <InspirationAtlasSection />
-      <GetInvolvedSection />
       <SiteFooter />
     </div>
   );
@@ -629,7 +627,7 @@ function ObservatoryHeroSection() {
 
         {/* Headline */}
         <h1 className="mt-8 max-w-3xl text-4xl font-bold tracking-tight text-foreground md:text-5xl lg:text-6xl">
-          Light doesn't always<br className="hidden md:block" /> travel straight.
+          Off-Axis Observer Disagreement
         </h1>
 
         {/* Subheadline */}
@@ -1129,69 +1127,6 @@ function AtlasEntryCard({ entry }: { entry: AtlasEntry }) {
       </div>
 
     </article>
-  );
-}
-
-// ── Get Involved ──────────────────────────────────────────
-
-function GetInvolvedSection() {
-  return (
-    <section id="get-involved" className="border-t border-border/20 bg-background">
-      <div className="container py-20">
-        <div className="mx-auto max-w-2xl text-center">
-          {/* Star accent — matches Community seed */}
-          <div className="mb-5 text-3xl text-amber-400/55 select-none" aria-hidden>✦</div>
-          <div className="mb-3 font-mono text-[8px] uppercase tracking-[0.45em] text-amber-400/50">
-            Open Research
-          </div>
-          <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
-            Join the Observatory
-          </h2>
-          <p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-muted-foreground/65">
-            The observatory thrives on collective attention. Whether you're a renderer engineer,
-            curious physicist, or anomaly hunter — your perspective sharpens the signal.
-          </p>
-
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <a
-              href="https://github.com/AetherTopologist/GD_xPRIMEray"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-1 items-center gap-3.5 border border-border/50 bg-card/60 px-7 py-5 transition-base hover:border-border/80 hover:bg-secondary/70 sm:flex-none"
-            >
-              <Github className="h-5 w-5 shrink-0 text-foreground/65" />
-              <div className="text-left">
-                <div className="text-sm font-semibold">Star on GitHub</div>
-                <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground/45">
-                  Source · Issues · PRs
-                </div>
-              </div>
-            </a>
-            <a
-              href="https://github.com/AetherTopologist/GD_xPRIMEray/discussions"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-1 items-center gap-3.5 border border-amber-500/30 bg-amber-950/20 px-7 py-5 transition-base hover:border-amber-500/55 hover:bg-amber-950/35 sm:flex-none"
-            >
-              <MessageSquare className="h-5 w-5 shrink-0 text-amber-400/70" />
-              <div className="text-left">
-                <div className="text-sm font-semibold text-amber-200/85">Open Discussions</div>
-                <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-amber-400/45">
-                  Questions · Experiments · Ideas
-                </div>
-              </div>
-            </a>
-          </div>
-
-          <p className="mt-7 font-mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground/30">
-            Open research · Public code · Reproducible results
-          </p>
-          <p className="mt-3 text-xs text-muted-foreground/25">
-            The sky belongs to everyone who looks up.
-          </p>
-        </div>
-      </div>
-    </section>
   );
 }
 

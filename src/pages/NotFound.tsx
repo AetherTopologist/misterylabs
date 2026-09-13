@@ -8,8 +8,9 @@ import { SiteFooter } from "@/components/SiteFooter";
 const ROUTES = [
   { to: "/", label: "Home" },
   { to: "/atlas", label: "Atlas" },
+  { to: "/observatory", label: "Observatory" },
+  { to: "/broch-sphere", label: "Broch Sphere" },
   { to: "/archive", label: "Archive" },
-  { to: "/research", label: "Research" },
   { to: "/media", label: "Media" },
 ];
 

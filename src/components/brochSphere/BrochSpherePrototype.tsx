@@ -111,7 +111,7 @@ export function BrochSpherePrototype() {
           <div className="max-w-3xl">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline" className="border-cyan-500/40 bg-cyan-500/10 text-cyan-300">
-                22-node toy prototype
+                18-node toy prototype
               </Badge>
               <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-300">
                 Return Path first

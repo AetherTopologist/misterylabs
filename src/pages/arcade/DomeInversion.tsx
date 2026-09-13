@@ -17,7 +17,7 @@ export default function DomeInversionPage() {
             <div className="h-px flex-1 bg-border/20" />
           </div>
           <h1 className="max-w-3xl text-2xl font-bold tracking-tight md:text-3xl">
-            White House Arcade: Dome Inversion
+            Dome Inversion
           </h1>
           <p className="mt-4 mb-8 max-w-2xl text-sm leading-relaxed text-muted-foreground/80 sm:text-base">
             Can light make inside read as outside? Stand under a coffered dome.
