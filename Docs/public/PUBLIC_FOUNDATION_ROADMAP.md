@@ -11,8 +11,8 @@
 > This document may evolve as milestones land. It does not redefine
 > xPRIMEray engine authority.
 
-**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1–RA-8 landed  
-**Updated after:** `e7e8e08d304d5f869fe3f786a47a7a2c47d7d296` — `fix(tooling): repair public link audit`
+**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1–RA-8 landed, xPRIMEray semantic-seam narrow fix landed  
+**Updated after:** `405e38a62fbb84e2e6a529f415fefe2dd76033d2` — `fix(public): tighten xPRIMEray semantic seam`
 
 ---
 
@@ -116,11 +116,12 @@ Visual evidence and runtime verification must exist before a milestone is marked
 
 ## 6. Current execution state
 
-**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`); RA-1 — prune inspiration media (`dee31a0`); RA-2 — prune dead Atlas navigation (`da644bf`); RA-3 — hide maintainer routes from crawlers (`392ff90`); RA-4 — prune Observatory experimental archive (`600444f`); RA-5 — crystallize public claims (`23cf9d1`); RA-6 — isolate Atlas inspiration graph data (`25ac366`); RA-7 — crystallize public copy (`f1a5c2f`); RA-8 — repair public link audit (`e7e8e08`)  
+**LANDED:** M1 — Home CTA honesty (`ee84d374`); M2 — mobile hero legibility (`ccb3cc62`); M3 — Broch Sphere `s-myl` cleanup (`f357d6a`); H1 — 404 Mission discoverability (`379efe4`); RA-1 — prune inspiration media (`dee31a0`); RA-2 — prune dead Atlas navigation (`da644bf`); RA-3 — hide maintainer routes from crawlers (`392ff90`); RA-4 — prune Observatory experimental archive (`600444f`); RA-5 — crystallize public claims (`23cf9d1`); RA-6 — isolate Atlas inspiration graph data (`25ac366`); RA-7 — crystallize public copy (`f1a5c2f`); RA-8 — repair public link audit (`e7e8e08`); semantic-seam narrow fix (`405e38a`)  
 **NOW:** Reality-Audit Pruning complete — M4 remains blocked behind architecture / hands-on readiness  
 **BLOCKED (readiness gate after RA-1…RA-8):** M4 — Experience coherence  
 
 **Mission Control:** INTERNAL / MAINTAINER — direct `/mission` preserved; public discoverability removed.  
+**Research:** explicit xPRIMEray-domain container surface (`/research`; H1 `xPRIMEray Research`).  
 **Placeholder media:** BROKEN, not WIP.  
 **`npm run audit:links`:** repaired in RA-8. Static public-readiness check; maintainer routes are not public-nav requirements.
 
@@ -454,6 +455,26 @@ Audit result: 155 files scanned; 18 public routes derived; maintainer set `/miss
 
 Adjacent (not fixed): `Research.tsx` still references unverified `cathedral_probe_architecture` on xprimeray.github.io.
 
+#### Semantic-seam narrow fix — LANDED
+
+**Status:** Complete  
+**Commit:** `405e38a62fbb84e2e6a529f415fefe2dd76033d2`  
+**Message:** `fix(public): tighten xPRIMEray semantic seam`  
+**Visual QA:** `reports/visual-qa/public/549ca92-semantic-seam-narrow-fix/`
+
+Changed files:
+
+- `src/pages/observatory/Quaternion.tsx`
+- `src/pages/observatory/PoissonDot.tsx`
+- `src/pages/Research.tsx`
+- `src/components/ResonanceSpheresAtlas.tsx`
+
+Removed unhedged xPRIMEray-internal claims from Quaternion and Poisson Dot. Research H1 is now `xPRIMEray Research`; `/research` is the explicit xPRIMEray-domain container surface (route and navigation unchanged). Resonance Spheres `SIGNAL RESONANCE` now carries `Interpretive resonance, not xPRIMEray documentation.`; `xprimeRayAlignment` content unchanged.
+
+No lineage/provenance model merge. No xPRIMEray engine semantics changed. Full visual containment grammar is deferred to M4/M5.
+
+Claude's semantic-seam audit is an explicit architectural input to M4. M4 remains blocked pending architecture / Billy hands-on acceptance. Do not invent an M4 implementation brief.
+
 ---
 
 ### M4 — ARCHITECTURE GATE — Experience coherence
@@ -554,10 +575,11 @@ If one pair of screenshots cannot show the relevant change, add route-specific f
 
 ## 9. Next Grok implementation brief
 
-None. Reality-Audit Pruning (RA-1…RA-8) is complete.
+None. Reality-Audit Pruning (RA-1…RA-8) is complete. Semantic-seam narrow fix is landed.
 
 M4 remains blocked behind Claude architecture review and Billy hands-on acceptance.
 Do not invent an M4 implementation brief yet.
+Full xPRIMEray visual containment grammar is deferred to M4/M5.
 
 ---
 
@@ -570,7 +592,8 @@ Do not let these hijack the M4 readiness gate:
 - Cavendish × Pais missing visual-QA evidence
 - Dome Inversion ScienceBoundary still mentions White House; the unexplained h1 prefix was removed in RA-7
 - broader status-vocabulary consolidation
-- inspiration-model consolidation — three unresolved lineage/provenance systems remain: `INSPIRATIONS` (force-graph lineage in `src/data/atlasInspirations.ts`), `XENO_CITATIONS` (rendered citation model), `ATLAS_ENTRIES` (richest public inspiration/provenance model). RA-6 made ownership clearer; it did not reconcile them.
+- inspiration-model consolidation — three unresolved lineage/provenance systems remain: `INSPIRATIONS` (force-graph lineage in `src/data/atlasInspirations.ts`), `XENO_CITATIONS` (rendered citation model), `ATLAS_ENTRIES` (richest public inspiration/provenance model). RA-6 made ownership clearer; it did not reconcile them. Semantic-seam narrow fix did not merge them.
+- full xPRIMEray visual containment grammar (deferred to M4/M5; semantic-seam narrow fix did not introduce it)
 - orphan `src/components/ObservatoryForceGraph.tsx` — adjacent finding only; live `/observatory/force-graph` uses `ObservatoryGraph.tsx`. Not resolved in RA-6.
 - historical visual-QA naming drift
 - external Supabase project decommissioning
