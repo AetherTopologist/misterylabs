@@ -367,6 +367,9 @@ export const ResonanceSpheresAtlas: React.FC = () => {
                 {/* Signal Resonance (xPRIMEray alignment) */}
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-400/70 mb-1.5">SIGNAL RESONANCE</div>
+                  <p className="mb-1.5 text-[10px] leading-relaxed text-muted-foreground/60">
+                    Interpretive resonance, not xPRIMEray documentation.
+                  </p>
                   <p className="text-sm leading-relaxed text-foreground/90">{expanded.node.xprimeRayAlignment}</p>
                 </div>
 

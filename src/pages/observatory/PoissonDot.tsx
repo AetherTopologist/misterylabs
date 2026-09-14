@@ -40,8 +40,8 @@ export default function PoissonDotPage() {
             A point source emits circular waves into a layered medium. Drag the index of
             refraction into negative territory — phase velocity reverses, transmitted waves
             bend backward, and a flat-lens focal point reconstructs the source below the
-            membrane. This models the boundary conditions xPRIMEray's GRIN field traversal
-            encounters near wormhole seam and curved-transport inversion zones.
+            membrane. This models boundary behavior a curved-transport renderer can
+            encounter near an index-inversion seam.
           </p>
           <div className="spectral-bar mb-8" aria-hidden />
           <ErrorBoundary fallback={FALLBACK}>

@@ -213,7 +213,7 @@ export default function ResearchPage() {
               </span>
             </div>
           </div>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">Research</h1>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">xPRIMEray Research</h1>
           <p className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground/45">
             Active systems · Field portals · Research domains
           </p>

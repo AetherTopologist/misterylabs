@@ -43,10 +43,10 @@ export default function QuaternionPage() {
             </p>
           </div>
           <p className="mb-6 max-w-2xl text-sm leading-relaxed text-muted-foreground/60">
-            Every 3D rotation in xPRIMEray's curved-transport field is encoded as a unit quaternion —
-            four numbers (x, y, z, w) that compress a rotation axis and angle into a single algebraic
-            object. This is the same mathematical structure that tracks ray orientations across the
-            GRIN field boundary.
+            Every 3D rotation can be encoded as a unit quaternion — four numbers
+            (x, y, z, w) that compress a rotation axis and angle into a single algebraic
+            object. Curved-transport renderers can use the same structure to track
+            orientation across field boundaries.
           </p>
           <div className="spectral-bar mb-6" aria-hidden />
           <ErrorBoundary fallback={FALLBACK}>
