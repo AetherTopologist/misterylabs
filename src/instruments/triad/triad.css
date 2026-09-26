@@ -1,0 +1,411 @@
+/* TRIAD skin. Scoped under .triad-root so MisterY Labs chrome is untouched.
+   Type stack matches the sandbox reference; Barlow / IBM Plex are used only
+   if already installed. No remote font is loaded. */
+
+.triad-root {
+  --color-bg: #070b10;
+  --color-surface: #101820;
+  --color-raised: #182230;
+  --color-line: #2c3c50;
+  --color-fg: #e7eef6;
+  --color-muted: #8ea0b5;
+  --color-obs: #3d8bfd;
+  --color-obs-dim: #17345e;
+  --color-model: #f4f7fb;
+  --color-hyp: #d7263d;
+  --color-hyp-dim: #4a1520;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --font-sans: "Barlow Condensed", "Arial Narrow", "Inter", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, monospace;
+  color: var(--color-fg);
+  background: var(--color-bg);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  min-height: 100dvh;
+  min-height: 100svh;
+  text-rendering: optimizeLegibility;
+  color-scheme: dark;
+}
+
+.triad-root .font-sans {
+  font-family: var(--font-sans);
+}
+
+.triad-exit {
+  position: fixed;
+  z-index: 30;
+  top: 0.45rem;
+  right: 0.55rem;
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.75rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-bg) 80%, transparent);
+  color: var(--color-muted);
+  font-family: var(--font-sans);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+.triad-exit:hover { color: var(--color-model); border-color: var(--color-obs); }
+.triad-exit:focus-visible { outline: 2px solid var(--color-obs); outline-offset: 2px; }
+
+.triad-root button:not(:disabled), .triad-root [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+.triad-root button, .triad-root input, .triad-root select, .triad-root textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+.triad-root ::selection {
+    background: var(--color-obs);
+    color: var(--color-bg);
+  }
+
+.triad-root * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
+
+.triad-root .app-shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(1200px 500px at 70% -10%, color-mix(in srgb, var(--color-obs) 12%, transparent), transparent 55%),
+    var(--color-bg);
+}
+
+.triad-root .stage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0 0.75rem 1.25rem;
+}
+
+.triad-root .viewport-frame {
+  position: relative;
+  height: 42dvh;
+  min-height: 16rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-bg);
+  touch-action: none;
+}
+
+.triad-root .inspector {
+  min-width: 0;
+}
+
+.triad-root .plot-dock {
+  min-width: 0;
+}
+
+@media (min-width: 64rem) {
+.triad-root .app-shell {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+.triad-root .stage {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 26rem;
+    grid-template-rows: minmax(0, 1fr) 11.5rem;
+    gap: 0.75rem;
+    padding: 0 0.75rem 0.75rem;
+  }
+
+.triad-root .viewport-frame {
+    grid-column: 1;
+    grid-row: 1;
+    height: auto;
+    min-height: 0;
+  }
+
+.triad-root .plot-dock {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 0;
+  }
+
+.triad-root .inspector {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    overflow: auto;
+    padding-right: 0.15rem;
+  }
+}
+
+.triad-root .plate {
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  border-radius: var(--radius-sm);
+}
+
+.triad-root .plate-obs {
+  border-color: color-mix(in srgb, var(--color-obs) 70%, var(--color-line));
+  box-shadow: inset 3px 0 0 var(--color-obs);
+}
+
+.triad-root .plate-model {
+  border-color: color-mix(in srgb, var(--color-model) 35%, var(--color-line));
+  box-shadow: inset 3px 0 0 var(--color-model);
+}
+
+.triad-root .plate-hyp {
+  border-color: color-mix(in srgb, var(--color-hyp) 75%, var(--color-line));
+  box-shadow: inset 3px 0 0 var(--color-hyp);
+  background: color-mix(in srgb, var(--color-hyp) 8%, var(--color-surface));
+}
+
+.triad-root .plate-gap {
+  border: 1px dashed var(--color-hyp);
+  background-color: var(--color-surface);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 7px,
+    color-mix(in srgb, var(--color-hyp) 28%, transparent) 7px,
+    color-mix(in srgb, var(--color-hyp) 28%, transparent) 8px
+  );
+}
+
+.triad-root .kicker {
+  font-family: var(--font-sans);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  color: var(--color-muted);
+}
+
+.triad-root .seam-flow {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+  flex-shrink: 0;
+}
+
+.triad-root .inspector > .overflow-x-auto {
+  flex-shrink: 0;
+}
+
+.triad-root .seam-cell {
+  flex: 0 0 auto;
+  min-width: 5.5rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+}
+
+.triad-root .seam-cell.gap {
+  min-width: 7.5rem;
+  border-style: dashed;
+  border-color: var(--color-hyp);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 6px,
+    color-mix(in srgb, var(--color-hyp) 32%, transparent) 6px,
+    color-mix(in srgb, var(--color-hyp) 32%, transparent) 7px
+  );
+}
+
+.triad-root input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2.75rem;
+  background: transparent;
+}
+
+.triad-root input[type="range"]:focus {
+  outline: none;
+}
+
+.triad-root input[type="range"]::-webkit-slider-runnable-track {
+  height: 0.25rem;
+  background: var(--color-line);
+  border-radius: 999px;
+}
+
+.triad-root input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: -0.45rem;
+  border-radius: 999px;
+  background: var(--color-model);
+  border: 2px solid var(--color-bg);
+  box-shadow: 0 0 0 1px var(--color-line);
+}
+
+.triad-root input[type="range"].range-obs::-webkit-slider-thumb {
+  background: var(--color-obs);
+}
+
+.triad-root input[type="range"].range-hyp::-webkit-slider-thumb {
+  background: var(--color-hyp);
+}
+
+.triad-root input[type="range"]::-moz-range-track {
+  height: 0.25rem;
+  background: var(--color-line);
+  border-radius: 999px;
+}
+
+.triad-root input[type="range"]::-moz-range-thumb {
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: var(--color-model);
+  border: 2px solid var(--color-bg);
+}
+
+.triad-root .btn {
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-line);
+  background: var(--color-raised);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.triad-root .btn:hover {
+  border-color: color-mix(in srgb, var(--color-model) 40%, var(--color-line));
+}
+
+.triad-root .btn[data-on="true"] {
+  background: var(--color-obs-dim);
+  border-color: var(--color-obs);
+  color: var(--color-model);
+}
+
+.triad-root .btn-hyp[data-on="true"] {
+  background: var(--color-hyp-dim);
+  border-color: var(--color-hyp);
+  color: var(--color-model);
+}
+
+.triad-root .btn:focus-visible, .triad-root .tab:focus-visible, .triad-root select:focus-visible, .triad-root textarea:focus-visible {
+  outline: 2px solid var(--color-obs);
+  outline-offset: 2px;
+}
+
+.triad-root .tab {
+  min-height: 2.75rem;
+  padding: 0 0.85rem;
+  flex: 0 0 auto;
+  border-bottom: 2px solid transparent;
+  color: var(--color-muted);
+  font-family: var(--font-sans);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: transparent;
+}
+
+.triad-root .tab[data-on="true"] {
+  color: var(--color-model);
+  border-bottom-color: var(--color-obs);
+}
+
+.triad-root .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.triad-root .field-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: baseline;
+}
+
+.triad-root select.instrument, .triad-root textarea.instrument {
+  width: 100%;
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  min-height: 2.75rem;
+  padding: 0.4rem 0.55rem;
+}
+
+.triad-root textarea.instrument {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.triad-root .gauge {
+  position: relative;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--color-bg) 0%,
+    var(--color-obs-dim) 55%,
+    var(--color-model) 100%
+  );
+  border: 1px solid var(--color-line);
+  overflow: hidden;
+}
+
+.triad-root .gauge i {
+  position: absolute;
+  top: -0.2rem;
+  width: 2px;
+  height: 1.1rem;
+  background: var(--color-model);
+}
+
+.triad-root .gauge i.hyp {
+  background: var(--color-hyp);
+  width: 3px;
+}
+
+.triad-root .banner {
+  font-family: var(--font-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  line-height: 1.25;
+}
+
+@media (prefers-reduced-motion: reduce) {
+.triad-root .gap-pulse {
+    animation: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+.triad-root .gap-pulse {
+    animation: gap-pulse 2.8s ease-in-out infinite;
+  }
+}
+
+@keyframes gap-pulse {
+  0%,
+  100% {
+    filter: saturate(1);
+  }
+  50% {
+    filter: saturate(1.4) brightness(1.15);
+  }
+}

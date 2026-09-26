@@ -413,6 +413,15 @@ const DEMO_CARDS: Array<{
   maturity: Maturity;
 }> = [
   {
+    href: "/observatory/triad",
+    label: "TRIAD",
+    sub: "Three-node coherence range",
+    desc: "Commanded orbit, airframe clearance, and delivered field stay separate. The vacuum-bore drawing is a hypothesis and is not switched on by the field solver.",
+    accent: "text-cyan-400/70",
+    border: "border-cyan-500/20 hover:border-cyan-500/40",
+    maturity: "Experimental",
+  },
+  {
     href: "/observatory/cavendish-pais",
     label: "Cavendish × Pais Effect",
     sub: "Hypothesis comparison · not a claim",

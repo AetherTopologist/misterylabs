@@ -28,6 +28,7 @@ const CavendishPaisPage     = lazy(() => import("./pages/observatory/CavendishPa
 const PolarGrinPage         = lazy(() => import("./pages/observatory/PolarGrin.tsx"));
 const SaturnPolygonPage     = lazy(() => import("./pages/observatory/SaturnPolygon.tsx"));
 const DomeInversionPage     = lazy(() => import("./pages/arcade/DomeInversion.tsx"));
+const TriadPage             = lazy(() => import("./pages/observatory/Triad.tsx"));
 
 function DemoLoading() {
   return (
@@ -89,6 +90,7 @@ const App = () => (
           <Route path="/observatory/polar-grin"          element={<DemoWrapper><PolarGrinPage /></DemoWrapper>} />
           <Route path="/observatory/saturn-polygon"      element={<DemoWrapper><SaturnPolygonPage /></DemoWrapper>} />
           <Route path="/arcade/dome-inversion"           element={<DemoWrapper><DomeInversionPage /></DemoWrapper>} />
+          <Route path="/observatory/triad"               element={<DemoWrapper><TriadPage /></DemoWrapper>} />
           {/* Unadvertised maintainer surface — no auth gate, not in public nav */}
           <Route path="/mission" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />

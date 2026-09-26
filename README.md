@@ -4,6 +4,10 @@ Public observatory site for MisterY Labs — home of curved optical transport re
 
 Live: https://aethertopologist.github.io/misterylabs/
 
+TRIAD range instrument: https://aethertopologist.github.io/misterylabs/observatory/triad
+
+Source map: `src/instruments/triad/AUDIT.md`
+
 ## Stack
 
 - React + Vite + TypeScript

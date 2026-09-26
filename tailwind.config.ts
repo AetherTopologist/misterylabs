@@ -78,6 +78,16 @@ export default {
           violet: "hsl(var(--spectral-violet))",
           magenta: "hsl(var(--spectral-magenta))",
         },
+        triad: {
+          bg: "#070b10",
+          surface: "#101820",
+          line: "#2c3c50",
+          muted: "#8ea0b5",
+          obs: "#3d8bfd",
+          model: "#f4f7fb",
+          hyp: "#d7263d",
+          "hyp-dim": "#4a1520",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
