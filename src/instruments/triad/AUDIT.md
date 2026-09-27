@@ -16,7 +16,7 @@ Manual controls and a future preset macro share one path. The hypothesis drawing
 CONTROL
   ui/Instrument.tsx          sliders, modes, Freeze A/B, Test Maneuver, Schwinger sweep button
   sim/store.ts               patch / reset / maneuver / experiment / freeze / publish
-  sim/experimentHost.ts      same functions, for a future macro. No presets are defined.
+  sim/experimentHost.ts      same functions, for preset macros. No second solver.
         ↓
 GEOMETRY / NODE STATE
   sim/engine.ts              step, moveNodes, seek, integrateCraft, enforceClearance
@@ -43,11 +43,38 @@ Separately, and only forward:
 
 ```
 ?????  →  HYPOTHESIS VISUALIZATION
-  params.vacuumBore, params.ashton, params.rayMode, params.anchor
+  params.vacuumBore, params.ashton, params.rayMode, params.anchor, params.anchorKm, params.anchorBearing
   sim/engine.ts     syncBore copies vacuumBore onto display. Nothing computes it from E/Es or from the pair rate.
+                    snapshot().axes is geometry telemetry only. It is not an input to dipoles, energy, or moveNodes.
   ui/Viewport.tsx   BoreHistory draws the hypothesis tube only when display.vacuumBore is set by that flag.
+                    Aim axis is a short body-scale dashed ray. The range inset is log-compressed screen space.
+                    Neither is a path to the anchor, and neither is read by the solver.
   ui/Instrument.tsx seam tab. The ????? cell is a label. It is not a transition.
 ```
+
+## Experiment presets
+
+`sim/presets.ts` defines five scripts as functions of integrator time.
+`sim/experimentRun.ts` writes them through `experimentHost.setControls` before each existing `engine.step` in `TriadPage.tsx`.
+Replay is the same script again. 0.25× changes `timeScale` only. The step stays 1/60 s.
+Held keys are reapplied every step. That is not a solver lock.
+`seatBendDeg` is a geometric offset on node 2 when spacing is equal. Zero reproduces the old 120° ring. It is not an emitter phase and it does not enter `fields.ts` or `qed.ts`.
+
+| Preset | Changes | Holds |
+|---|---|---|
+| 01 Control cliff | ω | speed, frame, E0, phase, frequency, airframe, R, a_max |
+| 02 Break 120° | node-2 seat | E0, frequency, emitter phase, aircraft, ω |
+| 03 Break phase | emitter phase | seats, R, ω, aircraft, E0, active count |
+| 04 Schwinger sweep | E0 | aircraft, controller, geometry, phase, frequency, polarization, count |
+| 05 Null A/B | one of E0, phase B, or active count | everything else |
+
+E/Es = 1 does not set `vacuumBore`, the anchor, or a metric. Anchor range and bearing do not change peak E, peak B, F, G, the pair estimate, the energy ledger, or the controller.
+
+## Not in this port
+
+The ????? rung does not change the metric, the nodes, or the vacuum-bore flag.
+No Pais, Puthoff, or Morris–Thorne transport law is implemented.
+
 
 ## Where to read each piece
 
@@ -74,12 +101,9 @@ Separately, and only forward:
 | Freeze A / Freeze B | `sim/store.ts` `freeze`; comparison text `sim/qed.ts` `compareCaptures` |
 | Test Maneuver | `sim/engine.ts` `triggerManeuver` (14 s command override) |
 | Control-experiment buttons | `sim/engine.ts` `applyExperiment` |
-| Page clock | `TriadPage.tsx` `useSim` | fixed `1/60` s, max 5 substeps, publish every 0.1 s |
+| Page clock | `TriadPage.tsx` `useSim` | fixed `1/60` s, max 5 substeps, publish every 0.1 s. Calls `experimentRun.beforeStep` then `engine.step`. |
 | Reset | `sim/engine.ts` `reset`, reached from the Reset button through `sim/store.ts` |
+| Preset scripts | `sim/presets.ts`, `sim/experimentRun.ts` | five macros over `experimentHost` |
+| Aim axis / range inset | `ui/Viewport.tsx`, `ui/Experiments.tsx` `RangeInset`, `sim/anchorView.ts` | local ray; `compressedRadius` |
 
 `clearHistory` on the engine drops plotted samples and source-locus samples only. It does not clear the latency buffer and it does not change the Maxwell update.
-
-## Not in this port
-
-Preset experiments are not implemented. `experimentHost` is the macro surface only.
-The ????? rung does not change the metric, the nodes, or the vacuum-bore flag.

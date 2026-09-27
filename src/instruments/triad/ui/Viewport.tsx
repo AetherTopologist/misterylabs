@@ -1,8 +1,8 @@
-import { OrbitControls } from "@react-three/drei";
+import { Html, OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
-import { AIRFRAME_MESH } from "../sim/airframe";
+import { AIRFRAME_MESH, B777, airframeExtent } from "../sim/airframe";
 import { BORE_LEAD, BORE_MAX, BORE_RING, engine } from "../sim/engine";
 import { PAL } from "../sim/palette";
 
@@ -55,7 +55,25 @@ function Aircraft() {
         <boxGeometry args={[0.18, 0.12, 36]} />
         <meshStandardMaterial color={PAL.obs} />
       </mesh>
+      <NoseLead />
     </group>
+  );
+}
+
+/** Local hypothesis lead. A few tens of meters on the nose axis. Not the destination anchor. */
+function NoseLead() {
+  const ref = useRef<THREE.Mesh>(null);
+  const tip = useMemo(() => airframeExtent().noseTip, []);
+  const len = 36;
+  useFrame(() => {
+    const mesh = ref.current;
+    if (mesh) mesh.visible = engine.params.vacuumBore === true;
+  });
+  return (
+    <mesh ref={ref} visible={false} position={[0, 0, tip + len / 2]} rotation={[Math.PI / 2, 0, 0]}>
+      <cylinderGeometry args={[2.4, 3.6, len, 20, 1, true]} />
+      <meshBasicMaterial color={PAL.hyp} transparent opacity={0.33} depthWrite={false} side={THREE.DoubleSide} />
+    </mesh>
   );
 }
 
@@ -426,10 +444,19 @@ function PoyntingArrows() {
 
 function RaysAndGhosts() {
   const rayGroup = useRef<THREE.Group>(null);
-  const ghost = useRef<THREE.Group>(null);
-  const tick = useRef<THREE.Mesh>(null);
   const importGroup = useRef<THREE.Group>(null);
   const raySig = useRef<Float32Array | null>(null);
+  const aim = useMemo(() => {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(6), 3));
+    const mat = new THREE.LineDashedMaterial({ color: PAL.hyp, dashSize: 6, gapSize: 3.5, toneMapped: false });
+    const line = new THREE.Line(geo, mat);
+    line.frustumCulled = false;
+    line.computeLineDistances();
+    return line;
+  }, []);
+  const aimLabel = useRef<THREE.Group>(null);
+  const labelEl = useRef<HTMLDivElement>(null);
   useFrame(() => {
     const d = engine.display;
     const rays = d.rays;
@@ -460,15 +487,23 @@ function RaysAndGhosts() {
       });
       raySig.current = null;
     }
-    if (ghost.current) {
-      ghost.current.visible = d.ghostOn && !d.ghostFar;
-      ghost.current.position.set(d.ghost.x, d.ghost.y, d.ghost.z);
+    const on = engine.params.anchor;
+    aim.visible = on;
+    const len = B777.lengthM * 3;
+    const y = d.acY + 1.4;
+    const br = d.anchorBearing;
+    const x = Math.sin(br) * len;
+    const z = Math.cos(br) * len;
+    const pos = aim.geometry.getAttribute("position") as THREE.BufferAttribute;
+    pos.setXYZ(0, 0, y, 0);
+    pos.setXYZ(1, x, y, z);
+    pos.needsUpdate = true;
+    aim.computeLineDistances();
+    if (aimLabel.current) {
+      aimLabel.current.visible = on;
+      aimLabel.current.position.set(x, y + 6, z);
     }
-    if (tick.current) {
-      tick.current.visible = d.ghostOn;
-      const R = Math.max(70, engine.params.orbitRadius * 1.8);
-      tick.current.position.set(Math.sin(d.anchorBearing) * R, d.acY + 2, Math.cos(d.anchorBearing) * R);
-    }
+    if (labelEl.current) labelEl.current.style.display = on ? "block" : "none";
     const ig = importGroup.current;
     if (ig) {
       ig.visible = d.importOn;
@@ -488,16 +523,16 @@ function RaysAndGhosts() {
   return (
     <>
       <group ref={rayGroup} />
-      <group ref={ghost}>
-        <mesh>
-          <boxGeometry args={[64, 8, 14]} />
-          <meshBasicMaterial color={PAL.hyp} wireframe />
-        </mesh>
+      <primitive object={aim} />
+      <group ref={aimLabel}>
+        <Html center distanceFactor={220} zIndexRange={[12, 0]} style={{ pointerEvents: "none" }}>
+          <div ref={labelEl} className="aim-label" style={{ display: "none" }}>
+            Hypothesis aim axis
+            <br />
+            Not a transport path
+          </div>
+        </Html>
       </group>
-      <mesh ref={tick}>
-        <sphereGeometry args={[2.4, 12, 10]} />
-        <meshBasicMaterial color={PAL.hyp} />
-      </mesh>
       <group ref={importGroup}>
         <mesh>
           <boxGeometry args={[20, 4, 50]} />

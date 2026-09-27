@@ -1,20 +1,23 @@
 /**
- * Seam for a future preset runner. Presets are not implemented.
+ * Shared control path for the manual UI and for experiment presets.
  *
- * A preset must be a macro over these functions. They call the same store
- * and the same engine as the manual controls. There is no second simulation,
+ * A preset is a macro over these functions. They call the same store
+ * and the same engine as the sliders. There is no second simulation,
  * no canned timeline, and no separate field solver.
  *
- * Intended macro shape, not built here:
- *   checkpoint → reset → setControls → freeze → clearHistory
- *   → step for a timed sequence → read / freeze → stop → restore
+ * Macro shape used by `experimentRun`:
+ *   checkpoint → setControls → reset → clearHistory
+ *   → (the page clock calls engine.step; before each step the runner
+ *      setControls again) → read / freeze → stop → restore + reset
  *
  * `freeze` is the existing Freeze A / Freeze B comparison capture.
- * It does not lock the solver and it does not feed the hypothesis view
- * back into Maxwell or the pair estimate.
+ * It does not lock the solver. Held variables are reapplied through
+ * `setControls` by the runner. Freeze does not feed the hypothesis
+ * view back into Maxwell or the pair estimate.
  *
  * `restore` writes params through the same patch path as the sliders.
- * It does not rewind the aircraft unless the macro also calls `reset`.
+ * The runner then calls `reset` so kinematics match those params.
+ * Restore does not rewind a mid-flight pose on its own.
  */
 import { engine } from "./engine";
 import { useTriad } from "./store";
@@ -46,6 +49,10 @@ export const experimentHost = {
   },
   stop(): void {
     useTriad.getState().patch({ running: false });
+  },
+  /** Integrator time in seconds. Presets schedule against this, not wall time. */
+  now(): number {
+    return engine.now();
   },
   /** One real integrator step. The page clock calls engine.step with the same function. */
   step(dt: number): void {

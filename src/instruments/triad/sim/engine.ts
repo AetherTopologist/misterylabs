@@ -501,7 +501,8 @@ export function createEngine() {
   function angleOf(index: number, phase: number, pair: boolean) {
     if (pair && index < 2) return phase + index * Math.PI;
     if (params.spacing === "free") return phase + geoOff[index];
-    return phase + index * (TAU / 3);
+    const bend = !pair && index === 1 ? rad(params.seatBendDeg || 0) : 0;
+    return phase + index * (TAU / 3) + bend;
   }
 
   function placeInitial() {
@@ -1550,6 +1551,24 @@ export function createEngine() {
       qed: qedReadout(),
       clearance: clearanceReadout(),
       ...saturationOf(),
+      axes: axisTelemetry(),
+    };
+  }
+
+  function axisTelemetry() {
+    const body = basisOf(ac.yaw, ac.pitch, ac.bank);
+    const plane = orbitPlane(ac, params.frame);
+    const br = rad(params.anchorBearing);
+    const dest = { x: Math.sin(br), y: 0, z: Math.cos(br) };
+    const bore = { x: plane.nx, y: plane.ny, z: plane.nz };
+    const nose = { x: body.fx, y: body.fy, z: body.fz };
+    const sp = Math.hypot(ac.vx, ac.vy, ac.vz);
+    const vel = sp < 0.4 ? { x: 0, y: 0, z: 0 } : { x: ac.vx / sp, y: ac.vy / sp, z: ac.vz / sp };
+    return {
+      boreDestDeg: angleBetween(bore, dest),
+      bodyDestDeg: angleBetween(nose, dest),
+      velDestDeg: angleBetween(vel, dest),
+      note: "Geometry only. Bore is the current orbit-plane normal, body is the nose, velocity is the kinematic velocity, destination is the horizontal anchor bearing. These angles do not enter Maxwell, the pair estimate, the energy ledger, or the controller. Alignment is not a transport law.",
     };
   }
 
@@ -1763,6 +1782,9 @@ export function createEngine() {
       refreshVisuals();
     },
     snapshot,
+    now() {
+      return t;
+    },
     poke() {
       refreshVisuals();
     },
@@ -1776,6 +1798,14 @@ function tank0(p: Params) {
 
 function lerp(a: number, b: number, u: number) {
   return a + (b - a) * u;
+}
+
+function angleBetween(a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) {
+  const al = Math.hypot(a.x, a.y, a.z);
+  const bl = Math.hypot(b.x, b.y, b.z);
+  if (al < 1e-8 || bl < 1e-8) return Number.NaN;
+  const d = (a.x * b.x + a.y * b.y + a.z * b.z) / (al * bl);
+  return deg(Math.acos(Math.max(-1, Math.min(1, d))));
 }
 
 function aliasHz(f: number, sample: number) {

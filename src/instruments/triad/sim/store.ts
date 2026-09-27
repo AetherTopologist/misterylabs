@@ -68,9 +68,10 @@ export const useTriad = create<TriadStore>((set, get) => ({
     set({ params: { ...engine.params }, snap: engine.snapshot() });
   },
   freeze: (which) => {
-    const shot = frozen(get().params, get().snap);
-    if (which === "a") set({ captureA: shot });
-    else set({ captureB: shot });
+    const snap = engine.snapshot();
+    const shot = frozen({ ...engine.params }, snap);
+    if (which === "a") set({ captureA: shot, snap });
+    else set({ captureB: shot, snap });
   },
   clearCaptures: () => set({ captureA: null, captureB: null }),
   runSweep: () => set({ sweep: engine.schwingerSweep() }),

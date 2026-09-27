@@ -75,6 +75,8 @@ export type Params = {
   anchor: boolean;
   anchorKm: number;
   anchorBearing: number;
+  /** Geometric seat of node 2 only, degrees. Zero is the equal 120° ring. Not an emitter phase. */
+  seatBendDeg: number;
   rayMode: boolean;
   constitutive: Constitutive;
   dnAlpha: number;
@@ -199,6 +201,15 @@ export type Snapshot = {
   saturated: boolean;
   demandRatio: number;
   saturationNote: string;
+  /** Geometry telemetry only. Not an input to Maxwell, pairs, energy, or the controller. */
+  axes: AxisTelemetry;
+};
+
+export type AxisTelemetry = {
+  boreDestDeg: number;
+  bodyDestDeg: number;
+  velDestDeg: number;
+  note: string;
 };
 
 export type QedReadout = {
@@ -330,6 +341,7 @@ export const DEFAULT_PARAMS: Params = {
   anchor: false,
   anchorKm: 500,
   anchorBearing: 40,
+  seatBendDeg: 0,
   rayMode: false,
   constitutive: "vacuum",
   dnAlpha: 0.15,

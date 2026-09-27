@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { engine, nominalFixture } from "../sim/engine";
+import { useExperimentRun } from "../sim/experimentRun";
 import { PAL } from "../sim/palette";
 import { compareCaptures } from "../sim/qed";
 import { useTriad } from "../sim/store";
@@ -50,6 +51,9 @@ export function Header() {
   const patch = useTriad((s) => s.patch);
   const reset = useTriad((s) => s.reset);
   const maneuver = useTriad((s) => s.maneuver);
+  const runStatus = useExperimentRun((s) => s.status);
+  const held = runStatus === "done";
+  const driving = runStatus === "running" || runStatus === "paused";
   return (
     <header className="flex flex-col gap-2 px-3 pt-3 pb-2">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -59,8 +63,24 @@ export function Header() {
           <p className="text-triad-muted">Source locus ≠ Maxwell structure · not a tunnel</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button className="btn" data-on={params.running} onClick={() => patch({ running: !params.running })}>
-            {params.running ? "Hold" : "Run"}
+          <button
+            className="btn"
+            data-on={params.running}
+            onClick={() => {
+              const run = useExperimentRun.getState();
+              if (run.status === "running") {
+                run.pause();
+                return;
+              }
+              if (run.status === "paused") {
+                run.resume();
+                return;
+              }
+              if (run.status === "done") return;
+              patch({ running: !params.running });
+            }}
+          >
+            {held ? "Held" : params.running ? "Hold" : "Run"}
           </button>
           <button className="btn" onClick={() => maneuver()}>
             Test maneuver
@@ -73,7 +93,15 @@ export function Header() {
       <div className="flex flex-wrap items-center gap-2">
         <span className="kicker">Time scale</span>
         {[0.25, 1, 2, 4].map((r) => (
-          <button key={r} className="btn" data-on={params.timeScale === r} onClick={() => patch({ timeScale: r })}>
+          <button
+            key={r}
+            className="btn"
+            data-on={params.timeScale === r}
+            onClick={() => {
+              if (driving) return;
+              patch({ timeScale: r });
+            }}
+          >
             {r}×
           </button>
         ))}
@@ -95,7 +123,8 @@ export function Overlay() {
     params.vacuumBore ||
     (params.ashton && params.vacuumGain > 1) ||
     (params.rayMode && params.constitutive !== "vacuum") ||
-    (params.anchor && params.ashton);
+    (params.anchor && params.ashton) ||
+    params.anchor;
   return (
     <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-3">
       <div className="flex flex-wrap gap-2">
@@ -151,10 +180,11 @@ function Chip({ k, v, tone }: { k: string; v: string; tone: "obs" | "model" }) {
 
 export function PlotDock() {
   const history = useTriad((s) => s.snap.history);
+  const marks = useExperimentRun((s) => s.marks);
   return (
     <section className="plot-dock plate grid gap-2 p-2 sm:grid-cols-2">
-      <Plot title="Tracking error (m) · model" data={history} dataKey="track" color={PAL.model} />
-      <Plot title="Gap & phase error (deg)" data={history} dataKey="gap" color={PAL.obs} extra="phase" />
+      <Plot title="Tracking error (m) · model" data={history} dataKey="track" color={PAL.model} marks={marks} />
+      <Plot title="Gap & phase error (deg)" data={history} dataKey="gap" color={PAL.obs} extra="phase" marks={marks} />
     </section>
   );
 }
@@ -165,12 +195,14 @@ function Plot({
   dataKey,
   color,
   extra,
+  marks,
 }: {
   title: string;
   data: { t: number; track: number; gap: number; phase: number }[];
   dataKey: "track" | "gap";
   color: string;
   extra?: "phase";
+  marks: { t: number; label: string }[];
 }) {
   return (
     <div className="min-w-0">
@@ -179,6 +211,7 @@ function Plot({
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
             <CartesianGrid stroke={PAL.line} strokeDasharray="3 3" />
+            <XAxis dataKey="t" type="number" hide domain={["dataMin", "dataMax"]} />
             <YAxis hide domain={["auto", "auto"]} />
             <Tooltip
               contentStyle={{ background: PAL.surface, border: `1px solid ${PAL.line}`, fontSize: 12 }}
@@ -196,6 +229,16 @@ function Plot({
                 isAnimationActive={false}
               />
             )}
+            {data.length > 1 &&
+              marks.map((m) => (
+                <ReferenceLine
+                  key={`${m.label}-${m.t}`}
+                  x={m.t}
+                  stroke={PAL.hyp}
+                  strokeDasharray="3 2"
+                  label={{ value: m.label, fill: PAL.hyp, fontSize: 10, position: "insideTopRight" }}
+                />
+              ))}
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -242,7 +285,8 @@ function SeamStrip() {
     p.vacuumBore ||
     (p.rayMode && p.constitutive !== "vacuum") ||
     (p.ashton && p.vacuumGain > 1) ||
-    (p.anchor && p.ashton);
+    (p.anchor && p.ashton) ||
+    p.anchor;
   const pairs = snap.qed.rateApplicable ? "estimated" : snap.qed.eps <= 0 ? "n/a" : "underflow";
   const cells = [
     ["MAXWELL", "white", "linear"],
@@ -268,6 +312,8 @@ function ControlTab() {
   const snap = useTriad((s) => s.snap);
   const patch = useTriad((s) => s.patch);
   const experiment = useTriad((s) => s.experiment);
+  const hot = useExperimentRun((s) => s.hot);
+  const lit = (name: string) => hot.includes(name);
   return (
     <div className="flex flex-col gap-3 pb-6">
       <p className="text-triad-muted">
@@ -321,7 +367,9 @@ function ControlTab() {
         </div>
       </div>
       <Slider label="Orbit radius" value={p.orbitRadius} min={8} max={240} step={1} unit="m" tone="obs" onChange={(orbitRadius) => patch({ orbitRadius })} />
-      <Slider label="Orbit rate ω" value={p.orbitRate} min={-16} max={16} step={0.05} unit="rad/s" onChange={(orbitRate) => patch({ orbitRate })} />
+      <Slider name="orbitRate" hot={lit("orbitRate")} label="Orbit rate ω" value={p.orbitRate} min={-16} max={16} step={0.05} unit="rad/s" onChange={(orbitRate) => patch({ orbitRate })} />
+      <Slider name="seatBend" hot={lit("seatBend")} label="Seat bend · node 2" value={p.seatBendDeg} min={-60} max={60} step={1} unit="°" onChange={(seatBendDeg) => patch({ seatBendDeg })} />
+      <p className="text-triad-muted">Seat bend moves node 2 on the ring. It is not an emitter phase. Zero is the equal 120° triad. Free spacing ignores it.</p>
       <div className="plate plate-model p-3">
         <p className="kicker">{snap.saturated ? "Control saturated" : "Centripetal demand"}</p>
         <p className="font-sans text-2xl leading-tight text-triad-model">{snap.saturated ? "CONTROL SATURATED" : "Within cap"}</p>
@@ -512,12 +560,16 @@ function FieldTab() {
   const p = useTriad((s) => s.params);
   const snap = useTriad((s) => s.snap);
   const patch = useTriad((s) => s.patch);
+  const hot = useExperimentRun((s) => s.hot);
+  const lit = (name: string) => hot.includes(name);
   return (
     <div className="flex flex-col gap-3 pb-6">
       <p className="text-triad-muted">{snap.fieldNote}</p>
       <CausalChain />
       <p className="kicker">Source controls</p>
       <LogSlider
+        name="eRef"
+        hot={lit("eRef")}
         label="Source amplitude E0"
         value={p.eRef}
         min={1}
@@ -556,9 +608,9 @@ function FieldTab() {
           </button>
         ))}
       </div>
-      <Slider label="Phase A" value={p.phaseA} min={0} max={360} step={1} unit="°" onChange={(phaseA) => patch({ phaseA, phasePreset: "manual" })} />
-      <Slider label="Phase B" value={p.phaseB} min={0} max={360} step={1} unit="°" onChange={(phaseB) => patch({ phaseB, phasePreset: "manual" })} />
-      <Slider label="Phase C" value={p.phaseC} min={0} max={360} step={1} unit="°" onChange={(phaseC) => patch({ phaseC, phasePreset: "manual" })} />
+      <Slider name="phaseA" hot={lit("phaseA")} label="Phase A" value={p.phaseA} min={0} max={360} step={1} unit="°" onChange={(phaseA) => patch({ phaseA, phasePreset: "manual" })} />
+      <Slider name="phaseB" hot={lit("phaseB")} label="Phase B" value={p.phaseB} min={0} max={360} step={1} unit="°" onChange={(phaseB) => patch({ phaseB, phasePreset: "manual" })} />
+      <Slider name="phaseC" hot={lit("phaseC")} label="Phase C" value={p.phaseC} min={0} max={360} step={1} unit="°" onChange={(phaseC) => patch({ phaseC, phasePreset: "manual" })} />
       {p.phasePreset === "drift" && (
         <Slider label="Drift rate" value={p.driftRate} min={0} max={1.5} step={0.01} unit="rad/s" onChange={(driftRate) => patch({ driftRate })} />
       )}
@@ -582,7 +634,7 @@ function FieldTab() {
       )}
       <div className="grid grid-cols-3 gap-2">
         {([1, 2, 3] as const).map((n) => (
-          <button key={n} className="btn" data-on={p.activeCount === n} onClick={() => patch({ activeCount: n })}>
+          <button key={n} className={`btn ${lit("activeCount") ? "control-hot" : ""}`} data-control="activeCount" data-on={p.activeCount === n} onClick={() => patch({ activeCount: n })}>
             {n} active
           </button>
         ))}
@@ -1104,7 +1156,17 @@ function HypothesisTab() {
         <Toggle label="Destination anchor" on={p.anchor} hyp onClick={() => patch({ anchor: !p.anchor })} />
         <Slider label="Anchor range" value={p.anchorKm} min={0.5} max={2000} step={0.5} unit="km" tone="hyp" onChange={(anchorKm) => patch({ anchorKm })} />
         <Slider label="Anchor bearing" value={p.anchorBearing} min={0} max={360} step={1} unit="°" tone="hyp" onChange={(anchorBearing) => patch({ anchorBearing })} />
-        <p className="text-triad-muted">A range-fixed marker and a bearing tick. No path is drawn. There is no transport equation.</p>
+        <p className="text-triad-muted">
+          Bearing draws a short red dashed aim axis on the aircraft, a few fuselage lengths long, labeled hypothesis /
+          not a transport path. Range is not drawn at world scale. It moves a marker in the compressed plan inset.
+          Neither number enters Maxwell, the pair estimate, the energy ledger, or the controller.
+        </p>
+        <div className="mt-2 grid grid-cols-3 gap-2">
+          <Stat k="Bore ↔ dest" v={angleText(snap.axes.boreDestDeg)} tone="hyp" />
+          <Stat k="Body ↔ dest" v={angleText(snap.axes.bodyDestDeg)} tone="hyp" />
+          <Stat k="Velocity ↔ dest" v={angleText(snap.axes.velDestDeg)} tone="hyp" />
+        </div>
+        <p className="mt-2 text-triad-muted">{snap.axes.note}</p>
       </div>
       <div className="plate plate-hyp p-3">
         <p className="kicker text-triad-hyp">Ponder-associated control questions · hypothesis</p>
@@ -1132,6 +1194,10 @@ function HypothesisTab() {
       </div>
     </div>
   );
+}
+
+function angleText(deg: number) {
+  return Number.isFinite(deg) ? `${deg.toFixed(1)}°` : "—";
 }
 
 function overlap(p: Params, gap: number, phase: number): string {
@@ -1362,6 +1428,8 @@ function Slider({
   unit,
   tone = "model",
   onChange,
+  hot = false,
+  name,
 }: {
   label: string;
   value: number;
@@ -1371,9 +1439,11 @@ function Slider({
   unit: string;
   tone?: "model" | "obs" | "hyp";
   onChange: (v: number) => void;
+  hot?: boolean;
+  name?: string;
 }) {
   return (
-    <label className="field">
+    <label className={`field ${hot ? "control-hot" : ""}`} data-control={name}>
       <span className="field-row">
         <span className="kicker">{label}</span>
         <span className={tone === "hyp" ? "text-triad-hyp" : tone === "obs" ? "text-triad-obs" : "text-triad-model"}>
@@ -1401,6 +1471,8 @@ function LogSlider({
   unit,
   tone = "model",
   onChange,
+  hot = false,
+  name,
 }: {
   label: string;
   value: number;
@@ -1409,10 +1481,12 @@ function LogSlider({
   unit: string;
   tone?: "model" | "obs" | "hyp";
   onChange: (v: number) => void;
+  hot?: boolean;
+  name?: string;
 }) {
   const safe = Math.min(max, Math.max(min, value));
   return (
-    <label className="field">
+    <label className={`field ${hot ? "control-hot" : ""}`} data-control={name}>
       <span className="field-row">
         <span className="kicker">{label}</span>
         <span className={tone === "hyp" ? "text-triad-hyp" : "text-triad-model"}>

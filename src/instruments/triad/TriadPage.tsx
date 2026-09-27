@@ -1,7 +1,9 @@
 import { useEffect, useState, type ComponentType } from "react";
 import { Link } from "react-router-dom";
 import { engine } from "./sim/engine";
+import { experimentRun } from "./sim/experimentRun";
 import { useTriad } from "./sim/store";
+import { ExperimentDeck, RangeInset } from "./ui/Experiments";
 import { Header, Inspector, Overlay, PlotDock } from "./ui/Instrument";
 import "./triad.css";
 
@@ -25,7 +27,13 @@ function useSim() {
         const h = 1 / 60;
         let n = 0;
         while (acc >= h && n < 5) {
+          experimentRun.beforeStep();
+          if (!engine.params.running) {
+            acc = 0;
+            break;
+          }
           engine.step(h);
+          experimentRun.afterStep();
           acc -= h;
           n++;
         }
@@ -63,9 +71,11 @@ export default function TriadPage() {
       <main className="app-shell">
         <Header />
         <div className="stage">
+          <ExperimentDeck />
           <div className="viewport-frame">
             {View ? <View /> : <div className="grid h-full place-items-center kicker">Opening range frame</div>}
             <Overlay />
+            <RangeInset />
           </div>
           <PlotDock />
           <Inspector />
