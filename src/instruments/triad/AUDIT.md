@@ -58,6 +58,7 @@ Separately, and only forward:
 `sim/experimentRun.ts` writes them through `experimentHost.setControls` before each existing `engine.step` in `TriadPage.tsx`.
 Replay is the same script again. 0.25× changes `timeScale` only. The step stays 1/60 s.
 Held keys are reapplied every step. That is not a solver lock.
+`sim/runResult.ts` writes the post-run card from integrator-time samples already taken during that run. It does not step the solver and it does not add a threshold.
 `seatBendDeg` is a geometric offset on node 2 when spacing is equal. Zero reproduces the old 120° ring. It is not an emitter phase and it does not enter `fields.ts` or `qed.ts`.
 
 | Preset | Changes | Holds |

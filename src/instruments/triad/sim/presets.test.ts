@@ -4,6 +4,7 @@ import { engine } from "./engine";
 import { experimentHost } from "./experimentHost";
 import { driveExperiment, experimentOmegaSamples, experimentRun, useExperimentRun } from "./experimentRun";
 import { cliffCrit, cliffOmega } from "./presets";
+import { buildResult, type RunSample } from "./runResult";
 import { useTriad } from "./store";
 
 function quiet() {
@@ -204,5 +205,155 @@ describe("compressed range inset", () => {
     assert.equal(compressedRadius(0.5), 10);
     assert.ok(Math.abs(compressedRadius(2000) - 58) < 1e-9);
     assert.ok(far < 100);
+  });
+});
+
+function fakeSample(over: Partial<RunSample> = {}): RunSample {
+  return {
+    t: 0,
+    omega: 0.45,
+    radius: 48,
+    aMax: 80,
+    demand: 0.12,
+    saturated: false,
+    track: 0.05,
+    actualR: 48,
+    commandedR: 48,
+    gap: 0,
+    phaseSlip: 0,
+    seat: 0,
+    phaseA: 0,
+    phaseB: 120,
+    phaseC: 240,
+    emA: 0,
+    emB: 120,
+    emC: 240,
+    eRef: 100,
+    ePeak: 1,
+    bPeak: 1e-9,
+    chi: 1e-16,
+    F: 1e-20,
+    G: 0,
+    exponent: Number.NaN,
+    rate: 0,
+    rateOn: false,
+    eChem: 10,
+    eChem0: 10,
+    vacuumBore: false,
+    anchor: false,
+    mode: "tracking",
+    frame: "bore",
+    speed: 85,
+    tas: 85,
+    activeCount: 3,
+    freq: 1e8,
+    latency: 0,
+    acquisition: "TRACK",
+    orient: "vertical",
+    simulate: false,
+    ...over,
+  };
+}
+
+function runCard(id: "cliff" | "break120" | "breakPhase" | "schwinger" | "null", speed: 1 | 0.25 = 1) {
+  quiet();
+  experimentRun.select(id);
+  experimentRun.begin(speed);
+  driveExperiment(60 * 14);
+  const result = useExperimentRun.getState().result;
+  assert.ok(result, `${id} did not produce a result card`);
+  return result;
+}
+
+describe("experiment result cards", () => {
+  it("builds the cliff card only from the recorded trace", () => {
+    const samples = [
+      fakeSample({ t: 0.017, omega: 0.45, demand: 0.1215, track: 0.02, actualR: 48.1 }),
+      fakeSample({ t: 4, omega: 1.3, demand: 1.014, track: 0.4, actualR: 49, saturated: true }),
+      fakeSample({ t: 10, omega: 2.6, demand: 4.056, track: 12, actualR: 70, saturated: true }),
+    ];
+    const input = {
+      id: "cliff" as const,
+      speed: 1 as const,
+      nullVar: null,
+      samples,
+      marks: [{ t: 3.9, label: "CONTROL SATURATION" }],
+      geometryFlag: "",
+      captureA: null,
+      captureB: null,
+    };
+    const card = buildResult(input);
+    assert.equal(card.plain, buildResult(input).plain);
+    assert.match(card.observed, /1\.291 rad\/s/);
+    assert.match(card.observed, /first ω with ω²R\/a_max > 1: ω 1\.300/);
+    assert.match(card.observed, /demand\/cap max 4\.056/);
+    assert.match(card.observed, /tracking error before/);
+    assert.match(card.observed, /node-radius departure/);
+    assert.match(card.interpretation, /controller saturation/i);
+    assert.match(card.interpretation, /not a field, QED, or aircraft interaction/i);
+    assert.match(card.notImplied, /Pais, Ponder, Puthoff, transport, metric engineering/);
+    assert.match(card.notImplied, /MH370/);
+    assert.match(card.plain, /OBSERVED IN MODEL/);
+    assert.match(card.plain, /NOT IMPLIED/);
+    assert.match(card.plain, /wall clock is not used/);
+    assert.doesNotMatch(card.interpretation, /supports Pais|validates MH370|metric engineering is shown/i);
+  });
+
+  it("replays the cliff card identically, including at 0.25×", () => {
+    const a = runCard("cliff", 1);
+    const b = runCard("cliff", 1);
+    const slow = runCard("cliff", 0.25);
+    assert.equal(a.plain, b.plain);
+    assert.equal(a.observed, slow.observed);
+    assert.equal(a.interpretation, slow.interpretation);
+    assert.equal(a.notImplied, slow.notImplied);
+    assert.match(slow.plain, /time scale: 0\.25×/);
+    assert.match(a.observed, /controller saturation/i);
+    assert.equal(a.flag, "");
+    assert.ok(a.observed.includes("first ω with ω²R/a_max > 1: ω"));
+    experimentRun.restore();
+  });
+
+  it("keeps phase fixed on the seat bend and seats fixed on the phase break", () => {
+    const seat = runCard("break120");
+    assert.equal(seat.flag, "");
+    assert.match(seat.observed, /commanded seat/);
+    assert.match(seat.observed, /pairwise gap error/);
+    assert.match(seat.observed, /Emitter phase stayed/);
+    assert.match(seat.notImplied, /not a field law/);
+    const phase = runCard("breakPhase");
+    assert.equal(phase.flag, "");
+    assert.match(phase.observed, /commanded phase/);
+    assert.match(phase.observed, /phase slip/);
+    assert.match(phase.observed, /Commanded seat and R stayed/);
+    assert.match(phase.interpretation, /Maxwell solution/);
+    experimentRun.restore();
+  });
+
+  it("reports Schwinger crossings without a transport transition", () => {
+    const card = runCard("schwinger");
+    assert.equal(card.flag, "");
+    for (const level of ["0.01", "0.1", "1", "10"]) {
+      assert.match(card.observed, new RegExp(`E/Es ≥ ${level}`));
+    }
+    assert.match(card.observed, /No transport, displacement, or vacuum-bore transition is implemented/);
+    assert.match(card.observed, /Vacuum bore stayed off/);
+    assert.match(card.interpretation, /No transport, displacement, or vacuum-bore transition is implemented/);
+    assert.match(card.notImplied, /not a switch/);
+    experimentRun.restore();
+  });
+
+  it("flags only the selected null variable and copies a citation record", () => {
+    const card = runCard("null");
+    assert.equal(card.flag, "");
+    assert.match(card.observed, /single changed variable: amplitude E0/);
+    assert.match(card.observed, /Δ peak \|E\|/);
+    assert.match(card.observed, /pair estimate/);
+    assert.match(card.observed, /reservoir/);
+    assert.doesNotMatch(card.observed, /^FLAG/m);
+    assert.match(card.plain, /experiment: 05 Null A\/B/);
+    assert.match(card.plain, /CONTROL STATE/);
+    assert.match(card.plain, /build: /);
+    experimentRun.restore();
   });
 });

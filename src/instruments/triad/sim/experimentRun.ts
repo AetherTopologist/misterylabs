@@ -8,6 +8,7 @@ import { engine } from "./engine";
 import { experimentHost, type ControlCheckpoint } from "./experimentHost";
 import { compareCaptures, type CaptureSide } from "./qed";
 import { nullCopy, presetById, type NullVar, type PresetId, type ScriptCtx } from "./presets";
+import { buildResult, sampleOf, type ResultCard, type RunSample } from "./runResult";
 import { useTriad } from "./store";
 import type { FrozenState, Params, Snapshot } from "./types";
 
@@ -54,6 +55,7 @@ type RunFields = {
   geometryFlag: string;
   comparison: string;
   samples: SweepSample[];
+  result: ResultCard | null;
 };
 
 type RunActions = {
@@ -82,6 +84,7 @@ const empty: RunFields = {
   geometryFlag: "",
   comparison: "",
   samples: [],
+  result: null,
 };
 
 export const useExperimentRun = create<RunFields & RunActions>(() => ({
@@ -110,6 +113,8 @@ let nullVar: NullVar = "amplitude";
 let geometryFlag = "";
 let comparison = "";
 let samples: SweepSample[] = [];
+let result: ResultCard | null = null;
+let trace: RunSample[] = [];
 let checkpoint: ControlCheckpoint | null = null;
 let origin = 0;
 let didA = false;
@@ -141,6 +146,7 @@ function sync(force = false) {
     geometryFlag,
     comparison,
     samples: samples.slice(),
+    result,
   });
 }
 
@@ -164,6 +170,7 @@ function select(id: PresetId) {
     comparison = "";
     geometryFlag = "";
     samples = [];
+    result = null;
     presetId = null;
   }
   armedId = id;
@@ -188,6 +195,8 @@ function begin(nextSpeed: 1 | 0.25 = 1) {
   speed = nextSpeed;
   presetId = id;
   armedId = id;
+  result = null;
+  trace = [];
   ctx = { eAtUnity: 0, nullVar };
   const base = def.baseline(ctx);
   experimentHost.setControls({ ...base, running: true, timeScale: speed });
@@ -216,6 +225,8 @@ function begin(nextSpeed: 1 | 0.25 = 1) {
   stampA = null;
   marks = [];
   samples = [];
+  trace = [];
+  result = null;
   sampleAcc = 0;
   event = "";
   comparison = "";
@@ -254,6 +265,8 @@ function restore() {
   comparison = "";
   geometryFlag = "";
   samples = [];
+  trace = [];
+  result = null;
   hot = [];
   didA = false;
   didB = false;
@@ -280,6 +293,18 @@ function finish() {
   const read = experimentHost.read();
   if (presetId) observed = presetById(presetId).observe(read.params, read.snap);
   if (!event) event = "COMPLETE";
+  result = presetId
+    ? buildResult({
+        id: presetId,
+        speed,
+        nullVar: presetId === "null" ? nullVar : null,
+        samples: trace,
+        marks,
+        geometryFlag,
+        captureA: useTriad.getState().captureA,
+        captureB: useTriad.getState().captureB,
+      })
+    : null;
   sync(true);
 }
 
@@ -316,6 +341,8 @@ function beforeStep() {
 
 function afterStep() {
   if (status !== "running" || !presetId) return;
+  const read = experimentHost.read();
+  trace.push(sampleOf(read.params, read.snap));
   if (pendingB && !didB) {
     const stampB = geometryStamp();
     experimentHost.freeze("b");
@@ -328,17 +355,15 @@ function afterStep() {
     sampleAcc += 1 / 60;
     if (sampleAcc >= 0.1) {
       sampleAcc = 0;
-      const snap = engine.snapshot();
       samples.push({
-        t: experimentHost.now(),
-        ePeak: snap.qed.ePeak,
-        chi: snap.qed.eOverEs,
-        exponent: snap.qed.exponent,
+        t: read.snap.t,
+        ePeak: read.snap.qed.ePeak,
+        chi: read.snap.qed.eOverEs,
+        exponent: read.snap.qed.exponent,
       });
       if (samples.length > 180) samples.shift();
     }
   }
-  const read = experimentHost.read();
   observed = presetById(presetId).observe(read.params, read.snap);
   sync(false);
 }

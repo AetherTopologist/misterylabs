@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Line, LineChart, ReferenceLine, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { compressedRadius } from "../sim/anchorView";
 import { experimentRun, useExperimentRun } from "../sim/experimentRun";
@@ -83,6 +84,7 @@ export function ExperimentDeck() {
         </div>
       )}
       {def && run.event && <p className="event-mark">{run.event}</p>}
+      {run.status === "done" && run.result && <ResultCardView />}
       {shown === "schwinger" && run.samples.length > 2 && <SchwingerChart />}
       {def && (
         <div className="experiment-actions">
@@ -110,6 +112,69 @@ export function ExperimentDeck() {
       {!def && <p className="text-triad-muted">Pick an experiment. Run drives the real integrator. Replay repeats that same sequence. 0.25× changes wall speed only.</p>}
     </section>
   );
+}
+
+function ResultCardView() {
+  const result = useExperimentRun((s) => s.result);
+  const [copied, setCopied] = useState(false);
+  if (!result) return null;
+  return (
+    <article className="result-card" aria-label="Experiment result">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="kicker text-triad-obs">
+          Result · {result.index} {result.title}
+        </p>
+        <button
+          className="btn"
+          type="button"
+          onClick={() => {
+            void copyRun(result.plain).then((ok) => {
+              if (!ok) return;
+              setCopied(true);
+              window.setTimeout(() => setCopied(false), 1600);
+            });
+          }}
+        >
+          {copied ? "Copied" : "Copy run"}
+        </button>
+      </div>
+      {result.flag && <p className="result-flag">{result.flag}</p>}
+      <p className="kicker">Observed in model</p>
+      <pre>{result.observed}</pre>
+      <p className="kicker">Interpretation</p>
+      <p>{result.interpretation}</p>
+      <p className="kicker">Not implied</p>
+      <p className="text-triad-muted">{result.notImplied}</p>
+    </article>
+  );
+}
+
+function copyRun(text: string) {
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(text).then(
+      () => true,
+      () => copyRunFallback(text),
+    );
+  }
+  return Promise.resolve(copyRunFallback(text));
+}
+
+function copyRunFallback(text: string) {
+  const el = document.createElement("textarea");
+  el.value = text;
+  el.setAttribute("readonly", "");
+  el.style.position = "fixed";
+  el.style.left = "-9999px";
+  document.body.appendChild(el);
+  el.select();
+  let ok = false;
+  try {
+    ok = document.execCommand("copy");
+  } catch {
+    ok = false;
+  }
+  el.remove();
+  return ok;
 }
 
 function SchwingerChart() {

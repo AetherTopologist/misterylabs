@@ -463,6 +463,33 @@
   text-transform: uppercase;
 }
 
+.triad-root .result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.55rem 0.6rem 0.65rem;
+  border: 1px solid var(--color-line);
+  border-left: 3px solid var(--color-obs);
+  background: var(--color-bg);
+  min-width: 0;
+}
+
+.triad-root .result-card pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  color: var(--color-model);
+}
+
+.triad-root .result-flag {
+  margin: 0;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--color-hyp);
+  background: var(--color-hyp-dim);
+  color: var(--color-model);
+}
+
 .triad-root .control-hot {
   box-shadow: inset 0 0 0 1px var(--color-obs);
   background: color-mix(in srgb, var(--color-obs) 16%, transparent);
