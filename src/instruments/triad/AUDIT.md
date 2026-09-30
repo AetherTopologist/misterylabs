@@ -156,5 +156,7 @@ No transport or displacement transition exists.
 
 Interpretation: the amplitude/QED diagnostic changes while geometry and hypothesis layers remain isolated. Pair nonlinearity follows `ε`, not a claim that displayed peak `|E|` is the exponent argument.
 
-Release commit is recorded in git history for this documentation update. The Pages route remains `https://aethertopologist.github.io/misterylabs/observatory/triad`.
+Release commit: `018a380090df4212b651276fbbe9810895f967e3` — `fix(public): freeze TRIAD v0.1 presentation`.
+Visual QA: `reports/visual-qa/public/018a380-triad-v01/`.
+The Pages route remains `https://aethertopologist.github.io/misterylabs/observatory/triad`.
 
