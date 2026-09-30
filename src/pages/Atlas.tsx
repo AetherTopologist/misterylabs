@@ -345,7 +345,8 @@ const OFFAXIS_PANELS: ObsPanel[] = [
 // ── Atlas Instrument Nav ──────────────────────────────────
 
 const ATLAS_NAV = [
-  { href: "#observatory-hero",    label: "Observatory" },
+  { href: "#instruments",         label: "Instruments" },
+  { href: "#foundations",         label: "Foundations" },
   { href: "#xeno-citations",      label: "XenoCitations" },
   { href: "#inspiration-atlas",   label: "Atlas" },
 ] as const;
@@ -383,9 +384,24 @@ export default function AtlasPage() {
       <AtlasInstrumentNav />
       <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/25 to-transparent" aria-hidden />
 
-      <ObservatoryHeroSection />
+      <AtlasIntro />
       <DemoInstrumentsSection />
       <ArcadeSection />
+      <section id="foundations" className="border-t border-border/35">
+        <div className="container pt-10">
+          <div className="flex items-center gap-3 mb-1">
+            <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">Foundations</span>
+            <div className="h-px w-12 bg-border/35" />
+            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-cyan-400/60">Research threads</span>
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Foundations / research threads</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground/70">
+            xPRIMEray, Gordon-metric, and ray-tracing work stays here as supporting research. It is not removed.
+            Later, each instrument can expose experiment, concepts, and sources without a cross-link network on this page.
+          </p>
+        </div>
+        <ObservatoryHeroSection />
+      </section>
       <XenoCitationSection />
       <InspirationAtlasSection />
       <SiteFooter />
@@ -411,6 +427,7 @@ const DEMO_CARDS: Array<{
   accent: string;
   border: string;
   maturity: Maturity;
+  status?: string;
 }> = [
   {
     href: "/observatory/triad",
@@ -420,6 +437,7 @@ const DEMO_CARDS: Array<{
     accent: "text-cyan-400/70",
     border: "border-cyan-500/20 hover:border-cyan-500/40",
     maturity: "Experimental",
+    status: "v0.1 Research Preview",
   },
   {
     href: "/observatory/cavendish-pais",
@@ -513,18 +531,33 @@ const DEMO_CARDS: Array<{
   },
 ];
 
+function AtlasIntro() {
+  return (
+    <section className="bg-background">
+      <div className="container py-10 md:py-14">
+        <h1 className="max-w-3xl text-3xl font-bold leading-tight tracking-tight text-foreground md:text-5xl">
+          MISTERY LABS · ATLAS
+        </h1>
+        <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground/75">
+          Interactive instruments for exploring physics, geometry, observation, and the boundary between established models and explicit hypotheses.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function DemoInstrumentsSection() {
   return (
-    <section id="atlas-graph" className="border-t border-border/35 bg-background">
+    <section id="instruments" className="border-t border-border/35 bg-background">
       <div className="container py-10">
         <div className="flex items-center gap-3 mb-1">
           <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">SYS // 04</span>
           <div className="h-px w-12 bg-border/35" />
           <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary-glow/60">The Seed</span>
         </div>
-        <h2 className="text-2xl font-bold tracking-tight md:text-3xl mb-1">Observatory Instruments</h2>
+        <h2 className="text-2xl font-bold tracking-tight md:text-3xl mb-1">Interactive instruments</h2>
         <p className="text-sm text-muted-foreground max-w-xl mb-8">
-          Each instrument is loaded on demand. Click to open a standalone view.
+          These modules are the working surface. Open one, then read the research threads below.
         </p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {DEMO_CARDS.map((card) => (
@@ -538,7 +571,7 @@ function DemoInstrumentsSection() {
                   {card.sub}
                 </div>
                 <span className={`shrink-0 rounded-sm border px-1.5 py-0.5 font-mono text-[7px] uppercase tracking-[0.2em] ${MATURITY_STYLE[card.maturity]}`}>
-                  {card.maturity}
+                  {card.status ?? card.maturity}
                 </span>
               </div>
               <div className="text-sm font-semibold text-foreground mb-2 group-hover:text-foreground/90">
@@ -546,7 +579,7 @@ function DemoInstrumentsSection() {
               </div>
               <p className="text-xs leading-relaxed text-muted-foreground/60 flex-1">{card.desc}</p>
               <div className="mt-3 pt-3 border-t border-border/20 font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/35 group-hover:text-primary/50 transition-colors">
-                Open instrument →
+              Open →
               </div>
             </Link>
           ))}
@@ -635,9 +668,9 @@ function ObservatoryHeroSection() {
         </div>
 
         {/* Headline */}
-        <h1 className="mt-8 max-w-3xl text-4xl font-bold tracking-tight text-foreground md:text-5xl lg:text-6xl">
+        <h2 className="mt-8 max-w-3xl text-3xl font-bold tracking-tight text-foreground md:text-4xl">
           Off-Axis Observer Disagreement
-        </h1>
+        </h2>
 
         {/* Subheadline */}
         <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground/70">

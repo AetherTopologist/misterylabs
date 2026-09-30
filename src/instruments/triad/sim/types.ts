@@ -308,7 +308,7 @@ export const DEFAULT_PARAMS: Params = {
   frame: "bore",
   spacing: "equal",
   historyS: 5,
-  showBore: true,
+  showBore: false,
   vacuumBore: false,
   aMax: 80,
   freqHz: 1e8,

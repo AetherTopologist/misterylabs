@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { AIRFRAME_MESH, B777, airframeExtent } from "../sim/airframe";
 import { BORE_LEAD, BORE_MAX, BORE_RING, engine } from "../sim/engine";
 import { PAL } from "../sim/palette";
+import { displayWeights } from "./displayFocus";
 
 const FIELD_N = 52;
 const LOCUS_RGB: [number, number, number][] = [
@@ -21,6 +22,14 @@ function Aircraft() {
     const d = engine.display;
     g.position.set(0, d.acY, 0);
     g.quaternion.set(d.quat.x, d.quat.y, d.quat.z, d.quat.w);
+    const opacity = displayWeights().aircraft;
+    g.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      const mat = mesh.material as THREE.MeshStandardMaterial | undefined;
+      if (!mat || !("opacity" in mat)) return;
+      mat.transparent = opacity < 0.999;
+      mat.opacity = opacity;
+    });
   });
   const skin = { color: PAL.model, metalness: 0.28, roughness: 0.42 };
   const metal = { color: PAL.metal, metalness: 0.38, roughness: 0.4 };
@@ -122,8 +131,8 @@ function Markers() {
       const rgb = LOCUS_RGB[i];
       mat.color.setRGB(rgb[0], rgb[1], rgb[2]);
       mat.emissive.setRGB(rgb[0], rgb[1], rgb[2]);
-      mat.emissiveIntensity = dark ? 0.08 : 1.4;
-      mat.opacity = dark ? 0.35 : 1;
+      mat.emissiveIntensity = (dark ? 0.08 : 1.15) * displayWeights().nodes;
+      mat.opacity = (dark ? 0.35 : 1) * Math.max(0.45, displayWeights().nodes);
     });
   });
   return (
@@ -194,6 +203,8 @@ function FieldSlice() {
     const d = engine.display;
     if (!mesh.current) return;
     mesh.current.visible = d.showField;
+    const mat = mesh.current.material as THREE.MeshBasicMaterial;
+    mat.opacity = displayWeights().field;
     mesh.current.position.set(0, d.acY, 0);
     e1.set(d.plane.e1x, d.plane.e1y, d.plane.e1z);
     e2.set(d.plane.e2x, d.plane.e2y, d.plane.e2z);
@@ -282,6 +293,15 @@ function BoreHistory() {
   useFrame(() => {
     const d = engine.display;
     const n = d.boreCount;
+    const locus = displayWeights().locus;
+    (ringLines.material as THREE.LineBasicMaterial).opacity = 0.85 * locus;
+    trails.forEach((entry) => {
+      (entry.line.material as THREE.LineBasicMaterial).opacity = locus;
+    });
+    beads.forEach((bead) => {
+      (bead.material as THREE.PointsMaterial).opacity = 0.95 * locus;
+    });
+    (tube.material as THREE.MeshBasicMaterial).opacity = 0.28 * Math.max(locus, 0.35);
     const windowS = Math.max(1, engine.params.historyS);
     ringLines.visible = d.boreOn && n > 0;
     const rPos = ringLines.geometry.getAttribute("position") as THREE.BufferAttribute;
@@ -412,8 +432,15 @@ function PoyntingArrows() {
     if (!g) return;
     const d = engine.display;
     g.visible = d.showPoynting;
+    const arrowOpacity = displayWeights().poynting;
     d.arrows.forEach((a, i) => {
       const arrow = g.children[i] as THREE.ArrowHelper;
+      const lineMat = arrow.line.material as THREE.Material;
+      const coneMat = arrow.cone.material as THREE.Material;
+      lineMat.transparent = true;
+      coneMat.transparent = true;
+      lineMat.opacity = arrowOpacity;
+      coneMat.opacity = arrowOpacity;
       const len = Math.hypot(a.dx, a.dy, a.dz);
       if (len < 0.05) {
         arrow.visible = false;

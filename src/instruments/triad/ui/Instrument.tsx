@@ -6,6 +6,7 @@ import { PAL } from "../sim/palette";
 import { compareCaptures } from "../sim/qed";
 import { useTriad } from "../sim/store";
 import type { Constitutive, Experiment, FrozenState, GeoFrame, HistoryWindow, Mode, Orient, Params, PhasePreset, SchwingerSweep, Viewpoint } from "../sim/types";
+import { setDisplayFocus } from "./displayFocus";
 import { joules, sci, seconds, watts } from "./format";
 
 const MODES: { id: Mode; label: string; hint: string }[] = [
@@ -60,6 +61,7 @@ export function Header() {
         <div>
           <p className="kicker text-triad-obs">MisterY Labs · range instrument</p>
           <h1 className="font-sans text-3xl leading-none tracking-wide text-triad-model">TRIAD</h1>
+          <p className="kicker text-triad-obs">TRIAD v0.1 · RESEARCH INSTRUMENT PREVIEW</p>
           <p className="text-triad-muted">Source locus ≠ Maxwell structure · not a tunnel</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -85,7 +87,7 @@ export function Header() {
           <button className="btn" onClick={() => maneuver()}>
             Test maneuver
           </button>
-          <button className="btn" onClick={() => reset()}>
+          <button className="btn" onClick={() => { setDisplayFocus("balanced"); reset(); }}>
             Reset
           </button>
         </div>
@@ -107,11 +109,6 @@ export function Header() {
         ))}
         <span className="ml-auto font-sans text-lg tracking-widest text-triad-model">T+ {snap.t.toFixed(1)} s</span>
       </div>
-      <p className="max-w-4xl text-triad-muted">
-        239 lives remain at the center of this mystery. TRIAD explores physical claims surrounding MH370 without
-        treating speculation as evidence. Red, white, and blue here are epistemic labels — observation, model,
-        hypothesis — not a national claim and not an attribution of responsibility.
-      </p>
     </header>
   );
 }

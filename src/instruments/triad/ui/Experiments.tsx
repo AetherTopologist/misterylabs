@@ -5,6 +5,7 @@ import { experimentRun, useExperimentRun } from "../sim/experimentRun";
 import { PAL } from "../sim/palette";
 import { PRESETS, type PresetId } from "../sim/presets";
 import { useTriad } from "../sim/store";
+import { setDisplayFocus, useDisplayFocus, type DisplayFocus } from "./displayFocus";
 
 const STATE_LABEL = {
   idle: "idle",
@@ -21,7 +22,7 @@ export function ExperimentDeck() {
     <section className="experiment-deck" aria-label="Experiments">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="kicker text-triad-obs">Experiments</p>
-        <p className="text-triad-muted">Same controls as the sliders. No second simulation.</p>
+        <p className="text-triad-muted">Pick experiment → Run → Observe → Read Result → Copy Run</p>
       </div>
       <div className="experiment-picks">
         {PRESETS.map((p) => (
@@ -110,6 +111,57 @@ export function ExperimentDeck() {
         </div>
       )}
       {!def && <p className="text-triad-muted">Pick an experiment. Run drives the real integrator. Replay repeats that same sequence. 0.25× changes wall speed only.</p>}
+    </section>
+  );
+}
+
+export function TriadNotes() {
+  const focus = useDisplayFocus();
+  return (
+    <section className="triad-notes" aria-label="Scope">
+      <p className="max-w-4xl text-triad-muted">
+        239 lives remain at the center of this mystery. TRIAD explores physical claims surrounding MH370 without
+        treating speculation as evidence. Red, white, and blue here are epistemic labels — observation, model,
+        hypothesis — not a national claim and not an attribution of responsibility.
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="kicker">Display focus</span>
+        {(
+          [
+            ["balanced", "Balanced"],
+            ["aircraft", "Aircraft"],
+            ["field", "Field"],
+            ["sources", "Sources"],
+          ] as const
+        ).map(([id, label]) => (
+          <button key={id} className="btn" data-on={focus === id} onClick={() => setDisplayFocus(id as DisplayFocus)}>
+            {label}
+          </button>
+        ))}
+        <span className="text-triad-muted">Opacity only. Does not change the run.</span>
+      </div>
+      <details className="triad-about">
+        <summary>What TRIAD is / is not</summary>
+        <div className="triad-about-grid">
+          <div>
+            <p className="kicker text-triad-model">What TRIAD is</p>
+            <p>
+              An interactive research instrument separating source geometry and control, classical Maxwell field
+              calculation, strong-field QED diagnostics, and explicitly labeled hypothesis overlays.
+            </p>
+          </div>
+          <div>
+            <p className="kicker text-triad-hyp">What TRIAD is not</p>
+            <ul>
+              <li>a reconstruction of MH370</li>
+              <li>evidence for a specific explanation of MH370</li>
+              <li>a flight dynamics simulator</li>
+              <li>a derived propulsion or transport model</li>
+              <li>evidence that Schwinger-scale fields create a metric, bore, portal, or displacement</li>
+            </ul>
+          </div>
+        </div>
+      </details>
     </section>
   );
 }

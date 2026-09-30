@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { engine } from "./sim/engine";
 import { experimentRun } from "./sim/experimentRun";
 import { useTriad } from "./sim/store";
-import { ExperimentDeck, RangeInset } from "./ui/Experiments";
+import { ExperimentDeck, RangeInset, TriadNotes } from "./ui/Experiments";
 import { Header, Inspector, Overlay, PlotDock } from "./ui/Instrument";
 import "./triad.css";
 
@@ -71,7 +71,10 @@ export default function TriadPage() {
       <main className="app-shell">
         <Header />
         <div className="stage">
-          <ExperimentDeck />
+          <div className="experiment-stack">
+            <ExperimentDeck />
+            <TriadNotes />
+          </div>
           <div className="viewport-frame">
             {View ? <View /> : <div className="grid h-full place-items-center kicker">Opening range frame</div>}
             <Overlay />
