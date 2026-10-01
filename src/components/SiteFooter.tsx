@@ -6,15 +6,9 @@ export function SiteFooter() {
           <span>MisterY Labs · MYL-OBS-001</span>
           <span>Open research · Reproducible · Community-driven</span>
         </div>
-        <div className="mt-3 flex items-center gap-3 border-t border-border/20 pt-3">
-          <img
-            src={`${import.meta.env.BASE_URL}assets/xPRIMEray_Logo_Research_256.png`}
-            alt="xPRIMEray Observatory"
-            aria-hidden
-            className="h-6 w-auto opacity-20"
-          />
+        <div className="mt-3 border-t border-border/20 pt-3">
           <span className="font-mono text-[7px] uppercase tracking-[0.3em] text-muted-foreground/25">
-            Curved transport diagnostics powered by xPRIMEray Observatory
+            Selected optical-transport diagnostics use xPRIMEray outputs.
           </span>
         </div>
       </div>

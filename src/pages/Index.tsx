@@ -66,7 +66,44 @@ const FLAGSHIP_CARDS: {
   },
 ];
 
-// ── Page ──────────────────────────────────────────────────
+const LABORATORY_CARDS = FLAGSHIP_CARDS.filter((c) => c.href === "/atlas");
+const LINEAGE_CARDS = FLAGSHIP_CARDS.filter((c) => c.href !== "/atlas");
+
+function RouteCardGrid({
+  cards,
+  className,
+}: {
+  cards: typeof FLAGSHIP_CARDS;
+  className: string;
+}) {
+  return (
+    <div className={className}>
+      {cards.map((c) => (
+        <Link
+          key={c.title}
+          to={c.href}
+          className="diagnostic-frame group relative block rounded-sm border border-border/40 bg-card/35 p-4 transition-base hover:border-primary/35 hover:bg-card/55"
+        >
+          <div className="mb-3 flex items-start justify-between">
+            <div className="grid h-9 w-9 place-items-center rounded-sm bg-secondary/70 ring-1 ring-inset ring-border/50">
+              <c.icon className="h-4 w-4 text-primary-glow" />
+            </div>
+            <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40">
+              {c.tag}
+            </span>
+          </div>
+          <h3 className="text-sm font-semibold tracking-tight">{c.title}</h3>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{c.desc}</p>
+          {c.lineage && (
+            <p className="mt-2.5 border-t border-border/25 pt-2 font-mono text-[10px] leading-snug text-muted-foreground/45">
+              ↳ {c.lineage}
+            </p>
+          )}
+        </Link>
+      ))}
+    </div>
+  );
+}
 
 const Index = () => {
   const { theme } = useTheme();
@@ -87,7 +124,7 @@ const Index = () => {
       <section className="hero-sphere-section relative flex flex-col overflow-hidden">
         {/* Sphere — fills the entire hero */}
         <div className="pointer-events-none absolute inset-0" aria-hidden>
-          <TransportSphereViz className="h-full w-full" />
+          <TransportSphereViz className="h-full w-full" stamp="Featured instrument" />
         </div>
 
         {/* Bottom gradient — fades sphere into text area */}
@@ -96,18 +133,22 @@ const Index = () => {
           aria-hidden
         />
 
-        {/* Text overlay — bottom center */}
+        {/* Text overlay — bottom center.
+            Parent identity first. The sphere is the current featured instrument, not the laboratory. */}
         <div className="container relative mt-auto pb-16 pt-10 text-center">
           <h1 className="mx-auto max-w-2xl text-5xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-[5.25rem]">
-            Light doesn't always<br /> travel straight.
+            Change one thing.<br />Look again.
           </h1>
 
           <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-foreground/80 sm:text-base">
-            xPRIMEray is the upstream scientific instrument. MisterY Labs is the public laboratory surrounding it.
+            Small instruments for big questions. Change a condition. Inspect what changes.
           </p>
 
-          <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.28em] text-amber-400/70">
-            Measured observability cutsheets for native geodesic ray tracing.
+          <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.22em] text-amber-400/75">
+            Featured instrument · Optical transport · Reduced model
+          </p>
+          <p className="mt-1.5 text-sm font-medium text-foreground/85 sm:text-base">
+            Same object. Different transport.
           </p>
 
           <div className="mt-8 flex flex-col items-center gap-3">
@@ -115,16 +156,14 @@ const Index = () => {
               asChild
               className="border-amber-600/70 bg-amber-600/85 text-white hover:bg-amber-500 hover:border-amber-500"
             >
-              <Link to="/observatory/transport-sphere">
-                See the straight-vs-curved transport comparison
-              </Link>
+              <Link to="/atlas">Open the Atlas</Link>
             </Button>
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
               <Link
-                to="/atlas"
+                to="/observatory/transport-sphere"
                 className="text-sm text-muted-foreground/70 underline-offset-4 hover:text-foreground hover:underline"
               >
-                Atlas
+                See the straight-vs-curved transport comparison
               </Link>
               <Link
                 to="/observatory#optical-portal"
@@ -137,9 +176,17 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ── LATEST INSTRUMENT ─────────────────────────────── */}
+      {/* ── QUESTION / INSTRUMENTS ────────────────────────── */}
       <section className="border-t border-border/20 bg-featured-artifact">
-        <div className="container py-10">
+        <div className="container py-14 lg:py-16">
+          <div className="mx-auto mb-8 max-w-3xl text-center">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Change the question.
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
+              Each instrument changes something different.
+            </p>
+          </div>
           <Link
             to="/observatory/cavendish-pais"
             className="diagnostic-frame mx-auto mb-3 flex max-w-3xl flex-col gap-3 rounded-sm border border-cyan-500/25 bg-card/40 p-5 transition-base hover:border-cyan-500/50 sm:p-6"
@@ -147,9 +194,9 @@ const Index = () => {
             <div className="font-mono text-[9px] uppercase tracking-[0.35em] text-amber-400/80">
               Observatory demo
             </div>
-            <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
+            <h3 className="text-xl font-semibold tracking-tight sm:text-2xl">
               Cavendish × Pais Effect
-            </h2>
+            </h3>
             <p className="text-base font-medium text-foreground/85">
               Same destination.
               <span className="text-muted-foreground"> Different journey.</span>
@@ -164,7 +211,7 @@ const Index = () => {
               className="diagnostic-frame rounded-sm border border-cyan-500/20 bg-card/30 p-4 transition-base hover:border-cyan-500/45"
             >
               <div className="font-mono text-[8px] uppercase tracking-[0.28em] text-cyan-400/80">Apple of the Eye</div>
-              <div className="mt-1 text-sm font-semibold">Same object. Different transport.</div>
+              <div className="mt-1 text-sm font-semibold">The object remains. What reaches the witness changes.</div>
             </Link>
             <Link
               to="/observatory/saturn-polygon"
@@ -195,11 +242,14 @@ const Index = () => {
           {/* Section heading — larger and more prominent than before */}
           <div className="mb-10 text-center">
             <div className="mb-3 font-mono text-[9px] uppercase tracking-[0.45em] text-muted-foreground/35">
-              Featured Artifact
+              Capture record · Off-axis disagreement
             </div>
             <h2 className="text-2xl font-semibold tracking-tight text-foreground/90 md:text-3xl">
-              Off-Axis Observer Disagreement
+              The object stays. The record changes.
             </h2>
+            <p className="mt-2 text-sm text-muted-foreground/70">
+              Off-Axis Observer Disagreement
+            </p>
             <p className="mt-2.5 font-mono text-[10px] text-muted-foreground/40">
               23.8% classification redistribution · 30,839 px · 480×270
             </p>
@@ -304,7 +354,17 @@ const Index = () => {
       {/* ── SEEING IS NOT OPENING YOUR EYES ───────────────── */}
       <SeeingIsNotOpeningYourEyes />
 
-      {/* ── PRIMARY SYSTEM: xPRIMEray ─────────────────────── */}
+      {/* Atlas is a laboratory route, not a child of the lineage. */}
+      <section className="border-t border-border/25">
+        <div className="container py-12">
+          <div className="mb-4 font-mono text-[9px] uppercase tracking-[0.35em] text-muted-foreground/45">
+            Laboratory
+          </div>
+          <RouteCardGrid cards={LABORATORY_CARDS} className="grid max-w-sm gap-3" />
+        </div>
+      </section>
+
+      {/* ── xPRIMEray — one research lineage inside the laboratory ─ */}
       <section id="xprimeray" className="relative overflow-hidden border-t border-primary/15">
         {/* Subtle observatory atmosphere */}
         <div
@@ -338,11 +398,11 @@ const Index = () => {
           {/* Status header row */}
           <div className="flex items-center gap-3">
             <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-muted-foreground/45">
-              SYS // 02
+              Lineage
             </span>
             <div className="h-px w-12 bg-border/35" />
             <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground/45">
-              Observatory
+              Inside MisterY Labs
             </span>
           </div>
 
@@ -352,18 +412,22 @@ const Index = () => {
               xPRIMEray
             </h2>
             <p className="mt-2 text-base font-light text-primary-glow/80 md:text-lg">
-              Curved Transport Observatory
+              Light doesn't always travel straight.
             </p>
             <div className="mt-3 h-px w-32 bg-gradient-to-r from-primary/45 to-transparent" />
           </div>
 
           <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            A renderer research harness exploring curved-field traversal, transport topology,
-            convergence diagnostics, validation systems, and visual observability.
+            One research lineage inside MisterY Labs — not the system the laboratory exists around.
+            A renderer harness for curved-field traversal, transport topology, convergence diagnostics,
+            validation, and visual observability.
           </p>
           <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted-foreground/55">
             Guided by Klein topology: the observer and the field share one continuous manifold.
             Where the signal goes, the geometry follows.
+          </p>
+          <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground/40">
+            Measured observability cutsheets for native geodesic ray tracing.
           </p>
 
           {/* Primary CTAs */}
@@ -399,32 +463,7 @@ const Index = () => {
             </Button>
           </div>
 
-          {/* Component cards */}
-          <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {FLAGSHIP_CARDS.map((c) => (
-              <Link
-                key={c.title}
-                to={c.href}
-                className="diagnostic-frame group relative block rounded-sm border border-border/40 bg-card/35 p-4 transition-base hover:border-primary/35 hover:bg-card/55"
-              >
-                <div className="mb-3 flex items-start justify-between">
-                  <div className="grid h-9 w-9 place-items-center rounded-sm bg-secondary/70 ring-1 ring-inset ring-border/50">
-                    <c.icon className="h-4 w-4 text-primary-glow" />
-                  </div>
-                  <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40">
-                    {c.tag}
-                  </span>
-                </div>
-                <h3 className="text-sm font-semibold tracking-tight">{c.title}</h3>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{c.desc}</p>
-                {c.lineage && (
-                  <p className="mt-2.5 border-t border-border/25 pt-2 font-mono text-[10px] leading-snug text-muted-foreground/45">
-                    ↳ {c.lineage}
-                  </p>
-                )}
-              </Link>
-            ))}
-          </div>
+          <RouteCardGrid cards={LINEAGE_CARDS} className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" />
 
           {/* Latest measurement strip */}
           <div className="mt-8 rounded-sm border border-border/25 bg-card/15 p-4">
