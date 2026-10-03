@@ -440,6 +440,16 @@ const DEMO_CARDS: Array<{
     status: "v0.1 Research Preview",
   },
   {
+    href: "/observatory/hydrogen",
+    label: "Hydrogen",
+    sub: "Ride → Map → Thought Path",
+    desc: "First baseline of that architecture. Feature-frozen. On the comparison, the Puthoff card is marked SED model, not Calculated.",
+    accent: "text-amber-400/70",
+    border: "border-amber-500/20 hover:border-amber-500/40",
+    maturity: "Stable",
+    status: "Baseline",
+  },
+  {
     href: "/observatory/cavendish-pais",
     label: "Cavendish × Pais Effect",
     sub: "Hypothesis comparison · not a claim",

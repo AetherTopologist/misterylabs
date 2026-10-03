@@ -8,6 +8,12 @@ TRIAD range instrument: https://aethertopologist.github.io/misterylabs/observato
 
 Source map: `src/instruments/triad/AUDIT.md`
 
+Hydrogen is the first baseline of the MisterY Labs Ride → Map → Thought Path architecture.
+
+Record: https://aethertopologist.github.io/misterylabs/observatory/hydrogen
+
+Frozen source: `baselines/ride-map-thought-path/`
+
 ## Stack
 
 - React + Vite + TypeScript
