@@ -92,6 +92,16 @@ export function H0Instrument() {
         ))}
       </div>
 
+      {balanced && !compare && mode !== "classical" ? (
+        <button
+          type="button"
+          className="mt-3 min-h-11 w-full border border-fg px-3 py-3 text-sm tracking-widest text-fg uppercase"
+          onClick={() => setCompare(true)}
+        >
+          Compare descriptions
+        </button>
+      ) : null}
+
       {mode !== "quantum" ? (
         <div className="mt-3 border border-line bg-surface px-3 py-3">
           <div className="flex justify-between text-sm text-muted">
@@ -122,16 +132,6 @@ export function H0Instrument() {
       ) : (
         <p className="mt-3 text-sm text-muted">The 1s density does not take this counterfactual. The field stays off this picture.</p>
       )}
-
-      {balanced && mode === "sed" && !compare ? (
-        <button
-          type="button"
-          className="mt-3 min-h-11 w-full border border-fg px-3 py-3 text-sm tracking-widest text-fg uppercase"
-          onClick={() => setCompare(true)}
-        >
-          Compare descriptions
-        </button>
-      ) : null}
 
       <div className="mt-4">
         <HydrogenTree
