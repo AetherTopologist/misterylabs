@@ -2,7 +2,13 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+    "./baselines/ride-map-thought-path/hydrogen/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
@@ -14,6 +20,7 @@ export default {
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
         mono: ["JetBrains Mono", "ui-monospace", "monospace"],
+        display: ["Newsreader", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -88,6 +95,11 @@ export default {
           hyp: "#d7263d",
           "hyp-dim": "#4a1520",
         },
+        bg: "#11120f",
+        surface: "#1c1e19",
+        fg: "#e6e1d4",
+        line: "#2e312a",
+        copper: "#c9843f",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

@@ -11,15 +11,20 @@ export default function HydrogenBaseline() {
       <AppHeader />
       <main className="container max-w-3xl px-6 py-10">
         <p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
-          Feature-frozen baseline
+          Release record
         </p>
         <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
           MisterY Labs Ride → Map → Thought Path
         </h1>
         <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-          Hydrogen is the first baseline implementation of this architecture.
-          This page records the freeze. It does not start the next scientific
-          layer, and it does not change TRIAD.
+          This page is the release record, not the instrument. The frozen Hydrogen
+          ride is at the observatory route. This record does not start the next
+          scientific layer, and it does not change TRIAD.
+        </p>
+        <p className="mt-4">
+          <Link className="text-amber-400/90 underline-offset-4 hover:underline" to="/observatory/hydrogen">
+            Open the Hydrogen instrument
+          </Link>
         </p>
 
         <dl className="mt-8 grid gap-4">

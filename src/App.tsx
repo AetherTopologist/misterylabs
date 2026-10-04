@@ -29,6 +29,7 @@ const PolarGrinPage         = lazy(() => import("./pages/observatory/PolarGrin.t
 const SaturnPolygonPage     = lazy(() => import("./pages/observatory/SaturnPolygon.tsx"));
 const DomeInversionPage     = lazy(() => import("./pages/arcade/DomeInversion.tsx"));
 const TriadPage             = lazy(() => import("./pages/observatory/Triad.tsx"));
+const HydrogenPage          = lazy(() => import("./pages/observatory/Hydrogen.tsx"));
 const HydrogenBaselinePage  = lazy(() => import("./pages/observatory/HydrogenBaseline.tsx"));
 
 function DemoLoading() {
@@ -92,7 +93,8 @@ const App = () => (
           <Route path="/observatory/saturn-polygon"      element={<DemoWrapper><SaturnPolygonPage /></DemoWrapper>} />
           <Route path="/arcade/dome-inversion"           element={<DemoWrapper><DomeInversionPage /></DemoWrapper>} />
           <Route path="/observatory/triad"               element={<DemoWrapper><TriadPage /></DemoWrapper>} />
-          <Route path="/observatory/hydrogen"            element={<DemoWrapper><HydrogenBaselinePage /></DemoWrapper>} />
+          <Route path="/observatory/hydrogen"            element={<DemoWrapper><HydrogenPage /></DemoWrapper>} />
+          <Route path="/observatory/hydrogen-baseline"   element={<DemoWrapper><HydrogenBaselinePage /></DemoWrapper>} />
           {/* Unadvertised maintainer surface — no auth gate, not in public nav */}
           <Route path="/mission" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
