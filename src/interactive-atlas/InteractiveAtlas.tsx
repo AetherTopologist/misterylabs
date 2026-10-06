@@ -3,12 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasUi } from "./destinations";
 import "./interactive-atlas.css";
 
-const INITIAL: AtlasUi = { scale: 0.92, selected: null, proximity: 0, atHome: true };
+const INITIAL: AtlasUi = { scale: 0.92, selected: null, proximity: 0, atHome: true, inside: false };
 
 function same(a: AtlasUi, b: AtlasUi) {
   return (
     a.selected === b.selected &&
     a.atHome === b.atHome &&
+    a.inside === b.inside &&
     Math.abs(a.scale - b.scale) < 0.012 &&
     Math.abs(a.proximity - b.proximity) < 0.02
   );
@@ -118,10 +119,22 @@ export default function InteractiveAtlas() {
       </div>
 
       <div className="ia-dock">
-        {showFull && landmark ? (
+        {ui.inside ? (
           <div className="ia-plate">
             <p className="ia-kicker">{CENOTAPH.name}</p>
             <p className="ia-question">Home</p>
+            <p className="ia-note">The object is now the boundary.</p>
+            <button type="button" className="ia-enter" onClick={() => apiRef.current?.returnOutside()}>
+              Return outside
+            </button>
+          </div>
+        ) : showFull && landmark ? (
+          <div className="ia-plate">
+            <p className="ia-kicker">{CENOTAPH.name}</p>
+            <p className="ia-question">Home</p>
+            <button type="button" className="ia-enter" onClick={() => apiRef.current?.crossBoundary()}>
+              Cross the boundary
+            </button>
           </div>
         ) : showFull && exhibit ? (
           <div className="ia-plate">

@@ -18,7 +18,7 @@ function architectureHolds() {
 }
 
 const HOME_R = 108;
-const HOME_P = 1.2;
+const HOME_P = 1.12;
 const HOME_YAW = 0.55;
 const R_MIN = 16;
 const R_CEN_MIN = 36;
@@ -26,8 +26,8 @@ const R_MAX = 128;
 const P_MIN = 0.38;
 const P_MAX = 1.22;
 
-const CEN_Y = 8.55;
-const CEN_R = 10.7;
+const CEN_Y = 11;
+const CEN_R = 12.4;
 
 type Ribbon = { positions: number[]; indices: number[] };
 
@@ -160,6 +160,133 @@ function basicGlow(color: number, opacity: number) {
   });
 }
 
+function ringWall(inner: number, outer: number, height: number, y: number, material: THREE.Material, ringSeg: number) {
+  const pts = [
+    new THREE.Vector2(inner, 0),
+    new THREE.Vector2(outer, 0),
+    new THREE.Vector2(outer, height),
+    new THREE.Vector2(inner, height),
+    new THREE.Vector2(inner, 0),
+  ];
+  const mesh = new THREE.Mesh(new THREE.LatheGeometry(pts, ringSeg), material);
+  mesh.position.y = y;
+  return mesh;
+}
+
+function makeMineral(octaves: number) {
+  const uniforms = { uDetail: { value: 0 } };
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0x0e0d0b,
+    metalness: 0.06,
+    roughness: 0.78,
+  });
+  mat.customProgramCacheKey = () => `cenotaph-mineral-${octaves}`;
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uDetail = uniforms.uDetail;
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\nvarying vec3 vObjN;")
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvObjN = normalize(normal);");
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        "#include <common>",
+        `#include <common>
+varying vec3 vObjN;
+uniform float uDetail;
+float mHash(vec3 p){
+  p = fract(p * 0.1031);
+  p += dot(p, p.yzx + 33.33);
+  return fract((p.x + p.y) * p.z);
+}
+float mNoise(vec3 x){
+  vec3 i = floor(x);
+  vec3 f = fract(x);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(mix(mHash(i), mHash(i+vec3(1.0,0.0,0.0)), f.x),
+        mix(mHash(i+vec3(0.0,1.0,0.0)), mHash(i+vec3(1.0,1.0,0.0)), f.x), f.y),
+    mix(mix(mHash(i+vec3(0.0,0.0,1.0)), mHash(i+vec3(1.0,0.0,1.0)), f.x),
+        mix(mHash(i+vec3(0.0,1.0,1.0)), mHash(i+vec3(1.0,1.0,1.0)), f.x), f.y),
+    f.z);
+}
+float mFbm(vec3 p){
+  float a = 0.55;
+  float s = 0.0;
+  for (int i = 0; i < ${octaves}; i++) {
+    s += a * mNoise(p);
+    p = p * 2.05 + vec3(1.7, 4.2, 2.3);
+    a *= 0.5;
+  }
+  return s;
+}
+`,
+      )
+      .replace(
+        "#include <color_fragment>",
+        `#include <color_fragment>
+{
+  vec3 nrm = normalize(vObjN);
+  float vein = smoothstep(0.56, 0.74, mFbm(nrm * 2.35));
+  float fine = smoothstep(0.5, 0.68, mFbm(nrm * 6.8));
+  float reveal = clamp(uDetail, 0.0, 1.0);
+  vec3 mineral = vec3(0.58, 0.74, 0.84);
+  diffuseColor.rgb = mix(diffuseColor.rgb, mineral, vein * (0.04 + 0.38 * reveal) + fine * reveal * 0.26);
+}
+`,
+      )
+      .replace(
+        "#include <opaque_fragment>",
+        `{
+  float fres = pow(1.0 - clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0), 3.2);
+  #include <opaque_fragment>
+  gl_FragColor.rgb += vec3(0.8, 0.86, 0.93) * fres * 1.35;
+}
+`,
+      );
+  };
+  return { mat, uniforms };
+}
+
+function makeInterior(starCut: number) {
+  const uniforms = { uMeridian: { value: 0.12 } };
+  const mat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    depthWrite: true,
+    uniforms,
+    vertexShader: `
+      varying vec3 vN;
+      void main() {
+        vN = normalize(normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vN;
+      uniform float uMeridian;
+      float hsh(vec3 p) {
+        p = fract(p * 0.1031);
+        p += dot(p, p.zyx + 31.32);
+        return fract((p.x + p.y) * p.z);
+      }
+      void main() {
+        vec3 n = normalize(vN);
+        float h = hsh(floor(n * 92.0));
+        float star = step(${starCut.toFixed(3)}, h);
+        float mag = 0.22 + 0.78 * fract(h * 17.0);
+        float equator = smoothstep(0.012, 0.0, abs(n.y));
+        float meridian = smoothstep(0.007, 0.0, abs(n.x));
+        float oculus = smoothstep(0.955, 0.995, n.y);
+        vec3 col = vec3(0.01, 0.011, 0.014);
+        col += vec3(0.9, 0.93, 0.98) * star * mag;
+        col += vec3(0.72, 0.6, 0.38) * equator * 0.16;
+        col += vec3(0.55, 0.7, 0.82) * meridian * uMeridian * 0.07;
+        col += vec3(0.96, 0.91, 0.8) * oculus * 0.28;
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `,
+  });
+  return { mat, uniforms };
+}
+
 function fovFor(base: number, aspect: number) {
   const h = 2 * Math.atan(Math.tan((base * Math.PI) / 360) * aspect);
   const minH = aspect < 1 ? 0.82 : 0.62;
@@ -204,9 +331,12 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
 
   scene.add(new THREE.HemisphereLight(0x465060, 0x1a1612, 0.72));
   scene.add(new THREE.AmbientLight(0x14161c, 0.22));
-  const moon = new THREE.DirectionalLight(0xc5ced8, 0.85);
+  const moon = new THREE.DirectionalLight(0xc5ced8, 0.72);
   moon.position.set(-48, 54, 18);
   scene.add(moon);
+  const graze = new THREE.DirectionalLight(0xd7e0ea, 0.48);
+  graze.position.set(70, 16, -36);
+  scene.add(graze);
 
   const stone = new THREE.MeshStandardMaterial({ color: 0x14171c, metalness: 0.18, roughness: 0.78 });
   const stoneDark = new THREE.MeshStandardMaterial({ color: 0x0c0e12, metalness: 0.22, roughness: 0.7 });
@@ -317,10 +447,10 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   const rim = (theta: number, radius = 96, y = 0) => new THREE.Vector3(Math.sin(theta) * radius, y, Math.cos(theta) * radius);
   const a0 = Math.PI - 1.15;
   const a1 = Math.PI + 1.15;
-  const seg = 36;
-  for (let i = 0; i < seg; i++) {
-    const t0 = a0 + ((a1 - a0) * i) / seg;
-    const t1 = a0 + ((a1 - a0) * (i + 1)) / seg;
+  const cliffSeg = 36;
+  for (let i = 0; i < cliffSeg; i++) {
+    const t0 = a0 + ((a1 - a0) * i) / cliffSeg;
+    const t1 = a0 + ((a1 - a0) * (i + 1)) / cliffSeg;
     const wobble = Math.sin(i * 0.65) * 0.28;
     const p0 = rim(t0, 96, 0);
     const p1 = rim(t1, 96, 0);
@@ -340,88 +470,125 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   addRibbon(lip, lipPts, 0.18, true);
   scene.add(meshFrom(lip, goldLine));
 
-  // Cenotaph — spatial origin. Boullée's sphere, translated: stone, drums, one oculus.
-  // Human-height posts sit against the drum so the sphere reads as architecture, not a lamp.
+  // Cenotaph — origin, not a lamp. Rings are walls with a void, so the sphere can be a sphere.
   const cen = new THREE.Group();
-  const steps: Array<[number, number, number, number]> = [
-    [31.5, 32.4, 0.42, 0.21],
-    [24.5, 26.2, 0.55, 0.7],
-    [20.4, 22.2, 0.7, 1.35],
-    [16.2, 17.4, 4.15, 3.75],
-  ];
-  for (const [rTop, rBot, h, y] of steps) {
-    const drum = new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBot, h, 72), y > 2 ? stoneDark : stone);
-    drum.position.y = y;
-    cen.add(drum);
-  }
-  const sphere = new THREE.Mesh(new THREE.SphereGeometry(CEN_R, 48, 32), stoneDark);
+  const ringSeg = coarse ? 40 : 64;
+  const goldMetal = new THREE.MeshStandardMaterial({ color: 0xb89a6a, metalness: 0.9, roughness: 0.32 });
+  cen.add(ringWall(30, 36.5, 0.32, 0, stone, ringSeg));
+  cen.add(ringWall(20.5, 30.2, 0.48, 0.32, stone, ringSeg));
+  cen.add(ringWall(15.2, 20.8, 0.7, 0.8, stone, ringSeg));
+  cen.add(ringWall(11.05, 14.8, 4.6, 1.2, stoneDark, ringSeg));
+
+  const mineral = makeMineral(coarse ? 2 : 3);
+  const sphere = new THREE.Mesh(new THREE.SphereGeometry(CEN_R, coarse ? 40 : 64, coarse ? 28 : 40), mineral.mat);
   sphere.position.y = CEN_Y;
   cen.add(sphere);
-  for (const dy of [-3.4, -0.4, 2.6]) {
-    const rr = Math.sqrt(Math.max(0.2, CEN_R * CEN_R - dy * dy));
-    const course = new THREE.Mesh(new THREE.TorusGeometry(rr, 0.028, 6, 72), metal);
-    course.rotation.x = Math.PI / 2;
-    course.position.y = CEN_Y + dy;
-    cen.add(course);
-  }
-  const seat = new THREE.Mesh(new THREE.TorusGeometry(11.4, 0.04, 8, 80), goldLine);
-  seat.rotation.x = Math.PI / 2;
-  seat.position.y = 5.55;
-  cen.add(seat);
-  const armillary = new THREE.Mesh(new THREE.TorusGeometry(CEN_R + 0.72, 0.022, 6, 80), goldLine);
-  armillary.rotation.x = Math.PI / 2.4;
-  armillary.rotation.z = 0.4;
-  armillary.position.y = CEN_Y;
-  cen.add(armillary);
 
-  const oculus = new THREE.Mesh(new THREE.CircleGeometry(1.15, 32), new THREE.MeshBasicMaterial({ color: 0x05060a }));
+  const interior = makeInterior(coarse ? 0.978 : 0.952);
+  const cavity = new THREE.Mesh(new THREE.SphereGeometry(CEN_R - 0.22, coarse ? 32 : 48, coarse ? 22 : 32), interior.mat);
+  cavity.position.y = CEN_Y;
+  cen.add(cavity);
+
+  const drumLip = new THREE.Mesh(
+    new THREE.TorusGeometry(14.75, 0.055, 6, ringSeg),
+    new THREE.MeshStandardMaterial({ color: 0x9aa3ae, metalness: 0.55, roughness: 0.28 }),
+  );
+  drumLip.rotation.x = Math.PI / 2;
+  drumLip.position.y = 5.8;
+  cen.add(drumLip);
+  const collar = new THREE.Mesh(
+    new THREE.TorusGeometry(10.7, 0.42, 8, ringSeg),
+    new THREE.MeshStandardMaterial({ color: 0x050608, roughness: 1, metalness: 0 }),
+  );
+  collar.rotation.x = Math.PI / 2;
+  collar.position.y = 5.7;
+  cen.add(collar);
+  const seat = new THREE.Mesh(new THREE.TorusGeometry(10.55, 0.028, 8, ringSeg), goldMetal);
+  seat.rotation.x = Math.PI / 2;
+  seat.position.y = 6.05;
+  cen.add(seat);
+  const equator = new THREE.Mesh(new THREE.TorusGeometry(CEN_R + 0.05, 0.05, 8, ringSeg), goldMetal);
+  equator.rotation.x = Math.PI / 2;
+  equator.position.y = CEN_Y;
+  cen.add(equator);
+  const incline = new THREE.Mesh(new THREE.TorusGeometry(CEN_R + 0.08, 0.014, 6, coarse ? 64 : 96), goldMetal);
+  incline.rotation.x = Math.PI / 2.55;
+  incline.rotation.z = 0.35;
+  incline.position.y = CEN_Y;
+  cen.add(incline);
+
+  const oculus = new THREE.Mesh(new THREE.CircleGeometry(1.05, 28), new THREE.MeshBasicMaterial({ color: 0x05060a }));
   oculus.rotation.x = -Math.PI / 2;
-  oculus.position.y = CEN_Y + CEN_R - 0.18;
+  oculus.position.y = CEN_Y + CEN_R + 0.02;
   cen.add(oculus);
-  const oculusRing = new THREE.Mesh(new THREE.TorusGeometry(1.22, 0.03, 6, 40), basicGlow(0xf6efe4, 0.55));
+  const oculusRing = new THREE.Mesh(new THREE.TorusGeometry(1.12, 0.02, 6, 36), basicGlow(0xf6efe4, 0.4));
   oculusRing.rotation.x = Math.PI / 2;
-  oculusRing.position.y = CEN_Y + CEN_R - 0.04;
+  oculusRing.position.y = CEN_Y + CEN_R + 0.03;
   cen.add(oculusRing);
-  const oculusLight = new THREE.PointLight(0xfff1dc, 6, 18, 2);
-  oculusLight.position.set(0, CEN_Y + CEN_R + 0.3, 0);
+  const oculusLight = new THREE.PointLight(0xfff1dc, 2.2, 14, 2);
+  oculusLight.position.set(0, CEN_Y + CEN_R + 0.45, 0);
   cen.add(oculusLight);
 
-  const recess = new THREE.Mesh(new THREE.BoxGeometry(1.7, 3.6, 1.1), new THREE.MeshStandardMaterial({ color: 0x07080b, roughness: 1 }));
-  recess.position.set(0, 2.35, 15.7);
+  const recess = new THREE.Mesh(new THREE.BoxGeometry(1.35, 2.5, 0.7), new THREE.MeshStandardMaterial({ color: 0x07080b, roughness: 1 }));
+  recess.position.set(0, 2.55, 13.3);
   cen.add(recess);
-  const slit = new THREE.Mesh(new THREE.PlaneGeometry(0.28, 2.7), basicGlow(0xf7f1e6, 0.42));
-  slit.position.set(0, 2.25, 16.22);
+  const slit = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 1.9), basicGlow(0xf7f1e6, 0.35));
+  slit.position.set(0, 2.5, 13.68);
   cen.add(slit);
-  const doorLight = new THREE.PointLight(0xffe7c4, 6, 12, 2);
-  doorLight.position.set(0, 2.2, 17.2);
-  cen.add(doorLight);
 
-  const pierGeo = new THREE.CylinderGeometry(0.16, 0.28, 5.2, 6);
-  const piers = new THREE.InstancedMesh(pierGeo, stone, 24);
+  for (let i = 0; i < 8; i++) {
+    const step = new THREE.Mesh(new THREE.BoxGeometry(2.15, 0.12, 0.55), stone);
+    step.position.set(0, 0.42 + i * 0.14, 26.4 - i * 0.7);
+    cen.add(step);
+  }
+  for (const side of [-1.2, 1.2]) {
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.045, 5.4), goldMetal);
+    rail.position.set(side, 1.55, 23.8);
+    rail.rotation.x = -0.16;
+    cen.add(rail);
+  }
+
+  const pierGeo = new THREE.CylinderGeometry(0.14, 0.24, 4.6, 6);
+  const pierAngles: number[] = [];
+  for (let i = 0; i < 20; i++) {
+    const a = (i / 20) * Math.PI * 2;
+    if (Math.abs(a - Math.PI / 2) < 0.42) continue;
+    pierAngles.push(a);
+  }
+  const piers = new THREE.InstancedMesh(pierGeo, stone, pierAngles.length);
   const dummy = new THREE.Object3D();
-  for (let i = 0; i < 24; i++) {
-    const a = (i / 24) * Math.PI * 2 + 0.08;
-    dummy.position.set(Math.cos(a) * 22.4, 2.9, Math.sin(a) * 22.4);
+  pierAngles.forEach((a, i) => {
+    dummy.position.set(Math.cos(a) * 17.6, 3.1, Math.sin(a) * 17.6);
+    dummy.rotation.set(0, -a, 0);
     dummy.scale.set(1, 1, 1);
-    dummy.rotation.set(0, 0, 0);
     dummy.updateMatrix();
     piers.setMatrixAt(i, dummy.matrix);
-  }
+  });
   piers.instanceMatrix.needsUpdate = true;
   cen.add(piers);
 
-  const postGeo = new THREE.CylinderGeometry(0.05, 0.07, 1.75, 5);
-  const postsScale = new THREE.InstancedMesh(postGeo, metal, 40);
-  for (let i = 0; i < 40; i++) {
-    const a = (i / 40) * Math.PI * 2;
-    dummy.position.set(Math.cos(a) * 28.2, 1.28, Math.sin(a) * 28.2);
+  const postGeo = new THREE.CylinderGeometry(0.045, 0.06, 1.7, 5);
+  const postsScale = new THREE.InstancedMesh(postGeo, metal, coarse ? 24 : 36);
+  const postCount = coarse ? 24 : 36;
+  for (let i = 0; i < postCount; i++) {
+    const a = (i / postCount) * Math.PI * 2;
+    dummy.position.set(Math.cos(a) * 27.4, 1.15, Math.sin(a) * 27.4);
     dummy.rotation.set(0, 0, 0);
     dummy.scale.set(1, 1, 1);
     dummy.updateMatrix();
     postsScale.setMatrixAt(i, dummy.matrix);
   }
   postsScale.instanceMatrix.needsUpdate = true;
+  postsScale.count = postCount;
   cen.add(postsScale);
+
+  const observer = new THREE.Group();
+  const mark = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), new THREE.MeshBasicMaterial({ color: 0xf3eee4 }));
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.36, 5), goldMetal);
+  stem.position.y = -0.2;
+  observer.add(mark, stem);
+  observer.position.y = CEN_Y;
+  cen.add(observer);
   scene.add(cen);
 
   const glowTex = glowTexture();
@@ -890,7 +1057,9 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   }
 
   const cenFocus = new THREE.Vector3(0, 3.4, 0);
+  const interiorFocus = new THREE.Vector3(0, CEN_Y, 0);
   let selected: DestinationId | null = null;
+  let inside = false;
   let radiusT = HOME_R;
   let radius = HOME_R;
   let pitchT = HOME_P;
@@ -917,6 +1086,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   }
 
   function pick(clientX: number, clientY: number): DestinationId | null {
+    if (inside) return null;
     setNdc(clientX, clientY);
     pickRay.setFromCamera(_ndc, camera);
     let best: { id: DestinationId; dist: number } | null = null;
@@ -948,8 +1118,13 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   }
 
   function minRadius() {
+    if (inside) return 3.6;
     if (selected && selected !== "cenotaph") return R_MIN;
     return R_CEN_MIN;
+  }
+
+  function maxRadius() {
+    return inside ? 7.6 : R_MAX;
   }
 
   let lastSent = "";
@@ -976,7 +1151,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       const center = centeredSite();
       if (center) selected = center;
     }
-    radiusT = clamp(radiusT * factor, minRadius(), R_MAX);
+    radiusT = clamp(radiusT * factor, minRadius(), maxRadius());
   }
 
   const onPointerDown = (e: PointerEvent) => {
@@ -1007,7 +1182,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     p.y = e.clientY;
     if (gesture === "pinch" && ptrs.size >= 2 && pinchBase > 8) {
       const span = pinchSpan();
-      const next = clamp(pinchRadius * (pinchBase / span), minRadius(), R_MAX);
+      const next = clamp(pinchRadius * (pinchBase / span), minRadius(), maxRadius());
       if (next < radiusT) {
         const pts = [...ptrs.values()];
         const hit = pick((pts[0]!.x + pts[1]!.x) / 2, (pts[0]!.y + pts[1]!.y) / 2);
@@ -1068,28 +1243,42 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   window.addEventListener("wheel", onWheel, { passive: false });
 
   function emit(force = false) {
-    const scale = clamp(Math.log(radius / R_MIN) / Math.log(R_MAX / R_MIN), 0, 1);
+    const scale = inside ? 0.5 : clamp(Math.log(radius / R_MIN) / Math.log(R_MAX / R_MIN), 0, 1);
     let proximity = 0;
-    if (selected === "cenotaph") proximity = 1 - smoothstep(18, 56, camera.position.distanceTo(cenFocus));
+    if (selected === "cenotaph" || inside) proximity = 1 - smoothstep(18, 56, camera.position.distanceTo(cenFocus));
     else if (selected) proximity = 1 - smoothstep(18, 56, camera.position.distanceTo(SITES[selected]));
     const atHome =
+      !inside &&
       !selected &&
       Math.abs(radius - HOME_R) < 4.5 &&
       focus.distanceTo(cenFocus) < 1.2 &&
       Math.abs(angDelta(yaw, HOME_YAW)) < 0.2 &&
       Math.abs(pitch - HOME_P) < 0.08;
-    const key = `${selected ?? "-"}|${scale.toFixed(3)}|${proximity.toFixed(3)}|${atHome ? 1 : 0}`;
+    const key = `${selected ?? "-"}|${scale.toFixed(3)}|${proximity.toFixed(3)}|${atHome ? 1 : 0}|${inside ? 1 : 0}`;
     if (!force && key === lastSent) return;
     lastSent = key;
-    onChange({ scale, selected, proximity, atHome });
+    onChange({ scale, selected, proximity, atHome, inside });
   }
 
   const api: AtlasApi = {
     returnHome: () => {
+      inside = false;
       selected = null;
       radiusT = HOME_R;
       pitchT = HOME_P;
       yawT = yaw + angDelta(yaw, HOME_YAW);
+    },
+    crossBoundary: () => {
+      inside = true;
+      selected = "cenotaph";
+      radiusT = 5.4;
+      pitchT = 1.02;
+    },
+    returnOutside: () => {
+      inside = false;
+      selected = "cenotaph";
+      radiusT = 46;
+      pitchT = 1.05;
     },
   };
 
@@ -1124,18 +1313,23 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     const time = tNow / 1000;
     const ease = reduced ? 1 : 1 - Math.exp(-raw * 2.6);
 
-    radiusT = clamp(radiusT, minRadius(), R_MAX);
+    radiusT = clamp(radiusT, minRadius(), maxRadius());
     radius += (radiusT - radius) * ease;
     pitch += (pitchT - pitch) * ease;
     yaw += (yawT - yaw) * ease;
 
-    _focus.copy(cenFocus);
-    if (selected && selected !== "cenotaph") {
+    _focus.copy(inside ? interiorFocus : cenFocus);
+    if (!inside && selected && selected !== "cenotaph") {
       const u = 1 - smoothstep(28, 74, radiusT);
       _focus.lerp(SITES[selected], u);
     }
     focus.lerp(_focus, ease);
-    if (focus.distanceTo(cenFocus) < 14) radius = Math.max(radius, R_CEN_MIN);
+    if (!inside && radius + 0.4 >= R_CEN_MIN && focus.distanceTo(cenFocus) < 14) {
+      radius = Math.max(radius, R_CEN_MIN);
+    }
+
+    mineral.uniforms.uDetail.value = 1 - smoothstep(14, 72, camera.position.distanceTo(interiorFocus));
+    interior.uniforms.uMeridian.value = inside ? 0.15 + 0.85 * Math.abs(Math.sin(yaw)) : 0.08;
 
     if (!reduced) {
       triadNodes.rotation.y = time * 0.18;
