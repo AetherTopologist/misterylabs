@@ -1,0 +1,241 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Outfit:wght@300;400&display=swap");
+
+.ia-world {
+  --ia-void: #07080b;
+  --ia-mist: #c9c2b4;
+  --ia-lumen: #f3eee4;
+  --ia-gold: #c4a574;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--ia-void);
+  color: var(--ia-lumen);
+  font-family: Outfit, "Avenir Next", "Segoe UI", sans-serif;
+  user-select: none;
+  touch-action: none;
+  overflow: hidden;
+}
+
+.ia-world canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+
+.ia-world canvas:active {
+  cursor: grabbing;
+}
+
+.ia-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, transparent 46%, rgba(7, 8, 11, 0.42) 100%),
+    linear-gradient(to top, rgba(7, 8, 11, 0.5), transparent 26%);
+}
+
+.ia-header,
+.ia-dock,
+.ia-rail {
+  position: absolute;
+  z-index: 2;
+}
+
+.ia-header {
+  left: 0;
+  top: 0;
+  max-width: 72%;
+  padding: max(1.4rem, env(safe-area-inset-top)) 1.25rem 0;
+  pointer-events: none;
+}
+
+.ia-mark {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.ia-word {
+  margin: 0;
+  font-size: 0.92rem;
+  letter-spacing: 0.18em;
+  font-weight: 400;
+}
+
+.ia-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ia-whisper {
+  margin: 1.15rem 0 0;
+  font-weight: 300;
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ia-mist);
+}
+
+.ia-motif {
+  margin: 0.85rem 0 0;
+  max-width: 16ch;
+  font-family: "Cormorant Garamond", Palatino, "Times New Roman", serif;
+  font-weight: 500;
+  font-size: clamp(1.05rem, 2.2vw, 1.4rem);
+  letter-spacing: 0.06em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.ia-back {
+  pointer-events: auto;
+  margin-top: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ia-mist);
+  font-size: 0.66rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--ia-gold) 45%, transparent);
+}
+
+.ia-rail {
+  top: 18%;
+  bottom: 22%;
+  right: 1rem;
+  width: 1px;
+  background: color-mix(in srgb, var(--ia-mist) 32%, transparent);
+  pointer-events: none;
+}
+
+.ia-rail i {
+  position: absolute;
+  left: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--ia-gold);
+  transform: translateY(50%);
+}
+
+.ia-rail span {
+  position: absolute;
+  right: 0.7rem;
+  white-space: nowrap;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ia-mist) 50%, transparent);
+}
+
+.ia-rail span[data-on="true"] {
+  color: var(--ia-lumen);
+}
+
+.ia-rail span[data-where="atlas"] {
+  top: 0;
+  transform: translateY(-120%);
+}
+
+.ia-rail span[data-where="exhibit"] {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.ia-rail span[data-where="instrument"] {
+  bottom: 0;
+  transform: translateY(120%);
+}
+
+.ia-dock {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 1.25rem max(1.1rem, env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+
+.ia-plate {
+  max-width: 36rem;
+  padding: 1.4rem 0 0.2rem;
+  background: linear-gradient(to top, rgba(7, 8, 11, 0.78), rgba(7, 8, 11, 0.2) 78%, transparent);
+}
+
+.ia-kicker {
+  margin: 0;
+  color: var(--ia-gold);
+  font-size: 0.68rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+.ia-question {
+  margin: 0.35rem 0 0;
+  font-family: "Cormorant Garamond", Palatino, "Times New Roman", serif;
+  font-weight: 500;
+  font-size: clamp(1.45rem, 2.8vw, 2.15rem);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.ia-note {
+  margin: 0.75rem 0 0;
+  color: var(--ia-mist);
+  font-size: 0.82rem;
+  font-weight: 300;
+}
+
+.ia-enter,
+.ia-home {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 0.65rem;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ia-gold) 70%, transparent);
+  background: transparent;
+  color: var(--ia-lumen);
+  font: inherit;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ia-home {
+  color: var(--ia-mist);
+}
+
+.ia-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.5rem 1.4rem max(2rem, env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 50% 42%, #1a1e26 0%, #07080b 62%);
+}
+
+.ia-fallback p {
+  max-width: 28rem;
+  margin: 0.4rem 0 0;
+  color: var(--ia-mist);
+  font-weight: 300;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ia-world * {
+    scroll-behavior: auto;
+  }
+}

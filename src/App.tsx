@@ -31,6 +31,7 @@ const DomeInversionPage     = lazy(() => import("./pages/arcade/DomeInversion.ts
 const TriadPage             = lazy(() => import("./pages/observatory/Triad.tsx"));
 const HydrogenPage          = lazy(() => import("./pages/observatory/Hydrogen.tsx"));
 const HydrogenBaselinePage  = lazy(() => import("./pages/observatory/HydrogenBaseline.tsx"));
+const InteractiveAtlasPage  = lazy(() => import("./interactive-atlas/InteractiveAtlas.tsx"));
 
 function DemoLoading() {
   return (
@@ -75,6 +76,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/atlas" element={<Atlas />} />
+          <Route path="/atlas/interactive" element={<DemoWrapper><InteractiveAtlasPage /></DemoWrapper>} />
           <Route path="/archive" element={<Archive />} />
           <Route path="/research" element={<Research />} />
           <Route path="/media" element={<Media />} />
