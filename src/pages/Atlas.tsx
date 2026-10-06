@@ -551,6 +551,15 @@ function AtlasIntro() {
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground/75">
           Interactive instruments for exploring physics, geometry, observation, and the boundary between established models and explicit hypotheses.
         </p>
+        <p className="mt-6">
+          <Link
+            to="/atlas/interactive"
+            className="inline-flex min-h-11 items-center font-mono text-[10px] uppercase tracking-[0.28em] text-primary/80 transition-colors hover:text-primary"
+          >
+            <span className="mr-2 text-muted-foreground/45">Experimental</span>
+            Explore interactive atlas →
+          </Link>
+        </p>
       </div>
     </section>
   );
