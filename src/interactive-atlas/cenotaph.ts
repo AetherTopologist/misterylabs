@@ -192,15 +192,65 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
     [midR, sr * 0.16, midTop],
     [drumR, midTop, drumTop],
   ];
-  for (const [radius, y0, y1] of tiers) {
+  // Rear circulation only. Two narrow slots in the lower middle ring,
+  // 140°–162° and 198°–220° from the front. The pier between them stays.
+  // Upper ring and every outer ring stay closed.
+  const slotA0 = (140 * Math.PI) / 180;
+  const slotA1 = (162 * Math.PI) / 180;
+  const slotB0 = (198 * Math.PI) / 180;
+  const slotB1 = (220 * Math.PI) / 180;
+  const lip0 = (150 * Math.PI) / 180;
+  const lip1 = (210 * Math.PI) / 180;
+  const addRing = (radius: number, y0: number, y1: number, thetaStart: number, thetaLength: number) => {
     const h = y1 - y0;
     const ring = new THREE.Mesh(
-      new THREE.CylinderGeometry(radius, radius + 0.08, h, seg, 1, false),
+      new THREE.CylinderGeometry(radius, radius + 0.08, h, seg, 1, false, thetaStart, thetaLength),
       archMat,
     );
     ring.position.y = (y0 + y1) / 2;
     cen.add(ring);
+  };
+  for (const [radius, y0, y1] of tiers) {
+    if (radius !== midR) {
+      addRing(radius, y0, y1, 0, Math.PI * 2);
+      continue;
+    }
+    const split = sr * 0.4;
+    addRing(radius, split, y1, 0, Math.PI * 2);
+    addRing(radius, y0, split, slotB1, Math.PI * 2 - (slotB1 - slotA0));
+    addRing(radius, y0, split, slotA1, slotB0 - slotA1);
   }
+
+  const cornice = new THREE.Mesh(
+    new THREE.CylinderGeometry(sr * 1.64, midR, sr * 0.045, seg, 1, false, lip1, Math.PI * 2 - (lip1 - lip0)),
+    archMat,
+  );
+  cornice.position.y = midTop - sr * 0.02;
+  cen.add(cornice);
+
+  // Treads measured from the DAE: radius 1.545, rising only to 0.42.
+  // They fill the slots instead of sitting on the rings.
+  const addFlight = (deg0: number, deg1: number, h0: number, h1: number, steps: number) => {
+    const rad = sr * 1.56;
+    const width = sr * 0.16;
+    for (let i = 0; i < steps; i++) {
+      const t0 = i / steps;
+      const t1 = (i + 1) / steps;
+      const a = ((deg0 + (deg1 - deg0) * (t0 + t1) * 0.5) * Math.PI) / 180;
+      const yBot = sr * (h0 + (h1 - h0) * t0);
+      const yTop = sr * (h0 + (h1 - h0) * t1);
+      const aA = ((deg0 + (deg1 - deg0) * t0) * Math.PI) / 180;
+      const aB = ((deg0 + (deg1 - deg0) * t1) * Math.PI) / 180;
+      const chord =
+        Math.hypot(Math.sin(aB) * rad - Math.sin(aA) * rad, Math.cos(aB) * rad - Math.cos(aA) * rad) + 0.1;
+      const box = new THREE.Mesh(new THREE.BoxGeometry(chord, Math.max(0.2, yTop - yBot + 0.04), width), archMat);
+      box.position.set(Math.sin(a) * rad, (yBot + yTop) * 0.5, Math.cos(a) * rad);
+      box.rotation.y = a;
+      cen.add(box);
+    }
+  };
+  addFlight(141, 161, 0.4, 0.16, coarse ? 5 : 7);
+  addFlight(199, 219, 0.16, 0.4, coarse ? 5 : 7);
 
   const collar = new THREE.Mesh(new THREE.RingGeometry(sr * 0.96, drumR + 0.35, coarse ? 48 : 80), archMat);
   collar.rotation.x = -Math.PI / 2;
@@ -219,27 +269,6 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
   cen.add(doorArch);
   const fittings: THREE.Mesh[] = [doorArch];
 
-  // One concentric stair, on the side, inside the terrace widths. Not an axial stair.
-  const addConcentricStair = (a0: number, a1: number, rInner: number, width: number, y0: number, y1: number, steps: number) => {
-    for (let i = 0; i < steps; i++) {
-      const t0 = i / steps;
-      const t1 = (i + 1) / steps;
-      const a = a0 + (a1 - a0) * ((t0 + t1) * 0.5);
-      const yTop = y0 + (y1 - y0) * t1;
-      const rad = rInner + width * 0.5;
-      const aA = a0 + (a1 - a0) * t0;
-      const aB = a0 + (a1 - a0) * t1;
-      const chord =
-        Math.hypot(Math.sin(aB) * rad - Math.sin(aA) * rad, Math.cos(aB) * rad - Math.cos(aA) * rad) + 0.2;
-      const box = new THREE.Mesh(new THREE.BoxGeometry(chord, Math.max(0.22, yTop - 0.04), width), archMat);
-      box.position.set(Math.sin(a) * rad, yTop * 0.5, Math.cos(a) * rad);
-      box.rotation.y = a;
-      cen.add(box);
-    }
-  };
-  addConcentricStair(0.72, 1.82, midR + 0.2, 2.8, sr * 0.16, midTop, coarse ? 16 : 26);
-  addConcentricStair(1.72, 2.45, drumR + 0.35, 2.4, midTop, drumTop - 0.15, coarse ? 10 : 16);
-
   const dummy = new THREE.Object3D();
   const plant = (count: number, radius: number, y: number, height: number) => {
     const mesh = new THREE.InstancedMesh(new THREE.ConeGeometry(Math.min(0.34, height * 0.16), height, 6), cypressMat, count);
@@ -247,9 +276,9 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
     let n = 0;
     for (let i = 0; i < count; i++) {
       const a = (i / count) * Math.PI * 2;
-      const sideStair = a > 0.62 && a < 1.95 && radius > midR && radius < outerR;
-      const upperStair = a > 1.6 && a < 2.55 && radius > drumR && radius < midR;
-      if (sideStair || upperStair) continue;
+      const inSlot =
+        ((a > slotA0 && a < slotA1) || (a > slotB0 && a < slotB1)) && radius > drumR && radius < midR + 1;
+      if (inSlot) continue;
       dummy.position.set(Math.sin(a) * radius, y + height * 0.5, Math.cos(a) * radius);
       dummy.rotation.set(0, -a, 0);
       dummy.scale.set(1, 0.86 + ((i * 13) % 5) * 0.05, 1);
@@ -276,10 +305,8 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
     g.position.set(x, y, z);
     cen.add(g);
   };
-  person(-4.2, sr * 0.16, 28.5);
-  person(6.4, sr * 0.11, 30.2);
-  person(Math.sin(1.15) * (midR + 1.6), sr * 0.42, Math.cos(1.15) * (midR + 1.6));
-  person(Math.sin(2.05) * (drumR + 1.5), midTop + 0.02, Math.cos(2.05) * (drumR + 1.5));
+  person(-8.5, sr * 0.16, 26);
+  person(Math.sin(3.55) * sr * 1.5, sr * 0.3, Math.cos(3.55) * sr * 1.5);
 
   const spots: THREE.SpotLight[] = [];
   const rig: Array<[number, number, number, number, number, number, number]> = [
