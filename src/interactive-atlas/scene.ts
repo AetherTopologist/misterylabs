@@ -27,7 +27,7 @@ const R_MAX = 128;
 const P_MIN = 0.38;
 const P_MAX = 1.22;
 
-const CEN_Y = 16.4;
+const CEN_Y = 15.04;
 const CEN_R = 16;
 
 type Ribbon = { positions: number[]; indices: number[] };
@@ -398,6 +398,20 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   cenotaph.group.add(observer);
   scene.add(cenotaph.group);
 
+  let setReference: ((mode: "ours" | "ref" | "overlay") => void) | null = null;
+  if (import.meta.env.DEV) {
+    void import("./cenotaph-reference")
+      .then(({ attachReference }) => attachReference(scene, cenotaph.group, CEN_R, CEN_Y))
+      .then((apply) => {
+        setReference = apply;
+        const hook = (window as Window & { __atlasStudy?: { reference?: typeof apply } }).__atlasStudy;
+        if (hook) hook.reference = apply;
+      })
+      .catch(() => {
+        setReference = null;
+      });
+  }
+
   const glowTex = glowTexture();
   const spriteMat = new THREE.SpriteMaterial({
     map: glowTex,
@@ -658,73 +672,73 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   // Tree of walkways from the cenotaph door. Not an epistemic legend.
   const trunk = curve(
     [
-      [0, 0, 33.6],
-      [1.2, 0, 36],
-      [2, 0, 32],
+      [0, 0, 36.2],
+      [1.4, 0, 38.4],
+      [3.2, 0, 36.4],
     ],
     12,
   );
   const toHydrogen = curve(
     [
-      [2, 0, 32],
-      [14, 0, 30],
-      [26, 0, 24],
+      [3.2, 0, 36.4],
+      [16, 0, 32],
+      [28, 0, 24],
       [36, 0, 18],
     ],
     20,
   );
   const west = curve(
     [
-      [2, 0, 32],
-      [-10, 0, 28],
-      [-22, 0, 20],
+      [3.2, 0, 36.4],
+      [-14, 0, 34],
+      [-26, 0, 26],
     ],
     16,
   );
   const toTriad = curve(
     [
-      [-22, 0, 20],
-      [-34, 0, 16],
+      [-26, 0, 26],
+      [-36, 0, 18],
       [-48, 0, 12],
     ],
     16,
   );
   const spur = curve(
     [
-      [-22, 0, 20],
-      [-28, 0, 12],
-      [-30, 0, 4],
+      [-26, 0, 26],
+      [-34, 0, 16],
+      [-36, 0, 4],
     ],
     12,
   );
   const east = curve(
     [
-      [2, 0, 32],
-      [16, 0, 18],
-      [20, 0, 4],
-      [16, 0, -8],
+      [3.2, 0, 36.4],
+      [22, 0, 30],
+      [34, 0, 12],
+      [34, 0, -8],
     ],
     20,
   );
   const toOptics = curve(
     [
-      [20, 0, 4],
-      [30, 0, -8],
+      [34, 0, -8],
+      [38, 0, -16],
       [38, 0, -28],
     ],
     16,
   );
   const south = curve(
     [
-      [16, 0, -8],
-      [12, 0, -22],
+      [34, 0, -8],
+      [22, 0, -28],
       [8, 0, -42],
     ],
     16,
   );
   const toBell = curve(
     [
-      [12, 0, -22],
+      [22, 0, -28],
       [-4, 0, -36],
       [-26, 0, -56],
     ],
@@ -1117,6 +1131,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
         if (on) document.documentElement.dataset.iaShot = "1";
         else delete document.documentElement.dataset.iaShot;
       },
+      reference: (mode: "ours" | "ref" | "overlay") => setReference?.(mode),
     };
   }
 

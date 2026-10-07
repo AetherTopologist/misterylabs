@@ -170,10 +170,13 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
 
   const sr = cenR;
   const eq = cenY;
-  const collarY = eq - 0.72;
-  const drumBase = eq * 0.5;
-  const drumR = sr + 1.45;
-  const stairGap = 0.74;
+  // Proportions measured from the Javier Martin Macias cenotaph DAE.
+  // Sphere radius = 1. Equator is 0.94 above the ground. Lengths are in sphere radii.
+  const drumR = sr * 1.18;
+  const midR = sr * 1.6;
+  const outerR = sr * 2.07;
+  const drumTop = sr * 0.9;
+  const midTop = sr * 0.62;
 
   const sphere = new THREE.Mesh(
     new THREE.SphereGeometry(sr, coarse ? 40 : 64, coarse ? 28 : 48),
@@ -182,186 +185,111 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
   sphere.position.y = eq;
   cen.add(sphere);
 
-  const terraces: Array<[number, number, number]> = [
-    [26.6, 0, 1.25],
-    [22.6, 1.48, 4.15],
-    [19.5, 4.38, drumBase],
+  const tiers: Array<[number, number, number]> = [
+    [outerR, 0, sr * 0.055],
+    [sr * 1.96, sr * 0.055, sr * 0.11],
+    [sr * 1.86, sr * 0.11, sr * 0.16],
+    [midR, sr * 0.16, midTop],
+    [drumR, midTop, drumTop],
   ];
-  for (const [radius, y0, y1] of terraces) {
+  for (const [radius, y0, y1] of tiers) {
     const h = y1 - y0;
     const ring = new THREE.Mesh(
-      new THREE.CylinderGeometry(radius, radius * 1.012, h, seg, 1, false, stairGap / 2, Math.PI * 2 - stairGap),
+      new THREE.CylinderGeometry(radius, radius + 0.08, h, seg, 1, false),
       archMat,
     );
     ring.position.y = (y0 + y1) / 2;
     cen.add(ring);
   }
 
-  const collar = new THREE.Mesh(new THREE.RingGeometry(sr - 0.9, drumR + 0.48, coarse ? 56 : 96), archMat);
+  const collar = new THREE.Mesh(new THREE.RingGeometry(sr * 0.96, drumR + 0.35, coarse ? 48 : 80), archMat);
   collar.rotation.x = -Math.PI / 2;
-  collar.position.y = collarY + 0.06;
+  collar.position.y = drumTop + 0.04;
   cen.add(collar);
-  const lip = new THREE.Mesh(new THREE.TorusGeometry(drumR + 0.08, 0.09, 6, seg), jointMat);
+  const lip = new THREE.Mesh(new THREE.TorusGeometry(drumR + 0.06, 0.07, 6, seg), jointMat);
   lip.rotation.x = Math.PI / 2;
-  lip.position.y = collarY - 0.04;
+  lip.position.y = drumTop;
   cen.add(lip);
 
-  const doorSill = drumBase + 2.55;
-  const wall = new THREE.Mesh(
-    new THREE.CylinderGeometry(drumR, drumR + 0.28, collarY - drumBase, seg, 1, true),
-    archMat,
-  );
-  wall.position.y = (collarY + drumBase) / 2;
-  cen.add(wall);
-
-  const door = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.8, 0.26), voidMat);
-  door.position.set(0, doorSill + 0.42, drumR + 0.34);
+  const door = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.78, 0.24), voidMat);
+  door.position.set(0, midTop + 0.62, drumR + 0.22);
   cen.add(door);
-  const doorArch = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.026, 6, 14, Math.PI), archMat);
-  doorArch.position.set(0, doorSill + 0.8, drumR + 0.42);
+  const doorArch = new THREE.Mesh(new THREE.TorusGeometry(0.25, 0.024, 6, 14, Math.PI), archMat);
+  doorArch.position.set(0, door.position.y + 0.38, drumR + 0.38);
   cen.add(doorArch);
   const fittings: THREE.Mesh[] = [doorArch];
 
-  const landing = new THREE.Mesh(new THREE.BoxGeometry(13.4, 0.32, 3.1), archMat);
-  landing.position.set(0, doorSill - 0.08, drumR + 1.85);
-  cen.add(landing);
-
-  const steps = coarse ? 24 : 42;
-  const z0 = 33.2;
-  const z1 = drumR + 3.15;
-  const y0s = 0.16;
-  const y1s = doorSill;
-  const rise = (y1s - y0s) / (steps - 1);
-  const run = (z0 - z1) / (steps - 1);
-  for (let i = 0; i < steps; i++) {
-    const t = i / (steps - 1);
-    const z = z0 + (z1 - z0) * t;
-    const y = y0s + (y1s - y0s) * t;
-    const w = 17.6 + (8.8 - 17.6) * t;
-    const step = new THREE.Mesh(new THREE.BoxGeometry(w, rise + 0.03, run + 0.08), archMat);
-    step.position.set(0, y - rise * 0.5, z);
-    cen.add(step);
-    if (i % 7 === 0) {
-      for (const side of [-1, 1]) {
-        const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 5), lampMat);
-        lamp.position.set(side * (w * 0.5 + 0.08), y + 0.1, z);
-        cen.add(lamp);
-      }
+  // One concentric stair, on the side, inside the terrace widths. Not an axial stair.
+  const addConcentricStair = (a0: number, a1: number, rInner: number, width: number, y0: number, y1: number, steps: number) => {
+    for (let i = 0; i < steps; i++) {
+      const t0 = i / steps;
+      const t1 = (i + 1) / steps;
+      const a = a0 + (a1 - a0) * ((t0 + t1) * 0.5);
+      const yTop = y0 + (y1 - y0) * t1;
+      const rad = rInner + width * 0.5;
+      const aA = a0 + (a1 - a0) * t0;
+      const aB = a0 + (a1 - a0) * t1;
+      const chord =
+        Math.hypot(Math.sin(aB) * rad - Math.sin(aA) * rad, Math.cos(aB) * rad - Math.cos(aA) * rad) + 0.2;
+      const box = new THREE.Mesh(new THREE.BoxGeometry(chord, Math.max(0.22, yTop - 0.04), width), archMat);
+      box.position.set(Math.sin(a) * rad, yTop * 0.5, Math.cos(a) * rad);
+      box.rotation.y = a;
+      cen.add(box);
     }
-  }
-
-  const addRamp = (side: number) => {
-    const n = coarse ? 20 : 42;
-    const positions: number[] = [];
-    const indices: number[] = [];
-    const stride = 7;
-    for (let i = 0; i <= n; i++) {
-      const t = i / n;
-      const a = side * (0.42 * (1 - t) + 1.55 * t);
-      const bow = Math.sin(Math.PI * t) * 0.35;
-      const rad = 23.6 * (1 - t) + 24.5 * t + bow;
-      const walk = 1.7 * (1 - t) + 7.2 * t;
-      const base = Math.max(0.06, walk - 3.5);
-      const sn = Math.sin(a);
-      const cs = Math.cos(a);
-      const put = (rr: number, yy: number) => positions.push(sn * rr, yy, cs * rr);
-      const inner = Math.max(drumR + 0.4, rad - 1.7);
-      const outer = rad + 1.7;
-      put(inner, base);
-      put(inner, walk);
-      put(outer, walk);
-      put(outer, base);
-      put(outer + 0.18, walk + 0.52);
-      put(outer, walk + 0.52);
-      put(outer + 0.18, walk);
-    }
-    const quad = (a: number, b: number, c: number, d: number) => indices.push(a, b, c, a, c, d);
-    for (let i = 0; i < n; i++) {
-      const o = i * stride;
-      const q = (u: number, v: number) => quad(o + u, o + v, o + stride + v, o + stride + u);
-      q(0, 1);
-      q(1, 2);
-      q(2, 3);
-      q(3, 0);
-      q(2, 5);
-      q(5, 4);
-      q(4, 6);
-      q(6, 2);
-    }
-    const cap = (i: number, flip: boolean) => {
-      const o = i * stride;
-      const q = (a: number, b: number, c: number, d: number) => {
-        if (flip) indices.push(o + a, o + c, o + b, o + a, o + d, o + c);
-        else indices.push(o + a, o + b, o + c, o + a, o + c, o + d);
-      };
-      q(0, 1, 2, 3);
-      q(2, 5, 4, 6);
-    };
-    cap(0, false);
-    cap(n, true);
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geo.setIndex(indices);
-    geo.computeVertexNormals();
-    cen.add(new THREE.Mesh(geo, archMat));
   };
-  addRamp(1);
-  addRamp(-1);
+  addConcentricStair(0.72, 1.82, midR + 0.2, 2.8, sr * 0.16, midTop, coarse ? 16 : 26);
+  addConcentricStair(1.72, 2.45, drumR + 0.35, 2.4, midTop, drumTop - 0.15, coarse ? 10 : 16);
 
   const dummy = new THREE.Object3D();
-  const plant = (count: number, radius: number, y: number, height: number, avoid: boolean) => {
-    const mesh = new THREE.InstancedMesh(new THREE.ConeGeometry(Math.min(0.46, height * 0.28), height, 6), cypressMat, count);
+  const plant = (count: number, radius: number, y: number, height: number) => {
+    const mesh = new THREE.InstancedMesh(new THREE.ConeGeometry(Math.min(0.34, height * 0.16), height, 6), cypressMat, count);
     mesh.frustumCulled = false;
     let n = 0;
     for (let i = 0; i < count; i++) {
       const a = (i / count) * Math.PI * 2;
-      let d = Math.abs(a - Math.PI / 2);
-      if (d > Math.PI) d = Math.PI * 2 - d;
-      if (avoid && d < stairGap * 0.58) continue;
-      if (avoid && radius > drumR - 0.4 && radius < 27.2 && d > 0.32 && d < 1.68) continue;
-      dummy.position.set(Math.cos(a) * radius, y + height * 0.5, Math.sin(a) * radius);
-      dummy.rotation.set(0, a, 0);
-      dummy.scale.set(1, 0.92 + ((i * 17) % 5) * 0.035, 1);
+      const sideStair = a > 0.62 && a < 1.95 && radius > midR && radius < outerR;
+      const upperStair = a > 1.6 && a < 2.55 && radius > drumR && radius < midR;
+      if (sideStair || upperStair) continue;
+      dummy.position.set(Math.sin(a) * radius, y + height * 0.5, Math.cos(a) * radius);
+      dummy.rotation.set(0, -a, 0);
+      dummy.scale.set(1, 0.86 + ((i * 13) % 5) * 0.05, 1);
       dummy.updateMatrix();
       mesh.setMatrixAt(n++, dummy.matrix);
     }
-    mesh.count = n;
+    mesh.count = Math.max(1, n);
     mesh.instanceMatrix.needsUpdate = true;
     cen.add(mesh);
   };
-  plant(coarse ? 200 : 420, sr + 0.22, collarY + 0.01, 1.42, false);
-  plant(coarse ? 160 : 340, sr + 0.62, collarY + 0.01, 1.12, false);
-  plant(coarse ? 120 : 260, drumR + 0.22, drumBase + 0.02, 1.05, true);
-  plant(coarse ? 110 : 240, 21.2, 4.2, 1.08, true);
-  plant(coarse ? 100 : 220, 25.15, 1.28, 1.02, true);
+  plant(coarse ? 180 : 380, sr * 1.06, drumTop, sr * 0.13);
+  plant(coarse ? 150 : 320, sr * 1.14, drumTop, sr * 0.1);
+  plant(coarse ? 160 : 340, midR + 0.15, midTop, sr * 0.11);
+  plant(coarse ? 140 : 300, sr * 1.9, sr * 0.11, sr * 0.09);
+  plant(coarse ? 120 : 260, outerR - 0.2, sr * 0.055, sr * 0.08);
 
-  const person = (x: number, t: number) => {
-    const z = z0 + (z1 - z0) * t;
-    const y = y0s + (y1s - y0s) * t;
+  const person = (x: number, y: number, z: number) => {
     const g = new THREE.Group();
     const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 0.36, 2, 4), figureMat);
     body.position.y = 0.3;
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 4), figureMat);
     head.position.y = 0.58;
     g.add(body, head);
-    g.position.set(x, y + 0.02, z);
+    g.position.set(x, y, z);
     cen.add(g);
   };
-  person(-1.4, 0.16);
-  person(0.85, 0.34);
-  person(-2.6, 0.5);
-  person(1.7, 0.68);
-  person(-0.3, 0.86);
+  person(-4.2, sr * 0.16, 28.5);
+  person(6.4, sr * 0.11, 30.2);
+  person(Math.sin(1.15) * (midR + 1.6), sr * 0.42, Math.cos(1.15) * (midR + 1.6));
+  person(Math.sin(2.05) * (drumR + 1.5), midTop + 0.02, Math.cos(2.05) * (drumR + 1.5));
 
   const spots: THREE.SpotLight[] = [];
   const rig: Array<[number, number, number, number, number, number, number]> = [
-    [0, 1.15, 36.5, 0, eq * 1.08, 9, 1.25],
-    [-18, 2.4, 20, -2, eq * 1.2, 2, 0.9],
-    [16, 2.5, 16, 2, eq * 1.2, 1, 0.9],
-    [0, 2.4, -24, 0, eq * 1.12, -4, 0.7],
+    [0, 1.4, 42, 0, eq * 0.9, 8, 1.25],
+    [-30, 2.6, 26, -6, eq * 0.85, 4, 0.9],
+    [28, 2.5, 22, 5, eq * 0.85, 3, 0.9],
+    [0, 2.6, -40, 0, eq * 0.8, -6, 0.7],
   ];
   for (const [x, y, z, tx, ty, tz, bias] of rig) {
-    const spot = new THREE.SpotLight(0xfff1d4, 40, 80, 0.78, 0.5, 2);
+    const spot = new THREE.SpotLight(0xfff1d4, 40, 90, 0.78, 0.5, 2);
     spot.position.set(x, y, z);
     spot.target.position.set(tx, ty, tz);
     spot.userData.bias = bias;
@@ -372,10 +300,10 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
     cen.add(fixture);
   }
   const niche = new THREE.PointLight(0xfff3dc, 8, 14, 2);
-  niche.position.set(0, doorSill + 1.4, drumR + 1.1);
+  niche.position.set(0, door.position.y + 0.8, drumR + 1.2);
   cen.add(niche);
   const doorLamp = new THREE.PointLight(0xfff6e8, 4, 8, 2);
-  doorLamp.position.set(0, doorSill + 0.7, drumR + 0.85);
+  doorLamp.position.set(0, door.position.y + 0.2, drumR + 0.9);
   cen.add(doorLamp);
 
   const presets: Record<

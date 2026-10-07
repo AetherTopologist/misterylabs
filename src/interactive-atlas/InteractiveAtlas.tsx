@@ -41,6 +41,7 @@ export default function InteractiveAtlas() {
   const [ui, setUi] = useState<AtlasUi>(INITIAL);
   const [failed, setFailed] = useState(() => (typeof document === "undefined" ? false : !canWebGL()));
   const [variant, setVariant] = useState<CenotaphVariant>(studyVariant);
+  const [refMode, setRefMode] = useState<"ours" | "ref" | "overlay">("ours");
   const variantRef = useRef(variant);
   variantRef.current = variant;
 
@@ -90,6 +91,13 @@ export default function InteractiveAtlas() {
     apiRef.current?.setCenotaphVariant(variant);
   }, [variant]);
 
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    (window as Window & { __atlasStudy?: { reference?: (mode: "ours" | "ref" | "overlay") => void } }).__atlasStudy?.reference?.(
+      refMode,
+    );
+  }, [refMode]);
+
   const exhibit = ui.selected && ui.selected !== "cenotaph" ? EXHIBITS[ui.selected] : null;
   const landmark = ui.selected === "cenotaph";
   const showName = (exhibit && ui.proximity > 0.28) || (landmark && ui.proximity > 0.28);
@@ -132,6 +140,19 @@ export default function InteractiveAtlas() {
               ] as const
             ).map(([id, label]) => (
               <button key={id} type="button" data-on={variant === id} onClick={() => setVariant(id)}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <div>
+            {(
+              [
+                ["ours", "Ours"],
+                ["ref", "Reference"],
+                ["overlay", "Overlay"],
+              ] as const
+            ).map(([id, label]) => (
+              <button key={id} type="button" data-on={refMode === id} onClick={() => setRefMode(id)}>
                 {label}
               </button>
             ))}
