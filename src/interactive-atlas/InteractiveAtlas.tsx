@@ -6,9 +6,10 @@ import "./interactive-atlas.css";
 const INITIAL: AtlasUi = { scale: 0.92, selected: null, proximity: 0, atHome: true, inside: false };
 
 function studyVariant(): CenotaphVariant {
-  if (!import.meta.env.DEV || typeof window === "undefined") return "a";
+  if (!import.meta.env.DEV || typeof window === "undefined") return "b";
   const q = new URLSearchParams(window.location.search).get("cenotaph");
-  return q === "b" || q === "c" ? q : "a";
+  if (q === "a" || q === "c") return q;
+  return "b";
 }
 
 function same(a: AtlasUi, b: AtlasUi) {
@@ -126,7 +127,6 @@ export default function InteractiveAtlas() {
           <div>
             {(
               [
-                ["a", "Stone"],
                 ["b", "Porcelain"],
                 ["c", "Night"],
               ] as const

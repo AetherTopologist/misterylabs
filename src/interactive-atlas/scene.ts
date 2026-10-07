@@ -19,16 +19,16 @@ function architectureHolds() {
 }
 
 const HOME_R = 108;
-const HOME_P = 1.12;
-const HOME_YAW = 0.55;
+const HOME_P = 0.47;
+const HOME_YAW = 0.18;
 const R_MIN = 16;
-const R_CEN_MIN = 36;
+const R_CEN_MIN = 42;
 const R_MAX = 128;
 const P_MIN = 0.38;
 const P_MAX = 1.22;
 
-const CEN_Y = 15.8;
-const CEN_R = 15.4;
+const CEN_Y = 16.4;
+const CEN_R = 16;
 
 type Ribbon = { positions: number[]; indices: number[] };
 
@@ -884,7 +884,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       radius: id === "bell" || id === "triad" ? 9 : 7.5,
       auto: true,
     })),
-    { id: "cenotaph", pos: new THREE.Vector3(0, 7, 2), radius: 27, auto: false },
+    { id: "cenotaph", pos: new THREE.Vector3(0, 9, 6), radius: 27, auto: false },
   ];
 
   function setNdc(clientX: number, clientY: number) {
@@ -1028,7 +1028,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     const hit = pick(e.clientX, e.clientY);
     if (double && hit) {
       selected = hit;
-      radiusT = hit === "cenotaph" ? 36 : 24;
+      radiusT = hit === "cenotaph" ? 52 : 24;
       lastTap = 0;
       return;
     }
@@ -1093,12 +1093,20 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     },
   };
 
-  const frameStudy = (mode: "home" | "near") => {
+  const frameStudy = (mode: "home" | "approach" | "near") => {
     inside = false;
     selected = null;
     yawT = yaw + angDelta(yaw, HOME_YAW);
-    radiusT = mode === "near" ? 58 : HOME_R;
-    pitchT = mode === "near" ? 0.68 : HOME_P;
+    if (mode === "near") {
+      radiusT = 46;
+      pitchT = 0.32;
+    } else if (mode === "approach") {
+      radiusT = 64;
+      pitchT = 0.36;
+    } else {
+      radiusT = HOME_R;
+      pitchT = HOME_P;
+    }
   };
 
   if (import.meta.env.DEV) {

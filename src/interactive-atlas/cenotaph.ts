@@ -8,13 +8,6 @@ type Shared = {
   uLift: { value: number };
 };
 
-const DRUM_R = 14.7;
-const DRUM_BASE = 4.55;
-const DRUM_TOP = 11.15;
-const ARCH_R = 6.15;
-const GAP = 2 * Math.asin(ARCH_R / DRUM_R);
-const TERRACE_GAP = 1.12;
-
 function makeStone(octaves: number, shared: Shared, masonry: number) {
   const mat = new THREE.MeshStandardMaterial({
     color: 0xffffff,
@@ -140,9 +133,10 @@ roughnessFactor = clamp(roughnessFactor + (cFbm(vWorldP * 0.55) - 0.5) * 0.22, 0
 }
 
 function initialVariant(): CenotaphVariant {
-  if (!import.meta.env.DEV) return "a";
+  if (!import.meta.env.DEV) return "b";
   const q = new URLSearchParams(window.location.search).get("cenotaph");
-  return q === "b" || q === "c" ? q : "a";
+  if (q === "a" || q === "c") return q;
+  return "b";
 }
 
 export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
@@ -174,112 +168,160 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
   gold.fog = false;
   gold.envMapIntensity = 0.55;
 
+  const sr = cenR;
+  const eq = cenY;
+  const collarY = eq - 0.72;
+  const drumBase = eq * 0.5;
+  const drumR = sr + 1.45;
+  const stairGap = 0.74;
+
   const sphere = new THREE.Mesh(
-    new THREE.SphereGeometry(cenR, coarse ? 36 : 56, coarse ? 24 : 40),
+    new THREE.SphereGeometry(sr, coarse ? 40 : 64, coarse ? 28 : 48),
     sphereMat,
   );
-  sphere.position.y = cenY;
+  sphere.position.y = eq;
   cen.add(sphere);
 
   const terraces: Array<[number, number, number]> = [
-    [28, 0, 0.82],
-    [24, 0.98, 1.95],
-    [20.2, 2.12, 3.25],
-    [17.15, 3.42, DRUM_BASE],
+    [26.6, 0, 1.25],
+    [22.6, 1.48, 4.15],
+    [19.5, 4.38, drumBase],
   ];
   for (const [radius, y0, y1] of terraces) {
     const h = y1 - y0;
-    const drum = new THREE.Mesh(
-      new THREE.CylinderGeometry(radius, radius * 1.012, h, seg, 1, false, TERRACE_GAP / 2, Math.PI * 2 - TERRACE_GAP),
+    const ring = new THREE.Mesh(
+      new THREE.CylinderGeometry(radius, radius * 1.012, h, seg, 1, false, stairGap / 2, Math.PI * 2 - stairGap),
       archMat,
     );
-    drum.position.y = (y0 + y1) / 2;
-    cen.add(drum);
+    ring.position.y = (y0 + y1) / 2;
+    cen.add(ring);
   }
 
-  const wallH = DRUM_TOP - DRUM_BASE;
+  const collar = new THREE.Mesh(new THREE.RingGeometry(sr - 0.9, drumR + 0.48, coarse ? 56 : 96), archMat);
+  collar.rotation.x = -Math.PI / 2;
+  collar.position.y = collarY + 0.06;
+  cen.add(collar);
+  const lip = new THREE.Mesh(new THREE.TorusGeometry(drumR + 0.08, 0.09, 6, seg), jointMat);
+  lip.rotation.x = Math.PI / 2;
+  lip.position.y = collarY - 0.04;
+  cen.add(lip);
+
+  const doorSill = drumBase + 2.55;
   const wall = new THREE.Mesh(
-    new THREE.CylinderGeometry(DRUM_R, DRUM_R, wallH, coarse ? 40 : 72, 1, true, GAP / 2, Math.PI * 2 - GAP),
+    new THREE.CylinderGeometry(drumR, drumR + 0.28, collarY - drumBase, seg, 1, true),
     archMat,
   );
-  wall.position.y = (DRUM_TOP + DRUM_BASE) / 2;
+  wall.position.y = (collarY + drumBase) / 2;
   cen.add(wall);
 
-  const sillH = 2.25;
-  const sill = new THREE.Mesh(
-    new THREE.CylinderGeometry(DRUM_R - 0.04, DRUM_R - 0.04, sillH, 14, 1, true, -GAP / 2, GAP),
-    archMat,
-  );
-  sill.position.y = DRUM_BASE + sillH / 2;
-  cen.add(sill);
-
-  const cap = new THREE.Mesh(
-    new THREE.CylinderGeometry(16.25, 14.95, 0.42, seg, 1, false, GAP / 2, Math.PI * 2 - GAP),
-    archMat,
-  );
-  cap.position.y = DRUM_TOP + 0.14;
-  cen.add(cap);
-
-  const door = new THREE.Mesh(new THREE.BoxGeometry(1.28, 2.16, 0.55), voidMat);
-  door.position.set(0, DRUM_BASE + 1.08, DRUM_R + 0.12);
+  const door = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.8, 0.26), voidMat);
+  door.position.set(0, doorSill + 0.42, drumR + 0.34);
   cen.add(door);
-  const doorArch = new THREE.Mesh(new THREE.TorusGeometry(0.66, 0.045, 6, 24, Math.PI), archMat);
-  doorArch.position.set(0, DRUM_BASE + 2.05, DRUM_R + 0.28);
+  const doorArch = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.026, 6, 14, Math.PI), archMat);
+  doorArch.position.set(0, doorSill + 0.8, drumR + 0.42);
   cen.add(doorArch);
-
-  for (const side of [-1, 1]) {
-    const pier = new THREE.Mesh(new THREE.BoxGeometry(0.28, 3.7, 0.36), archMat);
-    pier.position.set(side * 1.35, DRUM_BASE + 1.85, DRUM_R + 0.28);
-    cen.add(pier);
-  }
-
   const fittings: THREE.Mesh[] = [doorArch];
-  const steps = 18;
-  const z0 = 35.2;
-  const z1 = 17.35;
-  const y1 = DRUM_BASE;
-  const stairW = 13.2;
+
+  const landing = new THREE.Mesh(new THREE.BoxGeometry(13.4, 0.32, 3.1), archMat);
+  landing.position.set(0, doorSill - 0.08, drumR + 1.85);
+  cen.add(landing);
+
+  const steps = coarse ? 24 : 42;
+  const z0 = 33.2;
+  const z1 = drumR + 3.15;
+  const y0s = 0.16;
+  const y1s = doorSill;
+  const rise = (y1s - y0s) / (steps - 1);
+  const run = (z0 - z1) / (steps - 1);
   for (let i = 0; i < steps; i++) {
     const t = i / (steps - 1);
     const z = z0 + (z1 - z0) * t;
-    const y = 0.1 + (y1 - 0.1) * t;
-    const depth = (z0 - z1) / (steps - 1) + 0.16;
-    const step = new THREE.Mesh(new THREE.BoxGeometry(stairW, 0.2, depth), archMat);
-    step.position.set(0, y, z);
+    const y = y0s + (y1s - y0s) * t;
+    const w = 17.6 + (8.8 - 17.6) * t;
+    const step = new THREE.Mesh(new THREE.BoxGeometry(w, rise + 0.03, run + 0.08), archMat);
+    step.position.set(0, y - rise * 0.5, z);
     cen.add(step);
-    if (i % 3 === 0) {
+    if (i % 7 === 0) {
       for (const side of [-1, 1]) {
-        const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), lampMat);
-        lamp.position.set(side * (stairW * 0.5 + 0.15), y + 0.28, z);
+        const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 5), lampMat);
+        lamp.position.set(side * (w * 0.5 + 0.08), y + 0.1, z);
         cen.add(lamp);
       }
     }
   }
 
-  const railLen = Math.hypot(z0 - z1, y1);
-  const railAng = Math.atan2(y1, z0 - z1);
-  for (const side of [-1, 1]) {
-    const cheek = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.62, railLen), archMat);
-    cheek.position.set(side * (stairW * 0.5 + 0.05), y1 * 0.5 + 0.42, (z0 + z1) / 2);
-    cheek.rotation.x = railAng;
-    cen.add(cheek);
-    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.055, railLen), archMat);
-    rail.position.set(side * (stairW * 0.5 + 0.05), y1 * 0.5 + 0.82, (z0 + z1) / 2);
-    rail.rotation.x = railAng;
-    cen.add(rail);
-    fittings.push(rail);
-  }
+  const addRamp = (side: number) => {
+    const n = coarse ? 20 : 42;
+    const positions: number[] = [];
+    const indices: number[] = [];
+    const stride = 7;
+    for (let i = 0; i <= n; i++) {
+      const t = i / n;
+      const a = side * (1.24 * (1 - t) + 0.27 * t);
+      const bow = Math.sin(Math.PI * t) * 0.85;
+      const rad = 24.8 * (1 - t) + (drumR + 2.1) * t + bow;
+      const walk = 2.15 * (1 - t) + (doorSill + 0.06) * t;
+      const base = Math.max(0.06, walk - 3.5);
+      const sn = Math.sin(a);
+      const cs = Math.cos(a);
+      const put = (rr: number, yy: number) => positions.push(sn * rr, yy, cs * rr);
+      const inner = Math.max(drumR + 0.4, rad - 1.7);
+      const outer = rad + 1.7;
+      put(inner, base);
+      put(inner, walk);
+      put(outer, walk);
+      put(outer, base);
+      put(outer + 0.18, walk + 0.52);
+      put(outer, walk + 0.52);
+      put(outer + 0.18, walk);
+    }
+    const quad = (a: number, b: number, c: number, d: number) => indices.push(a, b, c, a, c, d);
+    for (let i = 0; i < n; i++) {
+      const o = i * stride;
+      const q = (u: number, v: number) => quad(o + u, o + v, o + stride + v, o + stride + u);
+      q(0, 1);
+      q(1, 2);
+      q(2, 3);
+      q(3, 0);
+      q(2, 5);
+      q(5, 4);
+      q(4, 6);
+      q(6, 2);
+    }
+    const cap = (i: number, flip: boolean) => {
+      const o = i * stride;
+      const q = (a: number, b: number, c: number, d: number) => {
+        if (flip) indices.push(o + a, o + c, o + b, o + a, o + d, o + c);
+        else indices.push(o + a, o + b, o + c, o + a, o + c, o + d);
+      };
+      q(0, 1, 2, 3);
+      q(2, 5, 4, 6);
+    };
+    cap(0, false);
+    cap(n, true);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+    cen.add(new THREE.Mesh(geo, archMat));
+  };
+  addRamp(1);
+  addRamp(-1);
 
   const dummy = new THREE.Object3D();
-  const plant = (count: number, radius: number, y: number, height: number, skip: number) => {
-    const mesh = new THREE.InstancedMesh(new THREE.ConeGeometry(height * 0.1, height, 5), cypressMat, count);
+  const plant = (count: number, radius: number, y: number, height: number, avoid: boolean) => {
+    const mesh = new THREE.InstancedMesh(new THREE.ConeGeometry(Math.min(0.46, height * 0.28), height, 6), cypressMat, count);
+    mesh.frustumCulled = false;
     let n = 0;
     for (let i = 0; i < count; i++) {
       const a = (i / count) * Math.PI * 2;
-      if (skip > 0 && Math.abs(a - Math.PI / 2) < skip) continue;
+      let d = Math.abs(a - Math.PI / 2);
+      if (d > Math.PI) d = Math.PI * 2 - d;
+      if (avoid && d < stairGap * 0.58) continue;
+      if (avoid && radius > drumR - 0.4 && radius < 27.2 && d > 0.1 && d < 1.55) continue;
       dummy.position.set(Math.cos(a) * radius, y + height * 0.5, Math.sin(a) * radius);
-      dummy.rotation.set(0, 0, 0);
-      dummy.scale.set(1, 1, 1);
+      dummy.rotation.set(0, a, 0);
+      dummy.scale.set(1, 0.92 + ((i * 17) % 5) * 0.035, 1);
       dummy.updateMatrix();
       mesh.setMatrixAt(n++, dummy.matrix);
     }
@@ -287,85 +329,53 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
     mesh.instanceMatrix.needsUpdate = true;
     cen.add(mesh);
   };
-  plant(coarse ? 28 : 42, 15.65, DRUM_TOP + 0.38, 2.45, GAP * 0.62);
-  plant(coarse ? 24 : 36, 18.7, 3.32, 1.9, TERRACE_GAP * 0.48);
-  plant(coarse ? 32 : 48, 26.1, 0.88, 1.7, TERRACE_GAP * 0.46);
+  plant(coarse ? 200 : 420, sr + 0.22, collarY + 0.01, 1.42, false);
+  plant(coarse ? 160 : 340, sr + 0.62, collarY + 0.01, 1.12, false);
+  plant(coarse ? 120 : 260, drumR + 0.22, drumBase + 0.02, 1.05, true);
+  plant(coarse ? 110 : 240, 21.2, 4.2, 1.08, true);
+  plant(coarse ? 100 : 220, 25.15, 1.28, 1.02, true);
 
-  const pierCount = coarse ? 16 : 24;
-  const pierGeo = new THREE.BoxGeometry(0.2, 4.6, 0.28);
-  const piers = new THREE.InstancedMesh(pierGeo, archMat, pierCount);
-  let pierN = 0;
-  for (let i = 0; i < pierCount; i++) {
-    const a = (i / pierCount) * Math.PI * 2;
-    if (Math.abs(a - Math.PI / 2) < GAP * 0.65) continue;
-    dummy.position.set(Math.cos(a) * (DRUM_R + 0.18), DRUM_BASE + 2.3, Math.sin(a) * (DRUM_R + 0.18));
-    dummy.rotation.set(0, -a, 0);
-    dummy.scale.set(1, 1, 1);
-    dummy.updateMatrix();
-    piers.setMatrixAt(pierN++, dummy.matrix);
-  }
-  piers.count = pierN;
-  piers.instanceMatrix.needsUpdate = true;
-  cen.add(piers);
-
-  const postGeo = new THREE.CylinderGeometry(0.035, 0.045, 0.72, 5);
-  const posts = new THREE.InstancedMesh(postGeo, archMat, coarse ? 28 : 42);
-  const postCount = coarse ? 28 : 42;
-  let postN = 0;
-  for (let i = 0; i < postCount; i++) {
-    const a = (i / postCount) * Math.PI * 2;
-    if (Math.abs(a - Math.PI / 2) < TERRACE_GAP * 0.42) continue;
-    dummy.position.set(Math.cos(a) * 27.15, 1.2, Math.sin(a) * 27.15);
-    dummy.rotation.set(0, 0, 0);
-    dummy.scale.set(1, 1, 1);
-    dummy.updateMatrix();
-    posts.setMatrixAt(postN++, dummy.matrix);
-  }
-  posts.count = postN;
-  posts.instanceMatrix.needsUpdate = true;
-  cen.add(posts);
-
-  const placeVisitor = (x: number, t: number) => {
+  const person = (x: number, t: number) => {
     const z = z0 + (z1 - z0) * t;
-    const y = 0.08 + (y1 - 0.08) * t;
+    const y = y0s + (y1s - y0s) * t;
     const g = new THREE.Group();
-    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 0.7, 3, 6), figureMat);
-    body.position.y = 0.62;
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), figureMat);
-    head.position.y = 1.2;
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 0.36, 2, 4), figureMat);
+    body.position.y = 0.3;
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 4), figureMat);
+    head.position.y = 0.58;
     g.add(body, head);
-    g.scale.setScalar(1.12);
-    g.position.set(x, y, z);
+    g.position.set(x, y + 0.02, z);
     cen.add(g);
   };
-  placeVisitor(-1.8, 0.28);
-  placeVisitor(1.35, 0.55);
-  placeVisitor(-0.4, 0.82);
-  placeVisitor(2.1, 0.96);
+  person(-1.4, 0.16);
+  person(0.85, 0.34);
+  person(-2.6, 0.5);
+  person(1.7, 0.68);
+  person(-0.3, 0.86);
 
   const spots: THREE.SpotLight[] = [];
   const rig: Array<[number, number, number, number, number, number, number]> = [
-    [0, 0.7, 36.5, 0, 8.2, 12, 1.2],
-    [-20, 1.3, 18, -2, 9, 2, 0.85],
-    [18, 1.4, 14, 2, 9, 0, 0.85],
-    [2, 1.6, -26, 0, 8, -4, 0.65],
+    [0, 1.15, 36.5, 0, eq * 1.08, 9, 1.25],
+    [-18, 2.4, 20, -2, eq * 1.2, 2, 0.9],
+    [16, 2.5, 16, 2, eq * 1.2, 1, 0.9],
+    [0, 2.4, -24, 0, eq * 1.12, -4, 0.7],
   ];
   for (const [x, y, z, tx, ty, tz, bias] of rig) {
-    const spot = new THREE.SpotLight(0xfff1d4, 40, 72, 0.72, 0.55, 2);
+    const spot = new THREE.SpotLight(0xfff1d4, 40, 80, 0.78, 0.5, 2);
     spot.position.set(x, y, z);
     spot.target.position.set(tx, ty, tz);
     spot.userData.bias = bias;
     cen.add(spot, spot.target);
     spots.push(spot);
-    const fixture = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), lampMat);
+    const fixture = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 5), lampMat);
     fixture.position.set(x, y, z);
     cen.add(fixture);
   }
-  const niche = new THREE.PointLight(0xfff3dc, 8, 12, 2);
-  niche.position.set(0, 8.3, 13.6);
+  const niche = new THREE.PointLight(0xfff3dc, 8, 14, 2);
+  niche.position.set(0, doorSill + 1.4, drumR + 1.1);
   cen.add(niche);
-  const doorLamp = new THREE.PointLight(0xfff6e8, 4, 7, 2);
-  doorLamp.position.set(0, DRUM_BASE + 1.5, DRUM_R + 0.8);
+  const doorLamp = new THREE.PointLight(0xfff6e8, 4, 8, 2);
+  doorLamp.position.set(0, doorSill + 0.7, drumR + 0.85);
   cen.add(doorLamp);
 
   const presets: Record<
