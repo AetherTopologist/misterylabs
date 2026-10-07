@@ -1,9 +1,15 @@
 import { Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasUi } from "./destinations";
+import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasUi, type CenotaphVariant } from "./destinations";
 import "./interactive-atlas.css";
 
 const INITIAL: AtlasUi = { scale: 0.92, selected: null, proximity: 0, atHome: true, inside: false };
+
+function studyVariant(): CenotaphVariant {
+  if (!import.meta.env.DEV || typeof window === "undefined") return "a";
+  const q = new URLSearchParams(window.location.search).get("cenotaph");
+  return q === "b" || q === "c" ? q : "a";
+}
 
 function same(a: AtlasUi, b: AtlasUi) {
   return (
@@ -33,6 +39,9 @@ export default function InteractiveAtlas() {
   const apiRef = useRef<AtlasApi | null>(null);
   const [ui, setUi] = useState<AtlasUi>(INITIAL);
   const [failed, setFailed] = useState(() => (typeof document === "undefined" ? false : !canWebGL()));
+  const [variant, setVariant] = useState<CenotaphVariant>(studyVariant);
+  const variantRef = useRef(variant);
+  variantRef.current = variant;
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -59,6 +68,7 @@ export default function InteractiveAtlas() {
             return;
           }
           apiRef.current = mounted.api;
+          mounted.api.setCenotaphVariant(variantRef.current);
           dispose = mounted.dispose;
         } catch {
           if (!dead) setFailed(true);
@@ -73,6 +83,11 @@ export default function InteractiveAtlas() {
       apiRef.current = null;
     };
   }, [failed]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    apiRef.current?.setCenotaphVariant(variant);
+  }, [variant]);
 
   const exhibit = ui.selected && ui.selected !== "cenotaph" ? EXHIBITS[ui.selected] : null;
   const landmark = ui.selected === "cenotaph";
@@ -104,6 +119,25 @@ export default function InteractiveAtlas() {
           Return to Atlas
         </Link>
       </header>
+
+      {import.meta.env.DEV ? (
+        <div className="ia-study">
+          <p>Dev study</p>
+          <div>
+            {(
+              [
+                ["a", "Stone"],
+                ["b", "Porcelain"],
+                ["c", "Night"],
+              ] as const
+            ).map(([id, label]) => (
+              <button key={id} type="button" data-on={variant === id} onClick={() => setVariant(id)}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="ia-rail" aria-hidden="true">
         <span data-where="atlas" data-on={ui.scale > 0.62}>

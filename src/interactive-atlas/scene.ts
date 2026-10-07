@@ -3,8 +3,9 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-import type { AtlasApi, AtlasUi, DestinationId, ExhibitId } from "./destinations";
+import type { AtlasApi, AtlasUi, CenotaphVariant, DestinationId, ExhibitId } from "./destinations";
 import { COLLECTIONS, HIDDEN_DESTINATIONS } from "./destinations";
+import { buildCenotaph } from "./cenotaph";
 import { FOREST_LINKS } from "./forest";
 
 // Forest links are a future horizontal layer. They are not provenance,
@@ -26,8 +27,8 @@ const R_MAX = 128;
 const P_MIN = 0.38;
 const P_MAX = 1.22;
 
-const CEN_Y = 11;
-const CEN_R = 12.4;
+const CEN_Y = 15.8;
+const CEN_R = 15.4;
 
 type Ribbon = { positions: number[]; indices: number[] };
 
@@ -160,92 +161,6 @@ function basicGlow(color: number, opacity: number) {
   });
 }
 
-function ringWall(inner: number, outer: number, height: number, y: number, material: THREE.Material, ringSeg: number) {
-  const pts = [
-    new THREE.Vector2(inner, 0),
-    new THREE.Vector2(outer, 0),
-    new THREE.Vector2(outer, height),
-    new THREE.Vector2(inner, height),
-    new THREE.Vector2(inner, 0),
-  ];
-  const mesh = new THREE.Mesh(new THREE.LatheGeometry(pts, ringSeg), material);
-  mesh.position.y = y;
-  return mesh;
-}
-
-function makeMineral(octaves: number) {
-  const uniforms = { uDetail: { value: 0 } };
-  const mat = new THREE.MeshStandardMaterial({
-    color: 0x0e0d0b,
-    metalness: 0.06,
-    roughness: 0.78,
-  });
-  mat.customProgramCacheKey = () => `cenotaph-mineral-${octaves}`;
-  mat.onBeforeCompile = (shader) => {
-    shader.uniforms.uDetail = uniforms.uDetail;
-    shader.vertexShader = shader.vertexShader
-      .replace("#include <common>", "#include <common>\nvarying vec3 vObjN;")
-      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvObjN = normalize(normal);");
-    shader.fragmentShader = shader.fragmentShader
-      .replace(
-        "#include <common>",
-        `#include <common>
-varying vec3 vObjN;
-uniform float uDetail;
-float mHash(vec3 p){
-  p = fract(p * 0.1031);
-  p += dot(p, p.yzx + 33.33);
-  return fract((p.x + p.y) * p.z);
-}
-float mNoise(vec3 x){
-  vec3 i = floor(x);
-  vec3 f = fract(x);
-  f = f * f * (3.0 - 2.0 * f);
-  return mix(
-    mix(mix(mHash(i), mHash(i+vec3(1.0,0.0,0.0)), f.x),
-        mix(mHash(i+vec3(0.0,1.0,0.0)), mHash(i+vec3(1.0,1.0,0.0)), f.x), f.y),
-    mix(mix(mHash(i+vec3(0.0,0.0,1.0)), mHash(i+vec3(1.0,0.0,1.0)), f.x),
-        mix(mHash(i+vec3(0.0,1.0,1.0)), mHash(i+vec3(1.0,1.0,1.0)), f.x), f.y),
-    f.z);
-}
-float mFbm(vec3 p){
-  float a = 0.55;
-  float s = 0.0;
-  for (int i = 0; i < ${octaves}; i++) {
-    s += a * mNoise(p);
-    p = p * 2.05 + vec3(1.7, 4.2, 2.3);
-    a *= 0.5;
-  }
-  return s;
-}
-`,
-      )
-      .replace(
-        "#include <color_fragment>",
-        `#include <color_fragment>
-{
-  vec3 nrm = normalize(vObjN);
-  float vein = smoothstep(0.56, 0.74, mFbm(nrm * 2.35));
-  float fine = smoothstep(0.5, 0.68, mFbm(nrm * 6.8));
-  float reveal = clamp(uDetail, 0.0, 1.0);
-  vec3 mineral = vec3(0.58, 0.74, 0.84);
-  diffuseColor.rgb = mix(diffuseColor.rgb, mineral, vein * (0.04 + 0.38 * reveal) + fine * reveal * 0.26);
-}
-`,
-      )
-      .replace(
-        "#include <opaque_fragment>",
-        `{
-  float fres = pow(1.0 - clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0), 3.2);
-  #include <opaque_fragment>
-  gl_FragColor.rgb += vec3(0.8, 0.86, 0.93) * fres * 1.35;
-}
-`,
-      );
-  };
-  return { mat, uniforms };
-}
-
 function makeInterior(starCut: number) {
   const uniforms = { uMeridian: { value: 0.12 } };
   const mat = new THREE.ShaderMaterial({
@@ -339,7 +254,6 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   scene.add(graze);
 
   const stone = new THREE.MeshStandardMaterial({ color: 0x14171c, metalness: 0.18, roughness: 0.78 });
-  const stoneDark = new THREE.MeshStandardMaterial({ color: 0x0c0e12, metalness: 0.22, roughness: 0.7 });
   const metal = new THREE.MeshStandardMaterial({ color: 0x171a20, metalness: 0.78, roughness: 0.36 });
   const figureMat = new THREE.MeshStandardMaterial({ color: 0x3a342c, metalness: 0.2, roughness: 0.62 });
   const walkMat = new THREE.MeshStandardMaterial({
@@ -470,126 +384,19 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   addRibbon(lip, lipPts, 0.18, true);
   scene.add(meshFrom(lip, goldLine));
 
-  // Cenotaph — origin, not a lamp. Rings are walls with a void, so the sphere can be a sphere.
-  const cen = new THREE.Group();
-  const ringSeg = coarse ? 40 : 64;
-  const goldMetal = new THREE.MeshStandardMaterial({ color: 0xb89a6a, metalness: 0.9, roughness: 0.32 });
-  cen.add(ringWall(30, 36.5, 0.32, 0, stone, ringSeg));
-  cen.add(ringWall(20.5, 30.2, 0.48, 0.32, stone, ringSeg));
-  cen.add(ringWall(15.2, 20.8, 0.7, 0.8, stone, ringSeg));
-  cen.add(ringWall(11.05, 14.8, 4.6, 1.2, stoneDark, ringSeg));
-
-  const mineral = makeMineral(coarse ? 2 : 3);
-  const sphere = new THREE.Mesh(new THREE.SphereGeometry(CEN_R, coarse ? 40 : 64, coarse ? 28 : 40), mineral.mat);
-  sphere.position.y = CEN_Y;
-  cen.add(sphere);
-
+  const cenotaph = buildCenotaph(coarse, CEN_Y, CEN_R);
   const interior = makeInterior(coarse ? 0.978 : 0.952);
   const cavity = new THREE.Mesh(new THREE.SphereGeometry(CEN_R - 0.22, coarse ? 32 : 48, coarse ? 22 : 32), interior.mat);
   cavity.position.y = CEN_Y;
-  cen.add(cavity);
-
-  const drumLip = new THREE.Mesh(
-    new THREE.TorusGeometry(14.75, 0.055, 6, ringSeg),
-    new THREE.MeshStandardMaterial({ color: 0x9aa3ae, metalness: 0.55, roughness: 0.28 }),
-  );
-  drumLip.rotation.x = Math.PI / 2;
-  drumLip.position.y = 5.8;
-  cen.add(drumLip);
-  const collar = new THREE.Mesh(
-    new THREE.TorusGeometry(10.7, 0.42, 8, ringSeg),
-    new THREE.MeshStandardMaterial({ color: 0x050608, roughness: 1, metalness: 0 }),
-  );
-  collar.rotation.x = Math.PI / 2;
-  collar.position.y = 5.7;
-  cen.add(collar);
-  const seat = new THREE.Mesh(new THREE.TorusGeometry(10.55, 0.028, 8, ringSeg), goldMetal);
-  seat.rotation.x = Math.PI / 2;
-  seat.position.y = 6.05;
-  cen.add(seat);
-  const equator = new THREE.Mesh(new THREE.TorusGeometry(CEN_R + 0.05, 0.05, 8, ringSeg), goldMetal);
-  equator.rotation.x = Math.PI / 2;
-  equator.position.y = CEN_Y;
-  cen.add(equator);
-  const incline = new THREE.Mesh(new THREE.TorusGeometry(CEN_R + 0.08, 0.014, 6, coarse ? 64 : 96), goldMetal);
-  incline.rotation.x = Math.PI / 2.55;
-  incline.rotation.z = 0.35;
-  incline.position.y = CEN_Y;
-  cen.add(incline);
-
-  const oculus = new THREE.Mesh(new THREE.CircleGeometry(1.05, 28), new THREE.MeshBasicMaterial({ color: 0x05060a }));
-  oculus.rotation.x = -Math.PI / 2;
-  oculus.position.y = CEN_Y + CEN_R + 0.02;
-  cen.add(oculus);
-  const oculusRing = new THREE.Mesh(new THREE.TorusGeometry(1.12, 0.02, 6, 36), basicGlow(0xf6efe4, 0.4));
-  oculusRing.rotation.x = Math.PI / 2;
-  oculusRing.position.y = CEN_Y + CEN_R + 0.03;
-  cen.add(oculusRing);
-  const oculusLight = new THREE.PointLight(0xfff1dc, 2.2, 14, 2);
-  oculusLight.position.set(0, CEN_Y + CEN_R + 0.45, 0);
-  cen.add(oculusLight);
-
-  const recess = new THREE.Mesh(new THREE.BoxGeometry(1.35, 2.5, 0.7), new THREE.MeshStandardMaterial({ color: 0x07080b, roughness: 1 }));
-  recess.position.set(0, 2.55, 13.3);
-  cen.add(recess);
-  const slit = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 1.9), basicGlow(0xf7f1e6, 0.35));
-  slit.position.set(0, 2.5, 13.68);
-  cen.add(slit);
-
-  for (let i = 0; i < 8; i++) {
-    const step = new THREE.Mesh(new THREE.BoxGeometry(2.15, 0.12, 0.55), stone);
-    step.position.set(0, 0.42 + i * 0.14, 26.4 - i * 0.7);
-    cen.add(step);
-  }
-  for (const side of [-1.2, 1.2]) {
-    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.045, 5.4), goldMetal);
-    rail.position.set(side, 1.55, 23.8);
-    rail.rotation.x = -0.16;
-    cen.add(rail);
-  }
-
-  const pierGeo = new THREE.CylinderGeometry(0.14, 0.24, 4.6, 6);
-  const pierAngles: number[] = [];
-  for (let i = 0; i < 20; i++) {
-    const a = (i / 20) * Math.PI * 2;
-    if (Math.abs(a - Math.PI / 2) < 0.42) continue;
-    pierAngles.push(a);
-  }
-  const piers = new THREE.InstancedMesh(pierGeo, stone, pierAngles.length);
-  const dummy = new THREE.Object3D();
-  pierAngles.forEach((a, i) => {
-    dummy.position.set(Math.cos(a) * 17.6, 3.1, Math.sin(a) * 17.6);
-    dummy.rotation.set(0, -a, 0);
-    dummy.scale.set(1, 1, 1);
-    dummy.updateMatrix();
-    piers.setMatrixAt(i, dummy.matrix);
-  });
-  piers.instanceMatrix.needsUpdate = true;
-  cen.add(piers);
-
-  const postGeo = new THREE.CylinderGeometry(0.045, 0.06, 1.7, 5);
-  const postsScale = new THREE.InstancedMesh(postGeo, metal, coarse ? 24 : 36);
-  const postCount = coarse ? 24 : 36;
-  for (let i = 0; i < postCount; i++) {
-    const a = (i / postCount) * Math.PI * 2;
-    dummy.position.set(Math.cos(a) * 27.4, 1.15, Math.sin(a) * 27.4);
-    dummy.rotation.set(0, 0, 0);
-    dummy.scale.set(1, 1, 1);
-    dummy.updateMatrix();
-    postsScale.setMatrixAt(i, dummy.matrix);
-  }
-  postsScale.instanceMatrix.needsUpdate = true;
-  postsScale.count = postCount;
-  cen.add(postsScale);
-
+  cenotaph.group.add(cavity);
   const observer = new THREE.Group();
   const mark = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), new THREE.MeshBasicMaterial({ color: 0xf3eee4 }));
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.36, 5), goldMetal);
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.36, 5), new THREE.MeshStandardMaterial({ color: 0xc4a574, metalness: 0.6, roughness: 0.4 }));
   stem.position.y = -0.2;
   observer.add(mark, stem);
   observer.position.y = CEN_Y;
-  cen.add(observer);
-  scene.add(cen);
+  cenotaph.group.add(observer);
+  scene.add(cenotaph.group);
 
   const glowTex = glowTexture();
   const spriteMat = new THREE.SpriteMaterial({
@@ -851,11 +658,11 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   // Tree of walkways from the cenotaph door. Not an epistemic legend.
   const trunk = curve(
     [
-      [0, 0, 17.2],
-      [0, 0, 26],
+      [0, 0, 33.6],
+      [1.2, 0, 36],
       [2, 0, 32],
     ],
-    16,
+    12,
   );
   const toHydrogen = curve(
     [
@@ -974,17 +781,18 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   const figureCount = 10;
   const bodies = new THREE.InstancedMesh(bodyGeo, figureMat, figureCount);
   const heads = new THREE.InstancedMesh(headGeo, figureMat, figureCount);
+  const dummy = new THREE.Object3D();
   const figureAt: Array<[number, number]> = [
-    [1.1, 16.6],
-    [-1.15, 17.1],
-    [8, 30],
+    [4.4, 36.2],
+    [-4.2, 36.6],
+    [8, 34.5],
     [36, 16.4],
     [-46, 10.2],
     [34, -26],
     [6, -40],
     [-22, -52],
-    [-18, 18],
-    [18, 2],
+    [-9.5, 35.2],
+    [12.5, 35.4],
   ];
   figureAt.forEach(([x, z], i) => {
     dummy.position.set(x, 0.86, z);
@@ -1076,7 +884,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       radius: id === "bell" || id === "triad" ? 9 : 7.5,
       auto: true,
     })),
-    { id: "cenotaph", pos: new THREE.Vector3(0, CEN_Y, 0), radius: CEN_R + 1.4, auto: false },
+    { id: "cenotaph", pos: new THREE.Vector3(0, 7, 2), radius: 27, auto: false },
   ];
 
   function setNdc(clientX: number, clientY: number) {
@@ -1280,7 +1088,29 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       radiusT = 46;
       pitchT = 1.05;
     },
+    setCenotaphVariant: (variant) => {
+      cenotaph.apply(variant);
+    },
   };
+
+  const frameStudy = (mode: "home" | "near") => {
+    inside = false;
+    selected = null;
+    yawT = yaw + angDelta(yaw, HOME_YAW);
+    radiusT = mode === "near" ? 58 : HOME_R;
+    pitchT = mode === "near" ? 0.68 : HOME_P;
+  };
+
+  if (import.meta.env.DEV) {
+    (window as Window & { __atlasStudy?: unknown }).__atlasStudy = {
+      setVariant: (variant: CenotaphVariant) => cenotaph.apply(variant === "b" || variant === "c" ? variant : "a"),
+      frame: frameStudy,
+      shot: (on: boolean) => {
+        if (on) document.documentElement.dataset.iaShot = "1";
+        else delete document.documentElement.dataset.iaShot;
+      },
+    };
+  }
 
   const resize = () => {
     const w = Math.max(1, canvas.clientWidth);
@@ -1328,7 +1158,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       radius = Math.max(radius, R_CEN_MIN);
     }
 
-    mineral.uniforms.uDetail.value = 1 - smoothstep(14, 72, camera.position.distanceTo(interiorFocus));
+    cenotaph.uniforms.uDetail.value = 1 - smoothstep(14, 72, camera.position.distanceTo(interiorFocus));
     interior.uniforms.uMeridian.value = inside ? 0.15 + 0.85 * Math.abs(Math.sin(yaw)) : 0.08;
 
     if (!reduced) {
@@ -1372,6 +1202,10 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   return {
     api,
     dispose: () => {
+      if (import.meta.env.DEV) {
+        delete (window as Window & { __atlasStudy?: unknown }).__atlasStudy;
+        delete document.documentElement.dataset.iaShot;
+      }
       renderer.setAnimationLoop(null);
       ro.disconnect();
       canvas.removeEventListener("pointerdown", onPointerDown);

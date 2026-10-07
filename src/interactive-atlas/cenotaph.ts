@@ -1,0 +1,458 @@
+import * as THREE from "three";
+
+export type CenotaphVariant = "a" | "b" | "c";
+
+type Shared = {
+  uVariant: { value: number };
+  uDetail: { value: number };
+  uLift: { value: number };
+};
+
+const DRUM_R = 14.7;
+const DRUM_BASE = 4.55;
+const DRUM_TOP = 11.15;
+const ARCH_R = 6.15;
+const GAP = 2 * Math.asin(ARCH_R / DRUM_R);
+const TERRACE_GAP = 1.12;
+
+function makeStone(octaves: number, shared: Shared, masonry: number) {
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.88,
+    metalness: 0.03,
+  });
+  mat.fog = false;
+  mat.side = masonry > 0 ? THREE.DoubleSide : THREE.FrontSide;
+  if (masonry > 0) {
+    mat.polygonOffset = true;
+    mat.polygonOffsetFactor = 1;
+    mat.polygonOffsetUnits = 1;
+  }
+  mat.customProgramCacheKey = () => `cenotaph-stone-v2-${octaves}`;
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uVariant = shared.uVariant;
+    shader.uniforms.uDetail = shared.uDetail;
+    shader.uniforms.uLift = shared.uLift;
+    shader.uniforms.uMasonry = { value: masonry };
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\nvarying vec3 vWorldN;\nvarying vec3 vWorldP;")
+      .replace(
+        "#include <begin_vertex>",
+        `#include <begin_vertex>
+vWorldN = normalize(mat3(modelMatrix) * normal);
+vWorldP = (modelMatrix * vec4(position, 1.0)).xyz;`,
+      );
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        "#include <common>",
+        `#include <common>
+varying vec3 vWorldN;
+varying vec3 vWorldP;
+uniform float uVariant;
+uniform float uDetail;
+uniform float uLift;
+uniform float uMasonry;
+float cHash(vec3 p){
+  p = fract(p * 0.1031);
+  p += dot(p, p.yzx + 33.33);
+  return fract((p.x + p.y) * p.z);
+}
+float cNoise(vec3 x){
+  vec3 i = floor(x);
+  vec3 f = fract(x);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(mix(cHash(i), cHash(i+vec3(1.0,0.0,0.0)), f.x),
+        mix(cHash(i+vec3(0.0,1.0,0.0)), cHash(i+vec3(1.0,1.0,0.0)), f.x), f.y),
+    mix(mix(cHash(i+vec3(0.0,0.0,1.0)), cHash(i+vec3(1.0,0.0,1.0)), f.x),
+        mix(cHash(i+vec3(0.0,1.0,1.0)), cHash(i+vec3(1.0,1.0,1.0)), f.x), f.y),
+    f.z);
+}
+float cFbm(vec3 p){
+  float a = 0.55;
+  float s = 0.0;
+  for (int i = 0; i < ${octaves}; i++) {
+    s += a * cNoise(p);
+    p = p * 2.04 + vec3(1.7, 4.1, 2.2);
+    a *= 0.5;
+  }
+  return s;
+}
+`,
+      )
+      .replace(
+        "#include <color_fragment>",
+        `#include <color_fragment>
+{
+  float grit = cFbm(vWorldP * 0.28);
+  float speckle = cFbm(vWorldN * 5.5 + vWorldP * 0.8);
+  float reveal = clamp(uDetail, 0.0, 1.0);
+  vec3 albedo;
+  if (uVariant < 0.5) {
+    vec3 stone = mix(vec3(0.70, 0.62, 0.48), vec3(0.80, 0.72, 0.56), uMasonry);
+    albedo = stone * (0.88 + 0.18 * grit) * (0.93 + 0.09 * speckle);
+    if (uMasonry > 0.5) {
+      float course = smoothstep(0.055, 0.0, abs(fract(vWorldP.y * 0.9) - 0.5) - 0.4);
+      albedo *= 1.0 - course * 0.15;
+    }
+  } else if (uVariant < 1.5) {
+    vec3 ivory = vec3(0.84, 0.80, 0.72);
+    float field = cFbm(vWorldP * 0.16 + vWorldN * 1.35);
+    float vein = smoothstep(0.07, 0.0, abs(field - 0.52));
+    float broad = smoothstep(0.62, 0.86, cFbm(vWorldP * 0.07 + vWorldN * 0.8));
+    float fine = smoothstep(0.06, 0.0, abs(cFbm(vWorldN * 4.8 + vWorldP * 0.55) - 0.48));
+    albedo = ivory * (0.93 + 0.1 * grit);
+    albedo = mix(albedo, vec3(0.08, 0.24, 0.55), broad * 0.14 + vein * (0.22 + reveal * 0.5) + fine * reveal * 0.35);
+  } else {
+    vec3 charcoal = vec3(0.20, 0.19, 0.175);
+    float seam = smoothstep(0.66, 0.9, cFbm(vWorldN * 2.4 + vWorldP * 0.1));
+    albedo = charcoal * (0.55 + 0.9 * grit) * (0.78 + 0.4 * speckle);
+    albedo = mix(albedo, vec3(0.34, 0.38, 0.42), seam * (0.22 + reveal * 0.28));
+    if (uMasonry > 0.5) {
+      float course = smoothstep(0.05, 0.0, abs(fract(vWorldP.y * 0.9) - 0.5) - 0.4);
+      albedo *= 1.0 - course * 0.24;
+    }
+  }
+  float haze = smoothstep(52.0, 145.0, distance(cameraPosition, vWorldP));
+  albedo = mix(albedo, vec3(0.04, 0.042, 0.05), haze * 0.58);
+  diffuseColor.rgb = albedo;
+}
+`,
+      )
+      .replace(
+        "#include <roughnessmap_fragment>",
+        `#include <roughnessmap_fragment>
+roughnessFactor = clamp(roughnessFactor + (cFbm(vWorldP * 0.55) - 0.5) * 0.22, 0.28, 1.0);`,
+      )
+      .replace(
+        "#include <lights_fragment_end>",
+        `#include <lights_fragment_end>
+{
+  vec3 wN = normalize(vWorldN);
+  float belly = clamp(-wN.y, 0.0, 1.0);
+  float wall = (1.0 - smoothstep(-0.15, 0.75, wN.y)) * clamp(1.2 - vWorldP.y / 24.0, 0.0, 1.0);
+  reflectedLight.directDiffuse += vec3(1.0, 0.74, 0.42) * (belly * 0.22 + wall * 0.14) * uLift;
+}
+`,
+      );
+  };
+  return mat;
+}
+
+function initialVariant(): CenotaphVariant {
+  if (!import.meta.env.DEV) return "a";
+  const q = new URLSearchParams(window.location.search).get("cenotaph");
+  return q === "b" || q === "c" ? q : "a";
+}
+
+export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
+  const cen = new THREE.Group();
+  const seg = coarse ? 36 : 64;
+  const shared: Shared = {
+    uVariant: { value: 0 },
+    uDetail: { value: 0 },
+    uLift: { value: 1 },
+  };
+  const sphereMat = makeStone(coarse ? 2 : 3, shared, 0);
+  const archMat = makeStone(coarse ? 2 : 3, shared, 1);
+  const jointMat = new THREE.MeshStandardMaterial({ color: 0x3a332c, roughness: 1, metalness: 0 });
+  jointMat.fog = false;
+  const voidMat = new THREE.MeshStandardMaterial({ color: 0x07080b, roughness: 1, metalness: 0 });
+  voidMat.fog = false;
+  const cypressMat = new THREE.MeshStandardMaterial({ color: 0x1a2216, roughness: 0.88, metalness: 0.02 });
+  cypressMat.fog = false;
+  const figureMat = new THREE.MeshStandardMaterial({ color: 0x12110e, roughness: 0.74, metalness: 0.04 });
+  figureMat.fog = false;
+  const lampMat = new THREE.MeshStandardMaterial({
+    color: 0x2c261e,
+    emissive: 0xffe6c0,
+    emissiveIntensity: 0.28,
+    roughness: 0.42,
+  });
+  lampMat.fog = false;
+  const gold = new THREE.MeshStandardMaterial({ color: 0xb89a6a, metalness: 0.84, roughness: 0.38 });
+  gold.fog = false;
+  gold.envMapIntensity = 0.55;
+
+  const sphere = new THREE.Mesh(
+    new THREE.SphereGeometry(cenR, coarse ? 36 : 56, coarse ? 24 : 40),
+    sphereMat,
+  );
+  sphere.position.y = cenY;
+  cen.add(sphere);
+
+  const terraces: Array<[number, number, number]> = [
+    [28, 0, 0.82],
+    [24, 0.98, 1.95],
+    [20.2, 2.12, 3.25],
+    [17.15, 3.42, DRUM_BASE],
+  ];
+  for (const [radius, y0, y1] of terraces) {
+    const h = y1 - y0;
+    const drum = new THREE.Mesh(
+      new THREE.CylinderGeometry(radius, radius * 1.012, h, seg, 1, false, TERRACE_GAP / 2, Math.PI * 2 - TERRACE_GAP),
+      archMat,
+    );
+    drum.position.y = (y0 + y1) / 2;
+    cen.add(drum);
+  }
+
+  const wallH = DRUM_TOP - DRUM_BASE;
+  const wall = new THREE.Mesh(
+    new THREE.CylinderGeometry(DRUM_R, DRUM_R, wallH, coarse ? 40 : 72, 1, true, GAP / 2, Math.PI * 2 - GAP),
+    archMat,
+  );
+  wall.position.y = (DRUM_TOP + DRUM_BASE) / 2;
+  cen.add(wall);
+
+  const sillH = 2.25;
+  const sill = new THREE.Mesh(
+    new THREE.CylinderGeometry(DRUM_R - 0.04, DRUM_R - 0.04, sillH, 14, 1, true, -GAP / 2, GAP),
+    archMat,
+  );
+  sill.position.y = DRUM_BASE + sillH / 2;
+  cen.add(sill);
+
+  const cap = new THREE.Mesh(
+    new THREE.CylinderGeometry(16.25, 14.95, 0.42, seg, 1, false, GAP / 2, Math.PI * 2 - GAP),
+    archMat,
+  );
+  cap.position.y = DRUM_TOP + 0.14;
+  cen.add(cap);
+
+  const door = new THREE.Mesh(new THREE.BoxGeometry(1.28, 2.16, 0.55), voidMat);
+  door.position.set(0, DRUM_BASE + 1.08, DRUM_R + 0.12);
+  cen.add(door);
+  const doorArch = new THREE.Mesh(new THREE.TorusGeometry(0.66, 0.045, 6, 24, Math.PI), archMat);
+  doorArch.position.set(0, DRUM_BASE + 2.05, DRUM_R + 0.28);
+  cen.add(doorArch);
+
+  for (const side of [-1, 1]) {
+    const pier = new THREE.Mesh(new THREE.BoxGeometry(0.28, 3.7, 0.36), archMat);
+    pier.position.set(side * 1.35, DRUM_BASE + 1.85, DRUM_R + 0.28);
+    cen.add(pier);
+  }
+
+  const fittings: THREE.Mesh[] = [doorArch];
+  const steps = 18;
+  const z0 = 35.2;
+  const z1 = 17.35;
+  const y1 = DRUM_BASE;
+  const stairW = 13.2;
+  for (let i = 0; i < steps; i++) {
+    const t = i / (steps - 1);
+    const z = z0 + (z1 - z0) * t;
+    const y = 0.1 + (y1 - 0.1) * t;
+    const depth = (z0 - z1) / (steps - 1) + 0.16;
+    const step = new THREE.Mesh(new THREE.BoxGeometry(stairW, 0.2, depth), archMat);
+    step.position.set(0, y, z);
+    cen.add(step);
+    if (i % 3 === 0) {
+      for (const side of [-1, 1]) {
+        const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), lampMat);
+        lamp.position.set(side * (stairW * 0.5 + 0.15), y + 0.28, z);
+        cen.add(lamp);
+      }
+    }
+  }
+
+  const railLen = Math.hypot(z0 - z1, y1);
+  const railAng = Math.atan2(y1, z0 - z1);
+  for (const side of [-1, 1]) {
+    const cheek = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.62, railLen), archMat);
+    cheek.position.set(side * (stairW * 0.5 + 0.05), y1 * 0.5 + 0.42, (z0 + z1) / 2);
+    cheek.rotation.x = railAng;
+    cen.add(cheek);
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.055, railLen), archMat);
+    rail.position.set(side * (stairW * 0.5 + 0.05), y1 * 0.5 + 0.82, (z0 + z1) / 2);
+    rail.rotation.x = railAng;
+    cen.add(rail);
+    fittings.push(rail);
+  }
+
+  const dummy = new THREE.Object3D();
+  const plant = (count: number, radius: number, y: number, height: number, skip: number) => {
+    const mesh = new THREE.InstancedMesh(new THREE.ConeGeometry(height * 0.1, height, 5), cypressMat, count);
+    let n = 0;
+    for (let i = 0; i < count; i++) {
+      const a = (i / count) * Math.PI * 2;
+      if (skip > 0 && Math.abs(a - Math.PI / 2) < skip) continue;
+      dummy.position.set(Math.cos(a) * radius, y + height * 0.5, Math.sin(a) * radius);
+      dummy.rotation.set(0, 0, 0);
+      dummy.scale.set(1, 1, 1);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(n++, dummy.matrix);
+    }
+    mesh.count = n;
+    mesh.instanceMatrix.needsUpdate = true;
+    cen.add(mesh);
+  };
+  plant(coarse ? 28 : 42, 15.65, DRUM_TOP + 0.38, 2.45, GAP * 0.62);
+  plant(coarse ? 24 : 36, 18.7, 3.32, 1.9, TERRACE_GAP * 0.48);
+  plant(coarse ? 32 : 48, 26.1, 0.88, 1.7, TERRACE_GAP * 0.46);
+
+  const pierCount = coarse ? 16 : 24;
+  const pierGeo = new THREE.BoxGeometry(0.2, 4.6, 0.28);
+  const piers = new THREE.InstancedMesh(pierGeo, archMat, pierCount);
+  let pierN = 0;
+  for (let i = 0; i < pierCount; i++) {
+    const a = (i / pierCount) * Math.PI * 2;
+    if (Math.abs(a - Math.PI / 2) < GAP * 0.65) continue;
+    dummy.position.set(Math.cos(a) * (DRUM_R + 0.18), DRUM_BASE + 2.3, Math.sin(a) * (DRUM_R + 0.18));
+    dummy.rotation.set(0, -a, 0);
+    dummy.scale.set(1, 1, 1);
+    dummy.updateMatrix();
+    piers.setMatrixAt(pierN++, dummy.matrix);
+  }
+  piers.count = pierN;
+  piers.instanceMatrix.needsUpdate = true;
+  cen.add(piers);
+
+  const postGeo = new THREE.CylinderGeometry(0.035, 0.045, 0.72, 5);
+  const posts = new THREE.InstancedMesh(postGeo, archMat, coarse ? 28 : 42);
+  const postCount = coarse ? 28 : 42;
+  let postN = 0;
+  for (let i = 0; i < postCount; i++) {
+    const a = (i / postCount) * Math.PI * 2;
+    if (Math.abs(a - Math.PI / 2) < TERRACE_GAP * 0.42) continue;
+    dummy.position.set(Math.cos(a) * 27.15, 1.2, Math.sin(a) * 27.15);
+    dummy.rotation.set(0, 0, 0);
+    dummy.scale.set(1, 1, 1);
+    dummy.updateMatrix();
+    posts.setMatrixAt(postN++, dummy.matrix);
+  }
+  posts.count = postN;
+  posts.instanceMatrix.needsUpdate = true;
+  cen.add(posts);
+
+  const placeVisitor = (x: number, t: number) => {
+    const z = z0 + (z1 - z0) * t;
+    const y = 0.08 + (y1 - 0.08) * t;
+    const g = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 0.7, 3, 6), figureMat);
+    body.position.y = 0.62;
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), figureMat);
+    head.position.y = 1.2;
+    g.add(body, head);
+    g.scale.setScalar(1.12);
+    g.position.set(x, y, z);
+    cen.add(g);
+  };
+  placeVisitor(-1.8, 0.28);
+  placeVisitor(1.35, 0.55);
+  placeVisitor(-0.4, 0.82);
+  placeVisitor(2.1, 0.96);
+
+  const spots: THREE.SpotLight[] = [];
+  const rig: Array<[number, number, number, number, number, number, number]> = [
+    [0, 0.7, 36.5, 0, 8.2, 12, 1.2],
+    [-20, 1.3, 18, -2, 9, 2, 0.85],
+    [18, 1.4, 14, 2, 9, 0, 0.85],
+    [2, 1.6, -26, 0, 8, -4, 0.65],
+  ];
+  for (const [x, y, z, tx, ty, tz, bias] of rig) {
+    const spot = new THREE.SpotLight(0xfff1d4, 40, 72, 0.72, 0.55, 2);
+    spot.position.set(x, y, z);
+    spot.target.position.set(tx, ty, tz);
+    spot.userData.bias = bias;
+    cen.add(spot, spot.target);
+    spots.push(spot);
+    const fixture = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), lampMat);
+    fixture.position.set(x, y, z);
+    cen.add(fixture);
+  }
+  const niche = new THREE.PointLight(0xfff3dc, 8, 12, 2);
+  niche.position.set(0, 8.3, 13.6);
+  cen.add(niche);
+  const doorLamp = new THREE.PointLight(0xfff6e8, 4, 7, 2);
+  doorLamp.position.set(0, DRUM_BASE + 1.5, DRUM_R + 0.8);
+  cen.add(doorLamp);
+
+  const presets: Record<
+    CenotaphVariant,
+    {
+      variant: number;
+      lift: number;
+      roughS: number;
+      roughA: number;
+      env: number;
+      spot: number;
+      niche: number;
+      door: number;
+      light: number;
+      cypress: number;
+      joint: number;
+      lamp: number;
+    }
+  > = {
+    a: {
+      variant: 0,
+      lift: 1.05,
+      roughS: 0.92,
+      roughA: 0.86,
+      env: 0.22,
+      spot: 90,
+      niche: 4,
+      door: 2.2,
+      light: 0xffe7c4,
+      cypress: 0x1a2216,
+      joint: 0x4a4036,
+      lamp: 0.22,
+    },
+    b: {
+      variant: 1,
+      lift: 0.72,
+      roughS: 0.62,
+      roughA: 0.56,
+      env: 0.3,
+      spot: 70,
+      niche: 3,
+      door: 1.6,
+      light: 0xfff2dc,
+      cypress: 0x1c2820,
+      joint: 0x6d6258,
+      lamp: 0.18,
+    },
+    c: {
+      variant: 2,
+      lift: 1.45,
+      roughS: 0.88,
+      roughA: 0.84,
+      env: 0.14,
+      spot: 160,
+      niche: 8,
+      door: 3.5,
+      light: 0xffd7a4,
+      cypress: 0x101410,
+      joint: 0x161412,
+      lamp: 0.28,
+    },
+  };
+
+  function apply(variant: CenotaphVariant) {
+    const p = presets[variant];
+    shared.uVariant.value = p.variant;
+    shared.uLift.value = p.lift;
+    sphereMat.roughness = p.roughS;
+    archMat.roughness = p.roughA;
+    sphereMat.envMapIntensity = p.env;
+    archMat.envMapIntensity = p.env;
+    jointMat.color.setHex(p.joint);
+    cypressMat.color.setHex(p.cypress);
+    lampMat.emissiveIntensity = p.lamp;
+    for (const spot of spots) {
+      spot.color.setHex(p.light);
+      spot.intensity = p.spot * (spot.userData.bias as number);
+    }
+    niche.color.setHex(p.light);
+    niche.intensity = p.niche;
+    doorLamp.color.setHex(p.light);
+    doorLamp.intensity = p.door;
+    const fit = variant === "b" ? gold : archMat;
+    for (const mesh of fittings) mesh.material = fit;
+  }
+
+  apply(initialVariant());
+
+  return { group: cen, uniforms: shared, apply };
+}
