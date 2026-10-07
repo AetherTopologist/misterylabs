@@ -397,6 +397,11 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   observer.position.y = CEN_Y;
   cenotaph.group.add(observer);
   scene.add(cenotaph.group);
+  void cenotaph.ready.then((reg) => {
+    cavity.position.copy(reg.center);
+    observer.position.y = reg.center.y;
+    interiorFocus.copy(reg.center);
+  });
 
   let setReference: ((mode: "ours" | "ref" | "overlay") => void) | null = null;
   if (import.meta.env.DEV) {

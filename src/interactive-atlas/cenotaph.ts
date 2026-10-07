@@ -141,7 +141,6 @@ function initialVariant(): CenotaphVariant {
 
 export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
   const cen = new THREE.Group();
-  const seg = coarse ? 36 : 64;
   const shared: Shared = {
     uVariant: { value: 0 },
     uDetail: { value: 0 },
@@ -149,14 +148,6 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
   };
   const sphereMat = makeStone(coarse ? 2 : 3, shared, 0);
   const archMat = makeStone(coarse ? 2 : 3, shared, 1);
-  const jointMat = new THREE.MeshStandardMaterial({ color: 0x3a332c, roughness: 1, metalness: 0 });
-  jointMat.fog = false;
-  const voidMat = new THREE.MeshStandardMaterial({ color: 0x07080b, roughness: 1, metalness: 0 });
-  voidMat.fog = false;
-  const cypressMat = new THREE.MeshStandardMaterial({ color: 0x1a2216, roughness: 0.88, metalness: 0.02 });
-  cypressMat.fog = false;
-  const figureMat = new THREE.MeshStandardMaterial({ color: 0x12110e, roughness: 0.74, metalness: 0.04 });
-  figureMat.fog = false;
   const lampMat = new THREE.MeshStandardMaterial({
     color: 0x2c261e,
     emissive: 0xffe6c0,
@@ -167,153 +158,39 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
   const gold = new THREE.MeshStandardMaterial({ color: 0xb89a6a, metalness: 0.84, roughness: 0.38 });
   gold.fog = false;
   gold.envMapIntensity = 0.55;
+  const figureMat = new THREE.MeshStandardMaterial({ color: 0x12110e, roughness: 0.74, metalness: 0.04 });
+  figureMat.fog = false;
+  const neutral = new THREE.MeshStandardMaterial({ color: 0xc8c2b6, roughness: 0.9, metalness: 0 });
+  neutral.fog = false;
+  neutral.side = THREE.DoubleSide;
 
-  const sr = cenR;
-  const eq = cenY;
-  // Proportions measured from the Javier Martin Macias cenotaph DAE.
-  // Sphere radius = 1. Equator is 0.94 above the ground. Lengths are in sphere radii.
-  const drumR = sr * 1.18;
-  const midR = sr * 1.6;
-  const outerR = sr * 2.07;
-  const drumTop = sr * 0.9;
-  const midTop = sr * 0.62;
+  const diagnostic =
+    import.meta.env.DEV && new URLSearchParams(window.location.search).get("cenotaph") === "diag";
 
-  const sphere = new THREE.Mesh(
-    new THREE.SphereGeometry(sr, coarse ? 40 : 64, coarse ? 28 : 48),
-    sphereMat,
-  );
-  sphere.position.y = eq;
-  cen.add(sphere);
+  const holder = new THREE.Group();
+  cen.add(holder);
+  const fittings: THREE.Mesh[] = [];
 
-  const tiers: Array<[number, number, number]> = [
-    [outerR, 0, sr * 0.055],
-    [sr * 1.96, sr * 0.055, sr * 0.11],
-    [sr * 1.86, sr * 0.11, sr * 0.16],
-    [midR, sr * 0.16, midTop],
-    [drumR, midTop, drumTop],
-  ];
-  // Rear circulation only. Two narrow slots in the lower middle ring,
-  // 140°–162° and 198°–220° from the front. The pier between them stays.
-  // Upper ring and every outer ring stay closed.
-  const slotA0 = (140 * Math.PI) / 180;
-  const slotA1 = (162 * Math.PI) / 180;
-  const slotB0 = (198 * Math.PI) / 180;
-  const slotB1 = (220 * Math.PI) / 180;
-  const lip0 = (150 * Math.PI) / 180;
-  const lip1 = (210 * Math.PI) / 180;
-  const addRing = (radius: number, y0: number, y1: number, thetaStart: number, thetaLength: number) => {
-    const h = y1 - y0;
-    const ring = new THREE.Mesh(
-      new THREE.CylinderGeometry(radius, radius + 0.08, h, seg, 1, false, thetaStart, thetaLength),
-      archMat,
-    );
-    ring.position.y = (y0 + y1) / 2;
-    cen.add(ring);
-  };
-  for (const [radius, y0, y1] of tiers) {
-    if (radius !== midR) {
-      addRing(radius, y0, y1, 0, Math.PI * 2);
-      continue;
-    }
-    const split = sr * 0.4;
-    addRing(radius, split, y1, 0, Math.PI * 2);
-    addRing(radius, y0, split, slotB1, Math.PI * 2 - (slotB1 - slotA0));
-    addRing(radius, y0, split, slotA1, slotB0 - slotA1);
-  }
-
-  const cornice = new THREE.Mesh(
-    new THREE.CylinderGeometry(sr * 1.64, midR, sr * 0.045, seg, 1, false, lip1, Math.PI * 2 - (lip1 - lip0)),
-    archMat,
-  );
-  cornice.position.y = midTop - sr * 0.02;
-  cen.add(cornice);
-
-  // Treads measured from the DAE: radius 1.545, rising only to 0.42.
-  // They fill the slots instead of sitting on the rings.
-  const addFlight = (deg0: number, deg1: number, h0: number, h1: number, steps: number) => {
-    const rad = sr * 1.56;
-    const width = sr * 0.16;
-    for (let i = 0; i < steps; i++) {
-      const t0 = i / steps;
-      const t1 = (i + 1) / steps;
-      const a = ((deg0 + (deg1 - deg0) * (t0 + t1) * 0.5) * Math.PI) / 180;
-      const yBot = sr * (h0 + (h1 - h0) * t0);
-      const yTop = sr * (h0 + (h1 - h0) * t1);
-      const aA = ((deg0 + (deg1 - deg0) * t0) * Math.PI) / 180;
-      const aB = ((deg0 + (deg1 - deg0) * t1) * Math.PI) / 180;
-      const chord =
-        Math.hypot(Math.sin(aB) * rad - Math.sin(aA) * rad, Math.cos(aB) * rad - Math.cos(aA) * rad) + 0.1;
-      const box = new THREE.Mesh(new THREE.BoxGeometry(chord, Math.max(0.2, yTop - yBot + 0.04), width), archMat);
-      box.position.set(Math.sin(a) * rad, (yBot + yTop) * 0.5, Math.cos(a) * rad);
-      box.rotation.y = a;
-      cen.add(box);
-    }
-  };
-  addFlight(141, 161, 0.4, 0.16, coarse ? 5 : 7);
-  addFlight(199, 219, 0.16, 0.4, coarse ? 5 : 7);
-
-  const collar = new THREE.Mesh(new THREE.RingGeometry(sr * 0.96, drumR + 0.35, coarse ? 48 : 80), archMat);
-  collar.rotation.x = -Math.PI / 2;
-  collar.position.y = drumTop + 0.04;
-  cen.add(collar);
-  const lip = new THREE.Mesh(new THREE.TorusGeometry(drumR + 0.06, 0.07, 6, seg), jointMat);
-  lip.rotation.x = Math.PI / 2;
-  lip.position.y = drumTop;
-  cen.add(lip);
-
-  const door = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.78, 0.24), voidMat);
-  door.position.set(0, midTop + 0.62, drumR + 0.22);
-  cen.add(door);
-  const doorArch = new THREE.Mesh(new THREE.TorusGeometry(0.25, 0.024, 6, 14, Math.PI), archMat);
-  doorArch.position.set(0, door.position.y + 0.38, drumR + 0.38);
-  cen.add(doorArch);
-  const fittings: THREE.Mesh[] = [doorArch];
-
-  const dummy = new THREE.Object3D();
-  const plant = (count: number, radius: number, y: number, height: number) => {
-    const mesh = new THREE.InstancedMesh(new THREE.ConeGeometry(Math.min(0.34, height * 0.16), height, 6), cypressMat, count);
-    mesh.frustumCulled = false;
-    let n = 0;
-    for (let i = 0; i < count; i++) {
-      const a = (i / count) * Math.PI * 2;
-      const inSlot =
-        ((a > slotA0 && a < slotA1) || (a > slotB0 && a < slotB1)) && radius > drumR && radius < midR + 1;
-      if (inSlot) continue;
-      dummy.position.set(Math.sin(a) * radius, y + height * 0.5, Math.cos(a) * radius);
-      dummy.rotation.set(0, -a, 0);
-      dummy.scale.set(1, 0.86 + ((i * 13) % 5) * 0.05, 1);
-      dummy.updateMatrix();
-      mesh.setMatrixAt(n++, dummy.matrix);
-    }
-    mesh.count = Math.max(1, n);
-    mesh.instanceMatrix.needsUpdate = true;
-    cen.add(mesh);
-  };
-  plant(coarse ? 180 : 380, sr * 1.06, drumTop, sr * 0.13);
-  plant(coarse ? 150 : 320, sr * 1.14, drumTop, sr * 0.1);
-  plant(coarse ? 160 : 340, midR + 0.15, midTop, sr * 0.11);
-  plant(coarse ? 140 : 300, sr * 1.9, sr * 0.11, sr * 0.09);
-  plant(coarse ? 120 : 260, outerR - 0.2, sr * 0.055, sr * 0.08);
-
-  const person = (x: number, y: number, z: number) => {
+  const person = (x: number, z: number) => {
     const g = new THREE.Group();
     const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 0.36, 2, 4), figureMat);
     body.position.y = 0.3;
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 4), figureMat);
     head.position.y = 0.58;
     g.add(body, head);
-    g.position.set(x, y, z);
+    g.position.set(x, 0, z);
+    g.userData.drop = [x, z];
     cen.add(g);
+    return g;
   };
-  person(-8.5, sr * 0.16, 26);
-  person(Math.sin(3.55) * sr * 1.5, sr * 0.3, Math.cos(3.55) * sr * 1.5);
+  const people = [person(-7.5, 22), person(4.2, 16)];
 
   const spots: THREE.SpotLight[] = [];
   const rig: Array<[number, number, number, number, number, number, number]> = [
-    [0, 1.4, 42, 0, eq * 0.9, 8, 1.25],
-    [-30, 2.6, 26, -6, eq * 0.85, 4, 0.9],
-    [28, 2.5, 22, 5, eq * 0.85, 3, 0.9],
-    [0, 2.6, -40, 0, eq * 0.8, -6, 0.7],
+    [0, 1.4, 42, 0, 12, 8, 1.25],
+    [-30, 2.6, 26, -6, 12, 4, 0.9],
+    [28, 2.5, 22, 5, 12, 3, 0.9],
+    [0, 2.6, -40, 0, 12, -6, 0.7],
   ];
   for (const [x, y, z, tx, ty, tz, bias] of rig) {
     const spot = new THREE.SpotLight(0xfff1d4, 40, 90, 0.78, 0.5, 2);
@@ -327,10 +204,10 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
     cen.add(fixture);
   }
   const niche = new THREE.PointLight(0xfff3dc, 8, 14, 2);
-  niche.position.set(0, door.position.y + 0.8, drumR + 1.2);
+  niche.position.set(0, 6.2, 20);
   cen.add(niche);
   const doorLamp = new THREE.PointLight(0xfff6e8, 4, 8, 2);
-  doorLamp.position.set(0, door.position.y + 0.2, drumR + 0.9);
+  doorLamp.position.set(0, 4.4, 18);
   cen.add(doorLamp);
 
   const presets: Record<
@@ -345,53 +222,12 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
       niche: number;
       door: number;
       light: number;
-      cypress: number;
-      joint: number;
       lamp: number;
     }
   > = {
-    a: {
-      variant: 0,
-      lift: 1.05,
-      roughS: 0.92,
-      roughA: 0.86,
-      env: 0.22,
-      spot: 90,
-      niche: 4,
-      door: 2.2,
-      light: 0xffe7c4,
-      cypress: 0x1a2216,
-      joint: 0x4a4036,
-      lamp: 0.22,
-    },
-    b: {
-      variant: 1,
-      lift: 0.72,
-      roughS: 0.62,
-      roughA: 0.56,
-      env: 0.3,
-      spot: 70,
-      niche: 3,
-      door: 1.6,
-      light: 0xfff2dc,
-      cypress: 0x1c2820,
-      joint: 0x6d6258,
-      lamp: 0.18,
-    },
-    c: {
-      variant: 2,
-      lift: 1.45,
-      roughS: 0.88,
-      roughA: 0.84,
-      env: 0.14,
-      spot: 160,
-      niche: 8,
-      door: 3.5,
-      light: 0xffd7a4,
-      cypress: 0x101410,
-      joint: 0x161412,
-      lamp: 0.28,
-    },
+    a: { variant: 0, lift: 1.05, roughS: 0.92, roughA: 0.86, env: 0.22, spot: 90, niche: 4, door: 2.2, light: 0xffe7c4, lamp: 0.22 },
+    b: { variant: 1, lift: 0.72, roughS: 0.62, roughA: 0.56, env: 0.3, spot: 70, niche: 3, door: 1.6, light: 0xfff2dc, lamp: 0.18 },
+    c: { variant: 2, lift: 1.45, roughS: 0.88, roughA: 0.84, env: 0.14, spot: 160, niche: 8, door: 3.5, light: 0xffd7a4, lamp: 0.28 },
   };
 
   function apply(variant: CenotaphVariant) {
@@ -402,8 +238,6 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
     archMat.roughness = p.roughA;
     sphereMat.envMapIntensity = p.env;
     archMat.envMapIntensity = p.env;
-    jointMat.color.setHex(p.joint);
-    cypressMat.color.setHex(p.cypress);
     lampMat.emissiveIntensity = p.lamp;
     for (const spot of spots) {
       spot.color.setHex(p.light);
@@ -419,5 +253,130 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
 
   apply(initialVariant());
 
-  return { group: cen, uniforms: shared, apply };
+  const ready = loadArchitecture({
+    holder,
+    cenR,
+    cenY,
+    diagnostic,
+    neutral,
+    sphereMat,
+    archMat,
+    people,
+  });
+
+  return { group: cen, uniforms: shared, apply, ready };
+}
+
+type LoadOpts = {
+  holder: THREE.Group;
+  cenR: number;
+  cenY: number;
+  diagnostic: boolean;
+  neutral: THREE.Material;
+  sphereMat: THREE.Material;
+  archMat: THREE.Material;
+  people: THREE.Object3D[];
+};
+
+function solveSphere(pts: Array<[number, number, number]>) {
+  const ata = [
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+  ];
+  const atb = [0, 0, 0, 0];
+  for (const [x, y, z] of pts) {
+    const row = [x, y, z, 1];
+    const b = -(x * x + y * y + z * z);
+    for (let i = 0; i < 4; i++) {
+      atb[i] += row[i] * b;
+      for (let j = 0; j < 4; j++) ata[i][j] += row[i] * row[j];
+    }
+  }
+  for (let col = 0; col < 4; col++) {
+    let pivot = col;
+    for (let r = col + 1; r < 4; r++) if (Math.abs(ata[r][col]) > Math.abs(ata[pivot][col])) pivot = r;
+    [ata[col], ata[pivot]] = [ata[pivot], ata[col]];
+    [atb[col], atb[pivot]] = [atb[pivot], atb[col]];
+    const div = ata[col][col] || 1e-12;
+    for (let j = col; j < 4; j++) ata[col][j] /= div;
+    atb[col] /= div;
+    for (let r = 0; r < 4; r++) {
+      if (r === col) continue;
+      const f = ata[r][col];
+      for (let j = col; j < 4; j++) ata[r][j] -= f * ata[col][j];
+      atb[r] -= f * atb[col];
+    }
+  }
+  const cx = -atb[0] / 2;
+  const cy = -atb[1] / 2;
+  const cz = -atb[2] / 2;
+  const r = Math.sqrt(Math.max(0, cx * cx + cy * cy + cz * cz - atb[3]));
+  return { cx, cy, cz, r };
+}
+
+async function loadArchitecture(opts: LoadOpts) {
+  const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js");
+  const gltf = await new GLTFLoader().loadAsync(new URL("./cenotaph.glb", import.meta.url).href);
+  const root = gltf.scene;
+  opts.holder.add(root);
+  root.updateMatrixWorld(true);
+
+  const sphereNode = root.getObjectByName("Unir");
+  const sample: Array<[number, number, number]> = [];
+  const v = new THREE.Vector3();
+  const take = (obj: THREE.Object3D) => {
+    const mesh = obj as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    const pos = mesh.geometry.getAttribute("position");
+    if (!pos) return;
+    const step = Math.max(1, Math.floor(pos.count / 900));
+    for (let i = 0; i < pos.count; i += step) {
+      v.fromBufferAttribute(pos as THREE.BufferAttribute, i).applyMatrix4(mesh.matrixWorld);
+      sample.push([v.x, v.y, v.z]);
+    }
+  };
+  if (sphereNode) sphereNode.traverse(take);
+  const fit = sample.length > 20 ? solveSphere(sample) : null;
+  const s = fit && fit.r > 1 ? opts.cenR / fit.r : 1;
+  const sketch = root.getObjectByName("SketchUp") ?? root;
+  const bounds = new THREE.Box3().setFromObject(sketch);
+  const minLocal = fit ? bounds.min.y - fit.cy : 0;
+  if (fit) {
+    root.position.set(-fit.cx, -fit.cy, -fit.cz);
+    opts.holder.scale.setScalar(s);
+    opts.holder.position.y = -minLocal * s;
+  } else {
+    opts.holder.position.y = opts.cenY;
+  }
+  // Portal mass in this file already faces +Z. Yaw stays 0 so the front stair meets the camera.
+  opts.holder.rotation.y = 0;
+  opts.holder.updateMatrixWorld(true);
+
+  const sphereMeshes = new Set<THREE.Object3D>();
+  sphereNode?.traverse((obj) => {
+    if ((obj as THREE.Mesh).isMesh) sphereMeshes.add(obj);
+  });
+  root.traverse((obj) => {
+    const mesh = obj as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    if (!mesh.geometry.getAttribute("normal")) mesh.geometry.computeVertexNormals();
+    mesh.material = opts.diagnostic ? opts.neutral : sphereMeshes.has(mesh) ? opts.sphereMat : opts.archMat;
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
+  });
+
+  const ray = new THREE.Raycaster();
+  const down = new THREE.Vector3(0, -1, 0);
+  for (const figure of opts.people) {
+    const drop = figure.userData.drop as [number, number] | undefined;
+    if (!drop) continue;
+    ray.set(new THREE.Vector3(drop[0], 14, drop[1]), down);
+    const hit = ray.intersectObject(opts.holder, true).find((h) => h.point.y >= 0 && h.point.y < 12);
+    if (hit) figure.position.set(hit.point.x, hit.point.y, hit.point.z);
+  }
+
+  const centerY = opts.holder.position.y;
+  return { center: new THREE.Vector3(0, centerY, 0), radius: opts.cenR };
 }
