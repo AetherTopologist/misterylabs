@@ -257,10 +257,10 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
     const stride = 7;
     for (let i = 0; i <= n; i++) {
       const t = i / n;
-      const a = side * (1.24 * (1 - t) + 0.27 * t);
-      const bow = Math.sin(Math.PI * t) * 0.85;
-      const rad = 24.8 * (1 - t) + (drumR + 2.1) * t + bow;
-      const walk = 2.15 * (1 - t) + (doorSill + 0.06) * t;
+      const a = side * (0.42 * (1 - t) + 1.55 * t);
+      const bow = Math.sin(Math.PI * t) * 0.35;
+      const rad = 23.6 * (1 - t) + 24.5 * t + bow;
+      const walk = 1.7 * (1 - t) + 7.2 * t;
       const base = Math.max(0.06, walk - 3.5);
       const sn = Math.sin(a);
       const cs = Math.cos(a);
@@ -318,7 +318,7 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
       let d = Math.abs(a - Math.PI / 2);
       if (d > Math.PI) d = Math.PI * 2 - d;
       if (avoid && d < stairGap * 0.58) continue;
-      if (avoid && radius > drumR - 0.4 && radius < 27.2 && d > 0.1 && d < 1.55) continue;
+      if (avoid && radius > drumR - 0.4 && radius < 27.2 && d > 0.32 && d < 1.68) continue;
       dummy.position.set(Math.cos(a) * radius, y + height * 0.5, Math.sin(a) * radius);
       dummy.rotation.set(0, a, 0);
       dummy.scale.set(1, 0.92 + ((i * 17) % 5) * 0.035, 1);
