@@ -21,7 +21,7 @@ function makeStone(octaves: number, shared: Shared, masonry: number) {
     mat.polygonOffsetFactor = 1;
     mat.polygonOffsetUnits = 1;
   }
-  mat.customProgramCacheKey = () => `cenotaph-stone-v2-${octaves}`;
+  mat.customProgramCacheKey = () => `cenotaph-stone-v3-${octaves}`;
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uVariant = shared.uVariant;
     shader.uniforms.uDetail = shared.uDetail;
@@ -106,7 +106,7 @@ float cFbm(vec3 p){
       albedo *= 1.0 - course * 0.24;
     }
   }
-  float haze = smoothstep(52.0, 145.0, distance(cameraPosition, vWorldP));
+  float haze = smoothstep(169.0, 471.0, distance(cameraPosition, vWorldP));
   albedo = mix(albedo, vec3(0.04, 0.042, 0.05), haze * 0.58);
   diffuseColor.rgb = albedo;
 }
@@ -123,7 +123,7 @@ roughnessFactor = clamp(roughnessFactor + (cFbm(vWorldP * 0.55) - 0.5) * 0.22, 0
 {
   vec3 wN = normalize(vWorldN);
   float belly = clamp(-wN.y, 0.0, 1.0);
-  float wall = (1.0 - smoothstep(-0.15, 0.75, wN.y)) * clamp(1.2 - vWorldP.y / 24.0, 0.0, 1.0);
+  float wall = (1.0 - smoothstep(-0.15, 0.75, wN.y)) * clamp(1.2 - vWorldP.y / 78.0, 0.0, 1.0);
   reflectedLight.directDiffuse += vec3(1.0, 0.74, 0.42) * (belly * 0.22 + wall * 0.14) * uLift;
 }
 `,
@@ -173,41 +173,41 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
 
   const person = (x: number, z: number) => {
     const g = new THREE.Group();
-    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 0.36, 2, 4), figureMat);
-    body.position.y = 0.3;
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 4), figureMat);
-    head.position.y = 0.58;
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.16, 0.7, 2, 4), figureMat);
+    body.position.y = 0.56;
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 6, 4), figureMat);
+    head.position.y = 1.08;
     g.add(body, head);
     g.position.set(x, 0, z);
     g.userData.drop = [x, z];
     cen.add(g);
     return g;
   };
-  const people = [person(-7.5, 22), person(4.2, 16)];
+  const people = [person(7.2, 116), person(-6.4, 104)];
 
   const spots: THREE.SpotLight[] = [];
   const rig: Array<[number, number, number, number, number, number, number]> = [
-    [0, 1.4, 42, 0, 12, 8, 1.25],
-    [-30, 2.6, 26, -6, 12, 4, 0.9],
-    [28, 2.5, 22, 5, 12, 3, 0.9],
-    [0, 2.6, -40, 0, 12, -6, 0.7],
+    [0, 8, 206, 0, 46, 48, 1.25],
+    [-206, 10, 48, -40, 44, 10, 0.9],
+    [200, 9, 36, 36, 44, 8, 0.9],
+    [0, 10, -206, 0, 46, -36, 0.7],
   ];
   for (const [x, y, z, tx, ty, tz, bias] of rig) {
-    const spot = new THREE.SpotLight(0xfff1d4, 40, 90, 0.78, 0.5, 2);
+    const spot = new THREE.SpotLight(0xfff1d4, 40, 340, 0.78, 0.5, 2);
     spot.position.set(x, y, z);
     spot.target.position.set(tx, ty, tz);
     spot.userData.bias = bias;
     cen.add(spot, spot.target);
     spots.push(spot);
-    const fixture = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 5), lampMat);
+    const fixture = new THREE.Mesh(new THREE.SphereGeometry(0.28, 6, 5), lampMat);
     fixture.position.set(x, y, z);
     cen.add(fixture);
   }
-  const niche = new THREE.PointLight(0xfff3dc, 8, 14, 2);
-  niche.position.set(0, 6.2, 20);
+  const niche = new THREE.PointLight(0xfff3dc, 8, 56, 2);
+  niche.position.set(0, 22, 128);
   cen.add(niche);
-  const doorLamp = new THREE.PointLight(0xfff6e8, 4, 8, 2);
-  doorLamp.position.set(0, 4.4, 18);
+  const doorLamp = new THREE.PointLight(0xfff6e8, 4, 36, 2);
+  doorLamp.position.set(0, 14, 158);
   cen.add(doorLamp);
 
   const presets: Record<
@@ -339,18 +339,17 @@ async function loadArchitecture(opts: LoadOpts) {
   };
   if (sphereNode) sphereNode.traverse(take);
   const fit = sample.length > 20 ? solveSphere(sample) : null;
-  const s = fit && fit.r > 1 ? opts.cenR / fit.r : 1;
   const sketch = root.getObjectByName("SketchUp") ?? root;
   const bounds = new THREE.Box3().setFromObject(sketch);
-  const minLocal = fit ? bounds.min.y - fit.cy : 0;
-  if (fit) {
+  if (fit && fit.r > 1) {
+    const minLocal = bounds.min.y - fit.cy;
     root.position.set(-fit.cx, -fit.cy, -fit.cz);
-    opts.holder.scale.setScalar(s);
-    opts.holder.position.y = -minLocal * s;
+    opts.holder.position.y = -minLocal;
   } else {
     opts.holder.position.y = opts.cenY;
   }
-  // Portal mass in this file already faces +Z. Yaw stays 0 so the front stair meets the camera.
+  // Loaded size. The file is not scaled down to the old cenotaph radius.
+  opts.holder.scale.setScalar(1);
   opts.holder.rotation.y = 0;
   opts.holder.updateMatrixWorld(true);
 
@@ -372,11 +371,18 @@ async function loadArchitecture(opts: LoadOpts) {
   for (const figure of opts.people) {
     const drop = figure.userData.drop as [number, number] | undefined;
     if (!drop) continue;
-    ray.set(new THREE.Vector3(drop[0], 14, drop[1]), down);
-    const hit = ray.intersectObject(opts.holder, true).find((h) => h.point.y >= 0 && h.point.y < 12);
+    ray.set(new THREE.Vector3(drop[0], 240, drop[1]), down);
+    const hit = ray.intersectObject(opts.holder, true).find((h) => h.point.y >= 0 && h.point.y < 48);
     if (hit) figure.position.set(hit.point.x, hit.point.y, hit.point.z);
   }
 
-  const centerY = opts.holder.position.y;
-  return { center: new THREE.Vector3(0, centerY, 0), radius: opts.cenR };
+  const seated = new THREE.Box3().setFromObject(opts.holder);
+  const outer = Math.max(
+    Math.hypot(seated.min.x, seated.min.z),
+    Math.hypot(seated.max.x, seated.min.z),
+    Math.hypot(seated.min.x, seated.max.z),
+    Math.hypot(seated.max.x, seated.max.z),
+  );
+  const radius = fit && fit.r > 1 ? fit.r : opts.cenR;
+  return { center: new THREE.Vector3(0, opts.holder.position.y, 0), radius, outer };
 }

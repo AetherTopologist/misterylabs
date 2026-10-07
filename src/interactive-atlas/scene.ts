@@ -18,14 +18,22 @@ function architectureHolds() {
   );
 }
 
-const HOME_R = 108;
+const HOME_R = 400;
 const HOME_P = 0.47;
 const HOME_YAW = 0.18;
 const R_MIN = 16;
-const R_CEN_MIN = 42;
-const R_MAX = 128;
+const R_CEN_MIN = 248;
+const R_MAX = 980;
 const P_MIN = 0.38;
 const P_MAX = 1.22;
+const NEAR_R = 272;
+const APPROACH_R = 336;
+
+// Exhibit islands keep their old bearings. Distances grow so the native
+// cenotaph, not the fair, is the spatial reference.
+const LAYOUT = 6.6;
+const GROUND_R = 96 * LAYOUT;
+const PATH_W = 3.4;
 
 const CEN_Y = 15.04;
 const CEN_R = 16;
@@ -40,11 +48,11 @@ const _focus = new THREE.Vector3();
 const _sphere = new THREE.Sphere();
 
 const SITES: Record<ExhibitId, THREE.Vector3> = {
-  hydrogen: new THREE.Vector3(36, 2.4, 18),
-  triad: new THREE.Vector3(-48, 2.2, 12),
-  optics: new THREE.Vector3(38, 2.2, -28),
-  xprimeray: new THREE.Vector3(8, 2.4, -42),
-  bell: new THREE.Vector3(-26, 4.2, -56),
+  hydrogen: new THREE.Vector3(36 * LAYOUT, 2.4, 18 * LAYOUT),
+  triad: new THREE.Vector3(-48 * LAYOUT, 2.2, 12 * LAYOUT),
+  optics: new THREE.Vector3(38 * LAYOUT, 2.2, -28 * LAYOUT),
+  xprimeray: new THREE.Vector3(8 * LAYOUT, 2.4, -42 * LAYOUT),
+  bell: new THREE.Vector3(-26 * LAYOUT, 4.2, -56 * LAYOUT),
 };
 
 function smoothstep(e0: number, e1: number, x: number) {
@@ -241,8 +249,8 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x07080b);
-  scene.fog = new THREE.FogExp2(0x07080b, 0.0064);
-  const camera = new THREE.PerspectiveCamera(46, 1, 0.15, 640);
+  scene.fog = new THREE.FogExp2(0x07080b, 0.00092);
+  const camera = new THREE.PerspectiveCamera(46, 1, 0.25, 6400);
 
   scene.add(new THREE.HemisphereLight(0x465060, 0x1a1612, 0.72));
   scene.add(new THREE.AmbientLight(0x14161c, 0.22));
@@ -336,9 +344,9 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       varying vec3 vW;
       void main() {
         float r = length(vW.xz);
-        float edge = smoothstep(74.0, 96.0, r);
-        float rings = smoothstep(0.04, 0.0, abs(fract(r * 0.045) - 0.5) - 0.47);
-        float seat = smoothstep(2.2, 0.0, abs(r - 23.5));
+        float edge = smoothstep(${(GROUND_R * 0.77).toFixed(1)}, ${GROUND_R.toFixed(1)}, r);
+        float rings = smoothstep(0.04, 0.0, abs(fract(r * ${(0.045 * (96 / GROUND_R)).toFixed(5)}) - 0.5) - 0.47);
+        float seat = smoothstep(8.0, 0.0, abs(r - 192.0));
         vec3 col = mix(vec3(0.055, 0.058, 0.066), vec3(0.012, 0.013, 0.016), edge);
         col += vec3(0.03, 0.028, 0.02) * rings * (1.0 - edge);
         col += vec3(0.08, 0.065, 0.04) * seat;
@@ -347,18 +355,18 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     `,
   });
 
-  const ground = new THREE.Mesh(new THREE.CircleGeometry(96, 96), groundMat);
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(GROUND_R, 160), groundMat);
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = 0;
   scene.add(ground);
 
-  const abyss = new THREE.Mesh(new THREE.PlaneGeometry(520, 520), new THREE.MeshBasicMaterial({ color: 0x050608 }));
+  const abyss = new THREE.Mesh(new THREE.PlaneGeometry(GROUND_R * 4, GROUND_R * 4), new THREE.MeshBasicMaterial({ color: 0x050608 }));
   abyss.rotation.x = -Math.PI / 2;
   abyss.position.y = -8.4;
   scene.add(abyss);
 
   const cliffPos: number[] = [];
-  const rim = (theta: number, radius = 96, y = 0) => new THREE.Vector3(Math.sin(theta) * radius, y, Math.cos(theta) * radius);
+  const rim = (theta: number, radius = GROUND_R, y = 0) => new THREE.Vector3(Math.sin(theta) * radius, y, Math.cos(theta) * radius);
   const a0 = Math.PI - 1.15;
   const a1 = Math.PI + 1.15;
   const cliffSeg = 36;
@@ -366,10 +374,10 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     const t0 = a0 + ((a1 - a0) * i) / cliffSeg;
     const t1 = a0 + ((a1 - a0) * (i + 1)) / cliffSeg;
     const wobble = Math.sin(i * 0.65) * 0.28;
-    const p0 = rim(t0, 96, 0);
-    const p1 = rim(t1, 96, 0);
-    const q0 = rim(t0, 96, -7.2 + wobble);
-    const q1 = rim(t1, 96, -7.2 + wobble);
+    const p0 = rim(t0, GROUND_R, 0);
+    const p1 = rim(t1, GROUND_R, 0);
+    const q0 = rim(t0, GROUND_R, -7.2 + wobble);
+    const q1 = rim(t1, GROUND_R, -7.2 + wobble);
     cliffPos.push(p0.x, p0.y, p0.z, p1.x, p1.y, p1.z, q1.x, q1.y, q1.z, p0.x, p0.y, p0.z, q1.x, q1.y, q1.z, q0.x, q0.y, q0.z);
   }
   const cliffGeo = new THREE.BufferGeometry();
@@ -379,7 +387,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   cliff.frustumCulled = false;
   scene.add(cliff);
   const lipPts: THREE.Vector3[] = [];
-  for (let i = 0; i <= 40; i++) lipPts.push(rim(a0 + ((a1 - a0) * i) / 40, 96.2, 0.05));
+  for (let i = 0; i <= 40; i++) lipPts.push(rim(a0 + ((a1 - a0) * i) / 40, GROUND_R + 0.2, 0.05));
   const lip = emptyRibbon();
   addRibbon(lip, lipPts, 0.18, true);
   scene.add(meshFrom(lip, goldLine));
@@ -397,16 +405,24 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   observer.position.y = CEN_Y;
   cenotaph.group.add(observer);
   scene.add(cenotaph.group);
+  let cenFit: { center: THREE.Vector3; radius: number; outer: number } | null = null;
   void cenotaph.ready.then((reg) => {
     cavity.position.copy(reg.center);
+    cavity.scale.setScalar(reg.radius / CEN_R);
     observer.position.y = reg.center.y;
     interiorFocus.copy(reg.center);
+    cenFit = reg;
+    if (import.meta.env.DEV) {
+      (window as Window & { __cenFit?: typeof reg }).__cenFit = reg;
+      const hook = (window as Window & { __atlasStudy?: { fit?: unknown } }).__atlasStudy;
+      if (hook) hook.fit = reg;
+    }
   });
 
   let setReference: ((mode: "ours" | "ref" | "overlay") => void) | null = null;
   if (import.meta.env.DEV) {
-    void import("./cenotaph-reference")
-      .then(({ attachReference }) => attachReference(scene, cenotaph.group, CEN_R, CEN_Y))
+    void Promise.all([import("./cenotaph-reference"), cenotaph.ready])
+      .then(([{ attachReference }, reg]) => attachReference(scene, cenotaph.group, reg.radius, reg.center.y))
       .then((apply) => {
         setReference = apply;
         const hook = (window as Window & { __atlasStudy?: { reference?: typeof apply } }).__atlasStudy;
@@ -439,7 +455,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   const markSite = (id: ExhibitId, radius: number) => {
     const mat = goldLine.clone();
     mat.opacity = 0.42;
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.035, 6, 48), mat);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.08, 6, 48), mat);
     ring.rotation.x = Math.PI / 2;
     ring.position.set(SITES[id].x, 0.12, SITES[id].z);
     scene.add(ring);
@@ -473,7 +489,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     halo.scale.set(7.5, 7.5, 1);
     g.add(halo);
     scene.add(g);
-    const light = new THREE.PointLight(0xfff3e2, 22, 18, 2);
+    const light = new THREE.PointLight(0xfff3e2, 22, 72, 2);
     light.position.set(p.x, 2.4, p.z);
     scene.add(light);
   }
@@ -527,7 +543,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     }
     g.add(triadNodes);
     scene.add(g);
-    const light = new THREE.PointLight(0xfff0dc, 16, 20, 2);
+    const light = new THREE.PointLight(0xfff0dc, 16, 78, 2);
     light.position.set(p.x, 2.2, p.z);
     scene.add(light);
   }
@@ -576,7 +592,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       addRibbon(ribbon, c.getPoints(16), 0.16, true);
       scene.add(meshFrom(ribbon, ray[6] < 2 ? basicGlow(0xf7f2e8, 0.55) : pathGlow));
     }
-    const light = new THREE.PointLight(0xfff4e4, 16, 18, 2);
+    const light = new THREE.PointLight(0xfff4e4, 16, 70, 2);
     light.position.set(p.x, 2, p.z);
     scene.add(light);
   }
@@ -634,7 +650,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       addRibbon(ribbon, pts, 0.14, true);
       scene.add(meshFrom(ribbon, pathGlow));
     }
-    const light = new THREE.PointLight(0xe7eef8, 14, 16, 2);
+    const light = new THREE.PointLight(0xe7eef8, 14, 64, 2);
     light.position.set(p.x, 2.4, p.z);
     scene.add(light);
   }
@@ -659,7 +675,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       crown.position.y = 7.35;
       tower.add(shaft, head, lamp, crown);
       scene.add(tower);
-      const pl = new THREE.PointLight(0xfff0dc, 6, 10, 2);
+      const pl = new THREE.PointLight(0xfff0dc, 6, 48, 2);
       pl.position.set(p.x + side, 7.2, p.z);
       bellLights.push(pl);
       scene.add(pl);
@@ -668,130 +684,73 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
 
   for (const id of Object.keys(SITES) as ExhibitId[]) {
     const p = SITES[id];
-    const pool = new THREE.Mesh(new THREE.CircleGeometry(id === "triad" || id === "bell" ? 4.2 : 3.2, 28), basicGlow(0xc4a574, 0.2));
+    const pool = new THREE.Mesh(new THREE.CircleGeometry(id === "triad" || id === "bell" ? 10 : 8, 28), basicGlow(0xc4a574, 0.28));
     pool.rotation.x = -Math.PI / 2;
     pool.position.set(p.x, 0.07, p.z);
     scene.add(pool);
   }
 
-  // Tree of walkways from the cenotaph door. Not an epistemic legend.
+  // Walkways leave the front of the native cenotaph and reach the outer fair.
+  const at = (x: number, z: number): [number, number, number] => [x * LAYOUT, 0, z * LAYOUT];
   const trunk = curve(
     [
-      [0, 0, 36.2],
-      [1.4, 0, 38.4],
-      [3.2, 0, 36.4],
-    ],
-    12,
-  );
-  const toHydrogen = curve(
-    [
-      [3.2, 0, 36.4],
-      [16, 0, 32],
-      [28, 0, 24],
-      [36, 0, 18],
-    ],
-    20,
-  );
-  const west = curve(
-    [
-      [3.2, 0, 36.4],
-      [-14, 0, 34],
-      [-26, 0, 26],
+      [0, 0, 196],
+      [0, 0, 230],
+      at(3.2, 36.4),
     ],
     16,
   );
-  const toTriad = curve(
-    [
-      [-26, 0, 26],
-      [-36, 0, 18],
-      [-48, 0, 12],
-    ],
-    16,
-  );
-  const spur = curve(
-    [
-      [-26, 0, 26],
-      [-34, 0, 16],
-      [-36, 0, 4],
-    ],
-    12,
-  );
-  const east = curve(
-    [
-      [3.2, 0, 36.4],
-      [22, 0, 30],
-      [34, 0, 12],
-      [34, 0, -8],
-    ],
-    20,
-  );
-  const toOptics = curve(
-    [
-      [34, 0, -8],
-      [38, 0, -16],
-      [38, 0, -28],
-    ],
-    16,
-  );
-  const south = curve(
-    [
-      [34, 0, -8],
-      [22, 0, -28],
-      [8, 0, -42],
-    ],
-    16,
-  );
-  const toBell = curve(
-    [
-      [22, 0, -28],
-      [-4, 0, -36],
-      [-26, 0, -56],
-    ],
-    18,
-  );
+  const toHydrogen = curve([at(3.2, 36.4), at(16, 32), at(28, 24), at(36, 18)], 24);
+  const west = curve([at(3.2, 36.4), at(-14, 34), at(-26, 26)], 18);
+  const toTriad = curve([at(-26, 26), at(-36, 18), at(-48, 12)], 18);
+  const spur = curve([at(-26, 26), at(-34, 16), at(-36, 4)], 14);
+  const east = curve([at(3.2, 36.4), at(22, 30), at(34, 12), at(34, -8)], 24);
+  const toOptics = curve([at(34, -8), at(38, -16), at(38, -28)], 16);
+  const south = curve([at(34, -8), at(22, -28), at(8, -42)], 18);
+  const toBell = curve([at(22, -28), at(-4, -36), at(-26, -56)], 20);
   const limbs: Array<[THREE.Vector3[], number, number]> = [
-    [trunk, 1.35, 0.34],
-    [toHydrogen, 1.15, 0.28],
-    [west, 1.15, 0.28],
-    [toTriad, 1.05, 0.24],
-    [east, 1.15, 0.26],
-    [toOptics, 1.05, 0.22],
-    [south, 1.0, 0.22],
-    [toBell, 1.0, 0.22],
-    [spur, 0.8, 0.14],
+    [trunk, 1.35 * PATH_W, 0.34 * PATH_W],
+    [toHydrogen, 1.15 * PATH_W, 0.28 * PATH_W],
+    [west, 1.15 * PATH_W, 0.28 * PATH_W],
+    [toTriad, 1.05 * PATH_W, 0.24 * PATH_W],
+    [east, 1.15 * PATH_W, 0.26 * PATH_W],
+    [toOptics, 1.05 * PATH_W, 0.22 * PATH_W],
+    [south, 1.0 * PATH_W, 0.22 * PATH_W],
+    [toBell, 1.0 * PATH_W, 0.22 * PATH_W],
+    [spur, 0.8 * PATH_W, 0.14 * PATH_W],
   ];
   for (const [pts, walkW, glowW] of limbs) layPath(scene, pts, walkMat, pathGlow, walkW, glowW);
 
   // Faint provenance under the southern ground, spilling the rim. Not the tree UI.
   const rootSpecs: Array<Array<[number, number, number]>> = [
     [
-      [0, -1.2, 4],
-      [0, -2.4, -18],
-      [2, -4.2, -48],
-      [0, -6.6, -102],
+      [0, -1.2, 4 * LAYOUT],
+      [0, -2.4, -18 * LAYOUT],
+      [2 * LAYOUT, -4.2, -48 * LAYOUT],
+      [0, -6.6, -102 * LAYOUT],
     ],
     [
-      [0, -1.4, -6],
-      [-14, -3.2, -30],
-      [-28, -5.4, -70],
-      [-36, -7, -108],
+      [0, -1.4, -6 * LAYOUT],
+      [-14 * LAYOUT, -3.2, -30 * LAYOUT],
+      [-28 * LAYOUT, -5.4, -70 * LAYOUT],
+      [-36 * LAYOUT, -7, -108 * LAYOUT],
     ],
     [
-      [0, -1.3, -4],
-      [16, -3.4, -28],
-      [30, -5.2, -64],
-      [22, -6.8, -104],
+      [0, -1.3, -4 * LAYOUT],
+      [16 * LAYOUT, -3.4, -28 * LAYOUT],
+      [30 * LAYOUT, -5.2, -64 * LAYOUT],
+      [22 * LAYOUT, -6.8, -104 * LAYOUT],
     ],
     [
-      [0, -1.6, 2],
-      [8, -3.6, -16],
-      [6, -5.8, -40],
-      [4, -7.1, -78],
+      [0, -1.6, 2 * LAYOUT],
+      [8 * LAYOUT, -3.6, -16 * LAYOUT],
+      [6 * LAYOUT, -5.8, -40 * LAYOUT],
+      [4 * LAYOUT, -7.1, -78 * LAYOUT],
     ],
   ];
   for (const spec of rootSpecs) {
     const ribbon = emptyRibbon();
-    addRibbon(ribbon, curve(spec, 18), 0.34, true);
+    addRibbon(ribbon, curve(spec, 18), 0.34 * PATH_W, true);
     scene.add(meshFrom(ribbon, rootGlow));
   }
 
@@ -812,7 +771,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     [-22, -52],
     [-9.5, 35.2],
     [12.5, 35.4],
-  ];
+  ].map(([x, z]) => [x * LAYOUT, z * LAYOUT]);
   figureAt.forEach(([x, z], i) => {
     dummy.position.set(x, 0.86, z);
     dummy.rotation.set(0, 0, 0);
@@ -830,7 +789,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   const starGeo = new THREE.BufferGeometry();
   const starPos = new Float32Array(700 * 3);
   for (let i = 0; i < 700; i++) {
-    const v = new THREE.Vector3().randomDirection().multiplyScalar(260 + Math.random() * 40);
+    const v = new THREE.Vector3().randomDirection().multiplyScalar(2400 + Math.random() * 500);
     if (v.y < 10) v.y = Math.abs(v.y) + 14;
     starPos[i * 3] = v.x;
     starPos[i * 3 + 1] = v.y;
@@ -841,7 +800,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     starGeo,
     new THREE.PointsMaterial({
       color: 0xf3eee6,
-      size: 0.5,
+      size: 2.2,
       sizeAttenuation: true,
       transparent: true,
       opacity: 0.7,
@@ -883,7 +842,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     }
   }
 
-  const cenFocus = new THREE.Vector3(0, 3.4, 0);
+  const cenFocus = new THREE.Vector3(0, 18, 0);
   const interiorFocus = new THREE.Vector3(0, CEN_Y, 0);
   let selected: DestinationId | null = null;
   let inside = false;
@@ -900,10 +859,10 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     ...(Object.keys(SITES) as ExhibitId[]).map((id) => ({
       id,
       pos: SITES[id],
-      radius: id === "bell" || id === "triad" ? 9 : 7.5,
+      radius: id === "bell" || id === "triad" ? 20 : 16,
       auto: true,
     })),
-    { id: "cenotaph", pos: new THREE.Vector3(0, 9, 6), radius: 27, auto: false },
+    { id: "cenotaph", pos: new THREE.Vector3(0, 40, 0), radius: 190, auto: false },
   ];
 
   function setNdc(clientX: number, clientY: number) {
@@ -944,10 +903,19 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     return best;
   }
 
+  function focusOut() {
+    return Math.hypot(focus.x - cenFocus.x, focus.z - cenFocus.z);
+  }
+
+  function cenOrbitMin() {
+    const c = Math.max(0.34, Math.cos(pitch));
+    return Math.max(R_CEN_MIN, 196 / c);
+  }
+
   function minRadius() {
     if (inside) return 3.6;
     if (selected && selected !== "cenotaph") return R_MIN;
-    return R_CEN_MIN;
+    return cenOrbitMin();
   }
 
   function maxRadius() {
@@ -1047,7 +1015,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     const hit = pick(e.clientX, e.clientY);
     if (double && hit) {
       selected = hit;
-      radiusT = hit === "cenotaph" ? 52 : 24;
+      radiusT = hit === "cenotaph" ? NEAR_R : 24;
       lastTap = 0;
       return;
     }
@@ -1072,12 +1040,12 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   function emit(force = false) {
     const scale = inside ? 0.5 : clamp(Math.log(radius / R_MIN) / Math.log(R_MAX / R_MIN), 0, 1);
     let proximity = 0;
-    if (selected === "cenotaph" || inside) proximity = 1 - smoothstep(18, 56, camera.position.distanceTo(cenFocus));
+    if (selected === "cenotaph" || inside) proximity = 1 - smoothstep(210, 390, camera.position.distanceTo(cenFocus));
     else if (selected) proximity = 1 - smoothstep(18, 56, camera.position.distanceTo(SITES[selected]));
     const atHome =
       !inside &&
       !selected &&
-      Math.abs(radius - HOME_R) < 4.5 &&
+      Math.abs(radius - HOME_R) < 16 &&
       focus.distanceTo(cenFocus) < 1.2 &&
       Math.abs(angDelta(yaw, HOME_YAW)) < 0.2 &&
       Math.abs(pitch - HOME_P) < 0.08;
@@ -1104,7 +1072,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     returnOutside: () => {
       inside = false;
       selected = "cenotaph";
-      radiusT = 46;
+      radiusT = NEAR_R;
       pitchT = 1.05;
     },
     setCenotaphVariant: (variant) => {
@@ -1117,10 +1085,10 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     selected = null;
     yawT = yaw + angDelta(yaw, HOME_YAW);
     if (mode === "near") {
-      radiusT = 46;
+      radiusT = NEAR_R;
       pitchT = 0.32;
     } else if (mode === "approach") {
-      radiusT = 64;
+      radiusT = APPROACH_R;
       pitchT = 0.36;
     } else {
       radiusT = HOME_R;
@@ -1132,6 +1100,11 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     (window as Window & { __atlasStudy?: unknown }).__atlasStudy = {
       setVariant: (variant: CenotaphVariant) => cenotaph.apply(variant === "b" || variant === "c" ? variant : "a"),
       frame: frameStudy,
+      aim: (id: DestinationId) => {
+        selected = id;
+        radiusT = id === "cenotaph" ? NEAR_R : 28;
+      },
+      fit: cenFit,
       shot: (on: boolean) => {
         if (on) document.documentElement.dataset.iaShot = "1";
         else delete document.documentElement.dataset.iaShot;
@@ -1178,15 +1151,15 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
 
     _focus.copy(inside ? interiorFocus : cenFocus);
     if (!inside && selected && selected !== "cenotaph") {
-      const u = 1 - smoothstep(28, 74, radiusT);
+      const u = 1 - smoothstep(36, 360, radiusT);
       _focus.lerp(SITES[selected], u);
     }
     focus.lerp(_focus, ease);
-    if (!inside && radius + 0.4 >= R_CEN_MIN && focus.distanceTo(cenFocus) < 14) {
-      radius = Math.max(radius, R_CEN_MIN);
+    if (!inside && focusOut() < 196) {
+      radius = Math.max(radius, cenOrbitMin());
     }
 
-    cenotaph.uniforms.uDetail.value = 1 - smoothstep(14, 72, camera.position.distanceTo(interiorFocus));
+    cenotaph.uniforms.uDetail.value = 1 - smoothstep(180, 460, camera.position.distanceTo(interiorFocus));
     interior.uniforms.uMeridian.value = inside ? 0.15 + 0.85 * Math.abs(Math.sin(yaw)) : 0.08;
 
     if (!reduced) {
