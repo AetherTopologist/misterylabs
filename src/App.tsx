@@ -31,6 +31,7 @@ const DomeInversionPage     = lazy(() => import("./pages/arcade/DomeInversion.ts
 const TriadPage             = lazy(() => import("./pages/observatory/Triad.tsx"));
 const HydrogenPage          = lazy(() => import("./pages/observatory/Hydrogen.tsx"));
 const HydrogenBaselinePage  = lazy(() => import("./pages/observatory/HydrogenBaseline.tsx"));
+const FieldResonancePage    = lazy(() => import("./pages/observatory/FieldResonance.tsx"));
 const InteractiveAtlasPage  = lazy(() => import("./interactive-atlas/InteractiveAtlas.tsx"));
 
 function DemoLoading() {
@@ -97,6 +98,7 @@ const App = () => (
           <Route path="/observatory/triad"               element={<DemoWrapper><TriadPage /></DemoWrapper>} />
           <Route path="/observatory/hydrogen"            element={<DemoWrapper><HydrogenPage /></DemoWrapper>} />
           <Route path="/observatory/hydrogen-baseline"   element={<DemoWrapper><HydrogenBaselinePage /></DemoWrapper>} />
+          <Route path="/observatory/field-resonance"    element={<DemoWrapper><FieldResonancePage /></DemoWrapper>} />
           {/* Unadvertised maintainer surface — no auth gate, not in public nav */}
           <Route path="/mission" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />

@@ -1,0 +1,59 @@
+.field-resonance input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2.75rem;
+  width: 100%;
+  background: transparent;
+  margin: 0;
+  cursor: pointer;
+}
+
+.field-resonance input[type="range"]:focus {
+  outline: none;
+}
+
+.field-resonance input[type="range"]:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px color-mix(in srgb, #e08a45 55%, transparent);
+}
+
+.field-resonance input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  background: transparent;
+}
+
+.field-resonance input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -11px;
+  height: 24px;
+  width: 24px;
+  border-radius: 999px;
+  background: #e7e1d4;
+  border: 2px solid #0c1014;
+  box-shadow: 0 0 0 1px #e08a45;
+}
+
+.field-resonance input[type="range"]::-moz-range-track {
+  height: 2px;
+  background: transparent;
+  border: none;
+}
+
+.field-resonance input[type="range"]::-moz-range-thumb {
+  height: 24px;
+  width: 24px;
+  border-radius: 999px;
+  background: #e7e1d4;
+  border: 2px solid #0c1014;
+  box-shadow: 0 0 0 1px #e08a45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field-resonance *,
+  .field-resonance *::before,
+  .field-resonance *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

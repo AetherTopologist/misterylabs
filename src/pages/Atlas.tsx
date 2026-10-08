@@ -450,6 +450,16 @@ const DEMO_CARDS: Array<{
     status: "Baseline",
   },
   {
+    href: "/observatory/field-resonance",
+    label: "Field Resonance",
+    sub: "Can a field pattern move without a trajectory?",
+    desc: "Magnetic reconnection and harmonic matching. Holt’s 1979 conjecture, kept separate from a later orb reading.",
+    accent: "text-amber-400/70",
+    border: "border-amber-500/20 hover:border-amber-500/40",
+    maturity: "Experimental",
+    status: "Schematic",
+  },
+  {
     href: "/observatory/cavendish-pais",
     label: "Cavendish × Pais Effect",
     sub: "Hypothesis comparison · not a claim",
