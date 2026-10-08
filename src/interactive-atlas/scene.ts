@@ -1098,7 +1098,8 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
 
   if (import.meta.env.DEV) {
     (window as Window & { __atlasStudy?: unknown }).__atlasStudy = {
-      setVariant: (variant: CenotaphVariant) => cenotaph.apply(variant === "b" || variant === "c" ? variant : "a"),
+      setVariant: (variant: CenotaphVariant) =>
+        cenotaph.apply(variant === "a" || variant === "b" || variant === "c" || variant === "m" ? variant : "m"),
       frame: frameStudy,
       aim: (id: DestinationId) => {
         selected = id;

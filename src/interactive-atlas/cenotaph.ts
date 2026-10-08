@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-export type CenotaphVariant = "a" | "b" | "c";
+export type CenotaphVariant = "a" | "b" | "c" | "m";
 
 type Shared = {
   uVariant: { value: number };
@@ -21,7 +21,7 @@ function makeStone(octaves: number, shared: Shared, masonry: number) {
     mat.polygonOffsetFactor = 1;
     mat.polygonOffsetUnits = 1;
   }
-  mat.customProgramCacheKey = () => `cenotaph-stone-v3-${octaves}`;
+  mat.customProgramCacheKey = () => `cenotaph-stone-v4-${octaves}`;
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uVariant = shared.uVariant;
     shader.uniforms.uDetail = shared.uDetail;
@@ -96,7 +96,7 @@ float cFbm(vec3 p){
     float fine = smoothstep(0.06, 0.0, abs(cFbm(vWorldN * 4.8 + vWorldP * 0.55) - 0.48));
     albedo = ivory * (0.93 + 0.1 * grit);
     albedo = mix(albedo, vec3(0.08, 0.24, 0.55), broad * 0.14 + vein * (0.22 + reveal * 0.5) + fine * reveal * 0.35);
-  } else {
+  } else if (uVariant < 2.5) {
     vec3 charcoal = vec3(0.20, 0.19, 0.175);
     float seam = smoothstep(0.66, 0.9, cFbm(vWorldN * 2.4 + vWorldP * 0.1));
     albedo = charcoal * (0.55 + 0.9 * grit) * (0.78 + 0.4 * speckle);
@@ -105,9 +105,24 @@ float cFbm(vec3 p){
       float course = smoothstep(0.05, 0.0, abs(fract(vWorldP.y * 0.9) - 0.5) - 0.4);
       albedo *= 1.0 - course * 0.24;
     }
+  } else {
+    vec3 mineral = vec3(0.21, 0.198, 0.182);
+    float seam = smoothstep(0.70, 0.92, cFbm(vWorldN * 2.2 + vWorldP * 0.09));
+    albedo = mineral * (0.60 + 0.78 * grit) * (0.82 + 0.34 * speckle);
+    albedo = mix(albedo, vec3(0.36, 0.40, 0.46), seam * (0.08 + reveal * 0.12));
+    float field = cFbm(vWorldP * 0.08 + vWorldN * 0.85);
+    float vein = smoothstep(0.032, 0.0, abs(field - 0.57));
+    float fine = smoothstep(0.026, 0.0, abs(cFbm(vWorldN * 3.1 + vWorldP * 0.36) - 0.5));
+    albedo = mix(albedo, vec3(0.40, 0.46, 0.52), vein * (0.045 + reveal * 0.15) + fine * reveal * 0.09);
+    float inclusion = smoothstep(0.84, 0.94, cFbm(vWorldP * 0.042 + vWorldN * 0.4));
+    albedo = mix(albedo, vec3(0.64, 0.59, 0.50), inclusion * (0.08 + reveal * 0.14));
+    if (uMasonry > 0.5) {
+      float course = smoothstep(0.05, 0.0, abs(fract(vWorldP.y * 0.9) - 0.5) - 0.4);
+      albedo *= 1.0 - course * 0.20;
+    }
   }
-  float haze = smoothstep(169.0, 471.0, distance(cameraPosition, vWorldP));
-  albedo = mix(albedo, vec3(0.04, 0.042, 0.05), haze * 0.58);
+  float haze = smoothstep(560.0, 1760.0, distance(cameraPosition, vWorldP));
+  albedo = mix(albedo, vec3(0.075, 0.078, 0.086), haze * 0.32);
   diffuseColor.rgb = albedo;
 }
 `,
@@ -133,10 +148,10 @@ roughnessFactor = clamp(roughnessFactor + (cFbm(vWorldP * 0.55) - 0.5) * 0.22, 0
 }
 
 function initialVariant(): CenotaphVariant {
-  if (!import.meta.env.DEV) return "b";
+  if (!import.meta.env.DEV) return "m";
   const q = new URLSearchParams(window.location.search).get("cenotaph");
-  if (q === "a" || q === "c") return q;
-  return "b";
+  if (q === "a" || q === "b" || q === "c") return q;
+  return "m";
 }
 
 export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
@@ -186,28 +201,33 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
   const people = [person(7.2, 116), person(-6.4, 104)];
 
   const spots: THREE.SpotLight[] = [];
-  const rig: Array<[number, number, number, number, number, number, number]> = [
-    [0, 8, 206, 0, 46, 48, 1.25],
-    [-206, 10, 48, -40, 44, 10, 0.9],
-    [200, 9, 36, 36, 44, 8, 0.9],
-    [0, 10, -206, 0, 46, -36, 0.7],
+  // Measured on the loaded GLB: circular plinth r=122, entrance stair at +Z, sphere equator y≈61 r≈52.
+  // x, y, z, target, bias, distance, angle. Low, close, and aimed up so the pools stay local.
+  const rig: Array<[number, number, number, number, number, number, number, number, number]> = [
+    [-22, 3.2, 140, -8, 36, 100, 1.2, 150, 0.56],
+    [26, 3.2, 136, 8, 38, 98, 1.05, 146, 0.54],
+    [100, 2.6, 82, 64, 26, 48, 0.9, 130, 0.5],
+    [-112, 2.8, 58, -74, 24, 32, 0.78, 120, 0.48],
+    [16, 3.2, -138, 6, 28, -96, 0.7, 130, 0.52],
+    [72, 32, 26, 38, 60, 18, 0.95, 90, 0.42],
+    [-26, 30, -74, -6, 58, -44, 0.88, 86, 0.4],
   ];
-  for (const [x, y, z, tx, ty, tz, bias] of rig) {
-    const spot = new THREE.SpotLight(0xfff1d4, 40, 340, 0.78, 0.5, 2);
+  for (const [x, y, z, tx, ty, tz, bias, dist, angle] of rig) {
+    const spot = new THREE.SpotLight(0xffe2b8, 40, dist, angle, 0.72, 2);
     spot.position.set(x, y, z);
     spot.target.position.set(tx, ty, tz);
     spot.userData.bias = bias;
     cen.add(spot, spot.target);
     spots.push(spot);
-    const fixture = new THREE.Mesh(new THREE.SphereGeometry(0.28, 6, 5), lampMat);
+    const fixture = new THREE.Mesh(new THREE.SphereGeometry(0.22, 6, 5), lampMat);
     fixture.position.set(x, y, z);
     cen.add(fixture);
   }
-  const niche = new THREE.PointLight(0xfff3dc, 8, 56, 2);
-  niche.position.set(0, 22, 128);
+  const niche = new THREE.PointLight(0xfff3dc, 8, 34, 2);
+  niche.position.set(0, 16, 112);
   cen.add(niche);
-  const doorLamp = new THREE.PointLight(0xfff6e8, 4, 36, 2);
-  doorLamp.position.set(0, 14, 158);
+  const doorLamp = new THREE.PointLight(0xfff6e8, 4, 26, 2);
+  doorLamp.position.set(0, 7.5, 130);
   cen.add(doorLamp);
 
   const presets: Record<
@@ -228,6 +248,7 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
     a: { variant: 0, lift: 1.05, roughS: 0.92, roughA: 0.86, env: 0.22, spot: 90, niche: 4, door: 2.2, light: 0xffe7c4, lamp: 0.22 },
     b: { variant: 1, lift: 0.72, roughS: 0.62, roughA: 0.56, env: 0.3, spot: 70, niche: 3, door: 1.6, light: 0xfff2dc, lamp: 0.18 },
     c: { variant: 2, lift: 1.45, roughS: 0.88, roughA: 0.84, env: 0.14, spot: 160, niche: 8, door: 3.5, light: 0xffd7a4, lamp: 0.28 },
+    m: { variant: 3, lift: 0.58, roughS: 0.91, roughA: 0.87, env: 0.1, spot: 240, niche: 16, door: 9, light: 0xffc98a, lamp: 0.34 },
   };
 
   function apply(variant: CenotaphVariant) {

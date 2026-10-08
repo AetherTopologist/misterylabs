@@ -94,7 +94,7 @@ export type AtlasUi = {
   inside: boolean;
 };
 
-export type CenotaphVariant = "a" | "b" | "c";
+export type CenotaphVariant = "a" | "b" | "c" | "m";
 
 export type AtlasApi = {
   returnHome: () => void;
