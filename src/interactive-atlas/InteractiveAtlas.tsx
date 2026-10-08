@@ -1,14 +1,22 @@
 import { Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasUi } from "./destinations";
+import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasUi, type CenotaphVariant } from "./destinations";
 import "./interactive-atlas.css";
 
-const INITIAL: AtlasUi = { scale: 0.92, selected: null, proximity: 0, atHome: true };
+const INITIAL: AtlasUi = { scale: 0.92, selected: null, proximity: 0, atHome: true, inside: false };
+
+function studyVariant(): CenotaphVariant {
+  if (!import.meta.env.DEV || typeof window === "undefined") return "m";
+  const q = new URLSearchParams(window.location.search).get("cenotaph");
+  if (q === "a" || q === "b" || q === "c") return q;
+  return "m";
+}
 
 function same(a: AtlasUi, b: AtlasUi) {
   return (
     a.selected === b.selected &&
     a.atHome === b.atHome &&
+    a.inside === b.inside &&
     Math.abs(a.scale - b.scale) < 0.012 &&
     Math.abs(a.proximity - b.proximity) < 0.02
   );
@@ -32,6 +40,10 @@ export default function InteractiveAtlas() {
   const apiRef = useRef<AtlasApi | null>(null);
   const [ui, setUi] = useState<AtlasUi>(INITIAL);
   const [failed, setFailed] = useState(() => (typeof document === "undefined" ? false : !canWebGL()));
+  const [variant, setVariant] = useState<CenotaphVariant>(studyVariant);
+  const [refMode, setRefMode] = useState<"ours" | "ref" | "overlay">("ours");
+  const variantRef = useRef(variant);
+  variantRef.current = variant;
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -58,6 +70,7 @@ export default function InteractiveAtlas() {
             return;
           }
           apiRef.current = mounted.api;
+          mounted.api.setCenotaphVariant(variantRef.current);
           dispose = mounted.dispose;
         } catch {
           if (!dead) setFailed(true);
@@ -72,6 +85,18 @@ export default function InteractiveAtlas() {
       apiRef.current = null;
     };
   }, [failed]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    apiRef.current?.setCenotaphVariant(variant);
+  }, [variant]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    (window as Window & { __atlasStudy?: { reference?: (mode: "ours" | "ref" | "overlay") => void } }).__atlasStudy?.reference?.(
+      refMode,
+    );
+  }, [refMode]);
 
   const exhibit = ui.selected && ui.selected !== "cenotaph" ? EXHIBITS[ui.selected] : null;
   const landmark = ui.selected === "cenotaph";
@@ -104,6 +129,38 @@ export default function InteractiveAtlas() {
         </Link>
       </header>
 
+      {import.meta.env.DEV ? (
+        <div className="ia-study">
+          <p>Dev study</p>
+          <div>
+            {(
+              [
+                ["m", "Mistery Stone"],
+                ["b", "Porcelain"],
+                ["c", "Night"],
+              ] as const
+            ).map(([id, label]) => (
+              <button key={id} type="button" data-on={variant === id} onClick={() => setVariant(id)}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <div>
+            {(
+              [
+                ["ours", "Ours"],
+                ["ref", "Reference"],
+                ["overlay", "Overlay"],
+              ] as const
+            ).map(([id, label]) => (
+              <button key={id} type="button" data-on={refMode === id} onClick={() => setRefMode(id)}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div className="ia-rail" aria-hidden="true">
         <span data-where="atlas" data-on={ui.scale > 0.62}>
           Atlas
@@ -118,10 +175,22 @@ export default function InteractiveAtlas() {
       </div>
 
       <div className="ia-dock">
-        {showFull && landmark ? (
+        {ui.inside ? (
           <div className="ia-plate">
             <p className="ia-kicker">{CENOTAPH.name}</p>
             <p className="ia-question">Home</p>
+            <p className="ia-note">The object is now the boundary.</p>
+            <button type="button" className="ia-enter" onClick={() => apiRef.current?.returnOutside()}>
+              Return outside
+            </button>
+          </div>
+        ) : showFull && landmark ? (
+          <div className="ia-plate">
+            <p className="ia-kicker">{CENOTAPH.name}</p>
+            <p className="ia-question">Home</p>
+            <button type="button" className="ia-enter" onClick={() => apiRef.current?.crossBoundary()}>
+              Cross the boundary
+            </button>
           </div>
         ) : showFull && exhibit ? (
           <div className="ia-plate">

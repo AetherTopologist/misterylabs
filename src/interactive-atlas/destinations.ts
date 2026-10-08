@@ -91,10 +91,16 @@ export type AtlasUi = {
   selected: DestinationId | null;
   proximity: number;
   atHome: boolean;
+  inside: boolean;
 };
+
+export type CenotaphVariant = "a" | "b" | "c" | "m";
 
 export type AtlasApi = {
   returnHome: () => void;
+  crossBoundary: () => void;
+  returnOutside: () => void;
+  setCenotaphVariant: (variant: CenotaphVariant) => void;
 };
 
 export function isExhibitId(value: string): value is ExhibitId {
