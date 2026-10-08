@@ -1,9 +1,18 @@
 import { Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasUi, type CenotaphVariant } from "./destinations";
+import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasMode, type AtlasUi, type CenotaphVariant, type WalkerPose } from "./destinations";
+import { FairMap, WalkStick } from "./walk-ui";
 import "./interactive-atlas.css";
 
-const INITIAL: AtlasUi = { scale: 0.92, selected: null, proximity: 0, atHome: true, inside: false };
+const INITIAL: AtlasUi = {
+  scale: 0.92,
+  selected: null,
+  proximity: 0,
+  atHome: true,
+  inside: false,
+  mode: "fly",
+  walker: null,
+};
 
 function studyVariant(): CenotaphVariant {
   if (!import.meta.env.DEV || typeof window === "undefined") return "m";
@@ -12,11 +21,18 @@ function studyVariant(): CenotaphVariant {
   return "m";
 }
 
+function walkerSame(a: WalkerPose | null, b: WalkerPose | null) {
+  if (!a || !b) return a === b;
+  return Math.abs(a.x - b.x) < 0.8 && Math.abs(a.z - b.z) < 0.8 && Math.abs(a.heading - b.heading) < 0.06;
+}
+
 function same(a: AtlasUi, b: AtlasUi) {
   return (
     a.selected === b.selected &&
     a.atHome === b.atHome &&
     a.inside === b.inside &&
+    a.mode === b.mode &&
+    walkerSame(a.walker, b.walker) &&
     Math.abs(a.scale - b.scale) < 0.012 &&
     Math.abs(a.proximity - b.proximity) < 0.02
   );
@@ -40,10 +56,8 @@ export default function InteractiveAtlas() {
   const apiRef = useRef<AtlasApi | null>(null);
   const [ui, setUi] = useState<AtlasUi>(INITIAL);
   const [failed, setFailed] = useState(() => (typeof document === "undefined" ? false : !canWebGL()));
-  const [variant, setVariant] = useState<CenotaphVariant>(studyVariant);
-  const [refMode, setRefMode] = useState<"ours" | "ref" | "overlay">("ours");
-  const variantRef = useRef(variant);
-  variantRef.current = variant;
+  const [mapOpen, setMapOpen] = useState(false);
+  const variantRef = useRef<CenotaphVariant>(studyVariant());
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -86,28 +100,19 @@ export default function InteractiveAtlas() {
     };
   }, [failed]);
 
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    apiRef.current?.setCenotaphVariant(variant);
-  }, [variant]);
-
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    (window as Window & { __atlasStudy?: { reference?: (mode: "ours" | "ref" | "overlay") => void } }).__atlasStudy?.reference?.(
-      refMode,
-    );
-  }, [refMode]);
-
   const exhibit = ui.selected && ui.selected !== "cenotaph" ? EXHIBITS[ui.selected] : null;
   const landmark = ui.selected === "cenotaph";
   const showName = (exhibit && ui.proximity > 0.28) || (landmark && ui.proximity > 0.28);
   const showFull = (exhibit && ui.proximity > 0.56) || (landmark && ui.proximity > 0.4);
 
+  const walking = ui.mode === "walk" && ui.walker;
+  const setMode = (mode: AtlasMode) => apiRef.current?.setMode(mode);
+
   return (
-    <main className="ia-world">
+    <main className="ia-world" data-mode={ui.mode}>
       <canvas
         ref={canvasRef}
-        aria-label="Interactive Atlas. Drag to orbit Newton's Cenotaph. Pinch or scroll to approach an instrument."
+        aria-label="Interactive Atlas. Drag to orbit. Two-finger, right-button, or shift-drag to move the view. Pinch or scroll to zoom. Double-tap a pavilion to approach it. Walk sets you on the ground."
       />
       <div className="ia-vignette" />
 
@@ -127,52 +132,41 @@ export default function InteractiveAtlas() {
         <Link to="/atlas" className="ia-back">
           Return to Atlas
         </Link>
+        <div className="ia-mode" role="group" aria-label="How you move">
+          <button type="button" data-on={ui.mode === "fly"} onClick={() => setMode("fly")}>
+            Fly
+          </button>
+          <button type="button" data-on={ui.mode === "walk"} onClick={() => setMode("walk")}>
+            Walk
+          </button>
+        </div>
       </header>
 
-      {import.meta.env.DEV ? (
-        <div className="ia-study">
-          <p>Dev study</p>
-          <div>
-            {(
-              [
-                ["m", "Mistery Stone"],
-                ["b", "Porcelain"],
-                ["c", "Night"],
-              ] as const
-            ).map(([id, label]) => (
-              <button key={id} type="button" data-on={variant === id} onClick={() => setVariant(id)}>
-                {label}
-              </button>
-            ))}
-          </div>
-          <div>
-            {(
-              [
-                ["ours", "Ours"],
-                ["ref", "Reference"],
-                ["overlay", "Overlay"],
-              ] as const
-            ).map(([id, label]) => (
-              <button key={id} type="button" data-on={refMode === id} onClick={() => setRefMode(id)}>
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
+      {walking ? (
+        <FairMap walker={ui.walker!} open={mapOpen} onToggle={() => setMapOpen((v) => !v)} />
       ) : null}
 
-      <div className="ia-rail" aria-hidden="true">
-        <span data-where="atlas" data-on={ui.scale > 0.62}>
-          Atlas
-        </span>
-        <span data-where="exhibit" data-on={ui.scale <= 0.62 && ui.scale > 0.34}>
-          Exhibit
-        </span>
-        <span data-where="instrument" data-on={ui.scale <= 0.34}>
-          Instrument
-        </span>
-        <i style={{ bottom: `${ui.scale * 100}%` }} />
-      </div>
+      {ui.mode === "walk" ? (
+        <>
+          <p className="ia-sr">Walk with the keys W A S D or the arrows. Drag the ground to look around. The stick on a touch screen moves Mister Why.</p>
+          <WalkStick onChange={(x, y) => apiRef.current?.setMove(x, y)} />
+        </>
+      ) : null}
+
+      {ui.mode === "fly" ? (
+        <div className="ia-rail" aria-hidden="true">
+          <span data-where="atlas" data-on={ui.scale > 0.62}>
+            Atlas
+          </span>
+          <span data-where="exhibit" data-on={ui.scale <= 0.62 && ui.scale > 0.34}>
+            Exhibit
+          </span>
+          <span data-where="instrument" data-on={ui.scale <= 0.34}>
+            Instrument
+          </span>
+          <i style={{ bottom: `${ui.scale * 100}%` }} />
+        </div>
+      ) : null}
 
       <div className="ia-dock">
         {ui.inside ? (

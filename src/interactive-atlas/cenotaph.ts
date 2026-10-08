@@ -21,7 +21,7 @@ function makeStone(octaves: number, shared: Shared, masonry: number) {
     mat.polygonOffsetFactor = 1;
     mat.polygonOffsetUnits = 1;
   }
-  mat.customProgramCacheKey = () => `cenotaph-stone-v4-${octaves}`;
+  mat.customProgramCacheKey = () => `cenotaph-stone-v6-${octaves}`;
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uVariant = shared.uVariant;
     shader.uniforms.uDetail = shared.uDetail;
@@ -106,19 +106,23 @@ float cFbm(vec3 p){
       albedo *= 1.0 - course * 0.24;
     }
   } else {
-    vec3 mineral = vec3(0.21, 0.198, 0.182);
-    float seam = smoothstep(0.70, 0.92, cFbm(vWorldN * 2.2 + vWorldP * 0.09));
-    albedo = mineral * (0.60 + 0.78 * grit) * (0.82 + 0.34 * speckle);
-    albedo = mix(albedo, vec3(0.36, 0.40, 0.46), seam * (0.08 + reveal * 0.12));
-    float field = cFbm(vWorldP * 0.08 + vWorldN * 0.85);
-    float vein = smoothstep(0.032, 0.0, abs(field - 0.57));
-    float fine = smoothstep(0.026, 0.0, abs(cFbm(vWorldN * 3.1 + vWorldP * 0.36) - 0.5));
-    albedo = mix(albedo, vec3(0.40, 0.46, 0.52), vein * (0.045 + reveal * 0.15) + fine * reveal * 0.09);
-    float inclusion = smoothstep(0.84, 0.94, cFbm(vWorldP * 0.042 + vWorldN * 0.4));
-    albedo = mix(albedo, vec3(0.64, 0.59, 0.50), inclusion * (0.08 + reveal * 0.14));
+    // MISTERY STONE. Night mass, with porcelain mineral only at walking distance.
+    vec3 mineral = vec3(0.132, 0.126, 0.118);
+    float pore = cFbm(vWorldP * 1.7 + vWorldN * 2.2);
+    albedo = mineral * (0.66 + 0.5 * grit) * (0.86 + 0.2 * speckle);
+    albedo *= 0.9 + 0.12 * pore;
+    float seam = smoothstep(0.76, 0.95, cFbm(vWorldN * 2.7 + vWorldP * 0.13));
+    albedo = mix(albedo, vec3(0.26, 0.29, 0.33), seam * (0.04 + reveal * 0.08));
+    float field = cFbm(vWorldP * 0.48 + vWorldN * 1.7);
+    float vein = smoothstep(0.011, 0.0, abs(field - 0.5));
+    float fine = smoothstep(0.009, 0.0, abs(cFbm(vWorldN * 8.2 + vWorldP * 1.6) - 0.5));
+    float veinAmt = (vein * 0.2 + fine * 0.12) * (0.05 + reveal * 0.95);
+    albedo = mix(albedo, vec3(0.70, 0.78, 0.88), veinAmt);
+    float inclusion = smoothstep(0.94, 0.995, cFbm(vWorldP * 0.11 + vWorldN * 0.4));
+    albedo = mix(albedo, vec3(0.52, 0.48, 0.40), inclusion * reveal * 0.1);
     if (uMasonry > 0.5) {
-      float course = smoothstep(0.05, 0.0, abs(fract(vWorldP.y * 0.9) - 0.5) - 0.4);
-      albedo *= 1.0 - course * 0.20;
+      float course = smoothstep(0.038, 0.0, abs(fract(vWorldP.y * 1.25) - 0.5) - 0.44);
+      albedo *= 1.0 - course * (0.2 + reveal * 0.08);
     }
   }
   float haze = smoothstep(560.0, 1760.0, distance(cameraPosition, vWorldP));
@@ -130,7 +134,23 @@ float cFbm(vec3 p){
       .replace(
         "#include <roughnessmap_fragment>",
         `#include <roughnessmap_fragment>
-roughnessFactor = clamp(roughnessFactor + (cFbm(vWorldP * 0.55) - 0.5) * 0.22, 0.28, 1.0);`,
+roughnessFactor = clamp(roughnessFactor + (cFbm(vWorldP * 0.55) - 0.5) * 0.22, 0.28, 1.0);
+if (uVariant > 2.5) {
+  roughnessFactor = clamp(roughnessFactor + (cNoise(vWorldP * 5.1) - 0.5) * (0.06 + uDetail * 0.16), 0.38, 1.0);
+}`,
+      )
+      .replace(
+        "#include <normal_fragment_begin>",
+        `#include <normal_fragment_begin>
+if (uVariant > 2.5) {
+  float revealN = clamp(uDetail, 0.0, 1.0);
+  float amp = 0.04 + revealN * 0.085;
+  float n1 = cNoise(vWorldP * mix(1.5, 5.4, revealN)) - 0.5;
+  float n2 = cNoise(vWorldP * mix(2.3, 8.2, revealN) + vec3(2.7, 1.1, 4.0)) - 0.5;
+  vec3 nW = normalize(vWorldN + vec3(n1, n2 * 0.65, n1 * 0.4) * amp);
+  normal = normalize(mat3(viewMatrix) * nW) * faceDirection;
+}
+`,
       )
       .replace(
         "#include <lights_fragment_end>",
@@ -139,7 +159,11 @@ roughnessFactor = clamp(roughnessFactor + (cFbm(vWorldP * 0.55) - 0.5) * 0.22, 0
   vec3 wN = normalize(vWorldN);
   float belly = clamp(-wN.y, 0.0, 1.0);
   float wall = (1.0 - smoothstep(-0.15, 0.75, wN.y)) * clamp(1.2 - vWorldP.y / 78.0, 0.0, 1.0);
-  reflectedLight.directDiffuse += vec3(1.0, 0.74, 0.42) * (belly * 0.22 + wall * 0.14) * uLift;
+  if (uVariant > 2.5) {
+    reflectedLight.directDiffuse += vec3(1.0, 0.78, 0.52) * (belly * 0.16 + wall * 0.08) * uLift;
+  } else {
+    reflectedLight.directDiffuse += vec3(1.0, 0.74, 0.42) * (belly * 0.22 + wall * 0.14) * uLift;
+  }
 }
 `,
       );
@@ -163,16 +187,6 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
   };
   const sphereMat = makeStone(coarse ? 2 : 3, shared, 0);
   const archMat = makeStone(coarse ? 2 : 3, shared, 1);
-  const lampMat = new THREE.MeshStandardMaterial({
-    color: 0x2c261e,
-    emissive: 0xffe6c0,
-    emissiveIntensity: 0.28,
-    roughness: 0.42,
-  });
-  lampMat.fog = false;
-  const gold = new THREE.MeshStandardMaterial({ color: 0xb89a6a, metalness: 0.84, roughness: 0.38 });
-  gold.fog = false;
-  gold.envMapIntensity = 0.55;
   const figureMat = new THREE.MeshStandardMaterial({ color: 0x12110e, roughness: 0.74, metalness: 0.04 });
   figureMat.fog = false;
   const neutral = new THREE.MeshStandardMaterial({ color: 0xc8c2b6, roughness: 0.9, metalness: 0 });
@@ -184,7 +198,6 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
 
   const holder = new THREE.Group();
   cen.add(holder);
-  const fittings: THREE.Mesh[] = [];
 
   const person = (x: number, z: number) => {
     const g = new THREE.Group();
@@ -201,27 +214,25 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
   const people = [person(7.2, 116), person(-6.4, 104)];
 
   const spots: THREE.SpotLight[] = [];
-  // Measured on the loaded GLB: circular plinth r=122, entrance stair at +Z, sphere equator y≈61 r≈52.
-  // x, y, z, target, bias, distance, angle. Low, close, and aimed up so the pools stay local.
+  // Ivory-gold grazers. Six sit on the lower terrace and rake upward.
+  // Two sit nearer the sphere and catch only its lower third. No fixtures.
   const rig: Array<[number, number, number, number, number, number, number, number, number]> = [
-    [-22, 3.2, 140, -8, 36, 100, 1.2, 150, 0.56],
-    [26, 3.2, 136, 8, 38, 98, 1.05, 146, 0.54],
-    [100, 2.6, 82, 64, 26, 48, 0.9, 130, 0.5],
-    [-112, 2.8, 58, -74, 24, 32, 0.78, 120, 0.48],
-    [16, 3.2, -138, 6, 28, -96, 0.7, 130, 0.52],
-    [72, 32, 26, 38, 60, 18, 0.95, 90, 0.42],
-    [-26, 30, -74, -6, 58, -44, 0.88, 86, 0.4],
+    [0, 3.4, 140, 0, 30, 92, 1.05, 92, 0.58],
+    [108, 3.1, 92, 64, 26, 48, 0.78, 84, 0.5],
+    [134, 2.8, -16, 80, 24, -6, 0.7, 80, 0.48],
+    [-12, 3.2, -140, -4, 28, -84, 0.76, 88, 0.52],
+    [-132, 2.8, -12, -78, 24, -4, 0.7, 80, 0.48],
+    [-104, 3.1, 98, -60, 26, 52, 0.8, 84, 0.5],
+    [22, 14, 74, 6, 46, 24, 0.62, 64, 0.4],
+    [-18, 14, -72, -4, 46, -22, 0.48, 60, 0.38],
   ];
   for (const [x, y, z, tx, ty, tz, bias, dist, angle] of rig) {
-    const spot = new THREE.SpotLight(0xffe2b8, 40, dist, angle, 0.72, 2);
+    const spot = new THREE.SpotLight(0xffe6c4, 40, dist, angle, 0.78, 2);
     spot.position.set(x, y, z);
     spot.target.position.set(tx, ty, tz);
     spot.userData.bias = bias;
     cen.add(spot, spot.target);
     spots.push(spot);
-    const fixture = new THREE.Mesh(new THREE.SphereGeometry(0.22, 6, 5), lampMat);
-    fixture.position.set(x, y, z);
-    cen.add(fixture);
   }
   const niche = new THREE.PointLight(0xfff3dc, 8, 34, 2);
   niche.position.set(0, 16, 112);
@@ -242,13 +253,12 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
       niche: number;
       door: number;
       light: number;
-      lamp: number;
     }
   > = {
-    a: { variant: 0, lift: 1.05, roughS: 0.92, roughA: 0.86, env: 0.22, spot: 90, niche: 4, door: 2.2, light: 0xffe7c4, lamp: 0.22 },
-    b: { variant: 1, lift: 0.72, roughS: 0.62, roughA: 0.56, env: 0.3, spot: 70, niche: 3, door: 1.6, light: 0xfff2dc, lamp: 0.18 },
-    c: { variant: 2, lift: 1.45, roughS: 0.88, roughA: 0.84, env: 0.14, spot: 160, niche: 8, door: 3.5, light: 0xffd7a4, lamp: 0.28 },
-    m: { variant: 3, lift: 0.58, roughS: 0.91, roughA: 0.87, env: 0.1, spot: 240, niche: 16, door: 9, light: 0xffc98a, lamp: 0.34 },
+    a: { variant: 0, lift: 1.05, roughS: 0.92, roughA: 0.86, env: 0.22, spot: 90, niche: 4, door: 2.2, light: 0xffe7c4 },
+    b: { variant: 1, lift: 0.72, roughS: 0.62, roughA: 0.56, env: 0.3, spot: 70, niche: 3, door: 1.6, light: 0xfff2dc },
+    c: { variant: 2, lift: 1.45, roughS: 0.88, roughA: 0.84, env: 0.14, spot: 160, niche: 8, door: 3.5, light: 0xffd7a4 },
+    m: { variant: 3, lift: 0.34, roughS: 0.92, roughA: 0.84, env: 0.05, spot: 2200, niche: 7, door: 4.2, light: 0xffe6c4 },
   };
 
   function apply(variant: CenotaphVariant) {
@@ -259,7 +269,6 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
     archMat.roughness = p.roughA;
     sphereMat.envMapIntensity = p.env;
     archMat.envMapIntensity = p.env;
-    lampMat.emissiveIntensity = p.lamp;
     for (const spot of spots) {
       spot.color.setHex(p.light);
       spot.intensity = p.spot * (spot.userData.bias as number);
@@ -268,8 +277,6 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
     niche.intensity = p.niche;
     doorLamp.color.setHex(p.light);
     doorLamp.intensity = p.door;
-    const fit = variant === "b" ? gold : archMat;
-    for (const mesh of fittings) mesh.material = fit;
   }
 
   apply(initialVariant());

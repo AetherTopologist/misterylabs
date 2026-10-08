@@ -7,6 +7,8 @@ import type { AtlasApi, AtlasUi, CenotaphVariant, DestinationId, ExhibitId } fro
 import { COLLECTIONS, HIDDEN_DESTINATIONS } from "./destinations";
 import { buildCenotaph } from "./cenotaph";
 import { FOREST_LINKS } from "./forest";
+import { createWalker } from "./mister-why";
+import { GROUND_R, LAYOUT, PATHS, PLACES } from "./world";
 
 // Forest links are a future horizontal layer. They are not provenance,
 // and they are never drawn with the atlas walkways or roots.
@@ -31,8 +33,6 @@ const APPROACH_R = 336;
 
 // Exhibit islands keep their old bearings. Distances grow so the native
 // cenotaph, not the fair, is the spatial reference.
-const LAYOUT = 6.6;
-const GROUND_R = 96 * LAYOUT;
 const PATH_W = 3.4;
 
 const CEN_Y = 15.04;
@@ -48,11 +48,11 @@ const _focus = new THREE.Vector3();
 const _sphere = new THREE.Sphere();
 
 const SITES: Record<ExhibitId, THREE.Vector3> = {
-  hydrogen: new THREE.Vector3(36 * LAYOUT, 2.4, 18 * LAYOUT),
-  triad: new THREE.Vector3(-48 * LAYOUT, 2.2, 12 * LAYOUT),
-  optics: new THREE.Vector3(38 * LAYOUT, 2.2, -28 * LAYOUT),
-  xprimeray: new THREE.Vector3(8 * LAYOUT, 2.4, -42 * LAYOUT),
-  bell: new THREE.Vector3(-26 * LAYOUT, 4.2, -56 * LAYOUT),
+  hydrogen: new THREE.Vector3(PLACES.hydrogen.x, PLACES.hydrogen.y, PLACES.hydrogen.z),
+  triad: new THREE.Vector3(PLACES.triad.x, PLACES.triad.y, PLACES.triad.z),
+  optics: new THREE.Vector3(PLACES.optics.x, PLACES.optics.y, PLACES.optics.z),
+  xprimeray: new THREE.Vector3(PLACES.xprimeray.x, PLACES.xprimeray.y, PLACES.xprimeray.z),
+  bell: new THREE.Vector3(PLACES.bell.x, PLACES.bell.y, PLACES.bell.z),
 };
 
 function smoothstep(e0: number, e1: number, x: number) {
@@ -419,20 +419,6 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     }
   });
 
-  let setReference: ((mode: "ours" | "ref" | "overlay") => void) | null = null;
-  if (import.meta.env.DEV) {
-    void Promise.all([import("./cenotaph-reference"), cenotaph.ready])
-      .then(([{ attachReference }, reg]) => attachReference(scene, cenotaph.group, reg.radius, reg.center.y))
-      .then((apply) => {
-        setReference = apply;
-        const hook = (window as Window & { __atlasStudy?: { reference?: typeof apply } }).__atlasStudy;
-        if (hook) hook.reference = apply;
-      })
-      .catch(() => {
-        setReference = null;
-      });
-  }
-
   const glowTex = glowTexture();
   const spriteMat = new THREE.SpriteMaterial({
     map: glowTex,
@@ -691,35 +677,9 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   }
 
   // Walkways leave the front of the native cenotaph and reach the outer fair.
-  const at = (x: number, z: number): [number, number, number] => [x * LAYOUT, 0, z * LAYOUT];
-  const trunk = curve(
-    [
-      [0, 0, 196],
-      [0, 0, 230],
-      at(3.2, 36.4),
-    ],
-    16,
-  );
-  const toHydrogen = curve([at(3.2, 36.4), at(16, 32), at(28, 24), at(36, 18)], 24);
-  const west = curve([at(3.2, 36.4), at(-14, 34), at(-26, 26)], 18);
-  const toTriad = curve([at(-26, 26), at(-36, 18), at(-48, 12)], 18);
-  const spur = curve([at(-26, 26), at(-34, 16), at(-36, 4)], 14);
-  const east = curve([at(3.2, 36.4), at(22, 30), at(34, 12), at(34, -8)], 24);
-  const toOptics = curve([at(34, -8), at(38, -16), at(38, -28)], 16);
-  const south = curve([at(34, -8), at(22, -28), at(8, -42)], 18);
-  const toBell = curve([at(22, -28), at(-4, -36), at(-26, -56)], 20);
-  const limbs: Array<[THREE.Vector3[], number, number]> = [
-    [trunk, 1.35 * PATH_W, 0.34 * PATH_W],
-    [toHydrogen, 1.15 * PATH_W, 0.28 * PATH_W],
-    [west, 1.15 * PATH_W, 0.28 * PATH_W],
-    [toTriad, 1.05 * PATH_W, 0.24 * PATH_W],
-    [east, 1.15 * PATH_W, 0.26 * PATH_W],
-    [toOptics, 1.05 * PATH_W, 0.22 * PATH_W],
-    [south, 1.0 * PATH_W, 0.22 * PATH_W],
-    [toBell, 1.0 * PATH_W, 0.22 * PATH_W],
-    [spur, 0.8 * PATH_W, 0.14 * PATH_W],
-  ];
-  for (const [pts, walkW, glowW] of limbs) layPath(scene, pts, walkMat, pathGlow, walkW, glowW);
+  for (const path of PATHS) {
+    layPath(scene, curve(path.pts, path.samples), walkMat, pathGlow, path.walk * PATH_W, path.glow * PATH_W);
+  }
 
   // Faint provenance under the southern ground, spilling the rim. Not the tree UI.
   const rootSpecs: Array<Array<[number, number, number]>> = [
@@ -844,6 +804,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
 
   const cenFocus = new THREE.Vector3(0, 18, 0);
   const interiorFocus = new THREE.Vector3(0, CEN_Y, 0);
+  const focusT = cenFocus.clone();
   let selected: DestinationId | null = null;
   let inside = false;
   let radiusT = HOME_R;
@@ -853,8 +814,14 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   let yawT = HOME_YAW;
   let yaw = HOME_YAW;
   const focus = cenFocus.clone();
+  let snapAnchor: ExhibitId | null = null;
+  let snapLock = 0;
 
   const pickRay = new THREE.Raycaster();
+  const _plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  const _g0 = new THREE.Vector3();
+  const _g1 = new THREE.Vector3();
+  const _ahead = new THREE.Vector3();
   const pickList: Array<{ id: DestinationId; pos: THREE.Vector3; radius: number; auto: boolean }> = [
     ...(Object.keys(SITES) as ExhibitId[]).map((id) => ({
       id,
@@ -887,22 +854,6 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     return best?.id ?? null;
   }
 
-  function centeredSite(): ExhibitId | null {
-    let best: ExhibitId | null = null;
-    let bestScore = 0.2;
-    for (const site of pickList) {
-      if (!site.auto) continue;
-      _hit.copy(site.pos).project(camera);
-      if (_hit.z < -1 || _hit.z > 1) continue;
-      const score = _hit.x * _hit.x + _hit.y * _hit.y;
-      if (score < bestScore) {
-        bestScore = score;
-        best = site.id as ExhibitId;
-      }
-    }
-    return best;
-  }
-
   function focusOut() {
     return Math.hypot(focus.x - cenFocus.x, focus.z - cenFocus.z);
   }
@@ -914,8 +865,8 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
 
   function minRadius() {
     if (inside) return 3.6;
-    if (selected && selected !== "cenotaph") return R_MIN;
-    return cenOrbitMin();
+    if (focusOut() < 196) return cenOrbitMin();
+    return R_MIN;
   }
 
   function maxRadius() {
@@ -926,14 +877,24 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   let acc = 0;
   let lastTime = performance.now();
 
-  const ptrs = new Map<number, { x: number; y: number }>();
-  let gesture: "none" | "orbit" | "pinch" = "none";
-  let pinchBase = 0;
-  let pinchRadius = HOME_R;
+  const walker = createWalker(scene);
+  let walking = false;
+  let walkProx = 0;
+  const held = new Set<string>();
+  let stickX = 0;
+  let stickY = 0;
+
+  const ptrs = new Map<number, { x: number; y: number; pan: boolean }>();
+  let gesture: "none" | "orbit" | "pan" | "multi" = "none";
+  let lastSpan = 0;
+  let centroidX = 0;
+  let centroidY = 0;
   let moved = 0;
   let lastTap = 0;
   let lastTapX = 0;
   let lastTapY = 0;
+  let didPan = false;
+  let panTravel = 0;
 
   function pinchSpan() {
     const pts = [...ptrs.values()];
@@ -941,57 +902,227 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     return Math.hypot(pts[0]!.x - pts[1]!.x, pts[0]!.y - pts[1]!.y);
   }
 
+  function centroid() {
+    const pts = [...ptrs.values()];
+    if (pts.length < 2) return { x: 0, y: 0 };
+    return { x: (pts[0]!.x + pts[1]!.x) / 2, y: (pts[0]!.y + pts[1]!.y) / 2 };
+  }
+
   function zoomIn(factor: number) {
-    if (factor < 1 && !selected) {
-      const center = centeredSite();
-      if (center) selected = center;
+    if (walking) {
+      walker.zoom(factor);
+      return;
     }
     radiusT = clamp(radiusT * factor, minRadius(), maxRadius());
   }
 
+  function clampFocusXZ() {
+    const lim = GROUND_R * 0.96;
+    const h = Math.hypot(focus.x, focus.z);
+    if (h > lim) {
+      const s = lim / h;
+      focus.x *= s;
+      focus.z *= s;
+    }
+  }
+
+  function groundAt(clientX: number, clientY: number, out: THREE.Vector3) {
+    setNdc(clientX, clientY);
+    pickRay.setFromCamera(_ndc, camera);
+    const hit = pickRay.ray.intersectPlane(_plane, out);
+    if (!hit) return false;
+    if (out.distanceTo(camera.position) > 5000) return false;
+    return true;
+  }
+
+  function applyPan(x0: number, y0: number, x1: number, y1: number) {
+    if (inside) return;
+    if (!groundAt(x0, y0, _g0) || !groundAt(x1, y1, _g1)) return;
+    const dx = _g0.x - _g1.x;
+    const dz = _g0.z - _g1.z;
+    if (dx * dx + dz * dz > 800 * 800) return;
+    focus.x += dx;
+    focus.z += dz;
+    clampFocusXZ();
+    focusT.set(focus.x, focus.y, focus.z);
+    placeCamera();
+  }
+
+  function maybeSnap() {
+    if (inside) return false;
+    const now = performance.now();
+    camera.updateMatrixWorld();
+    camera.getWorldDirection(_ahead);
+    const ndcLimit = radius > 720 ? 0.075 : radius > 320 ? 0.14 : 0.22;
+    const limit2 = ndcLimit * ndcLimit;
+    const maxCam = radius > 720 ? 520 : Math.max(160, radius * 1.55);
+    let best: ExhibitId | null = null;
+    let bestScore = Infinity;
+    const scoreOf = new Map<ExhibitId, number>();
+    for (const id of Object.keys(SITES) as ExhibitId[]) {
+      const site = SITES[id];
+      _g0.copy(site).sub(camera.position);
+      const camDist = _g0.length();
+      if (camDist > maxCam || _g0.dot(_ahead) <= 1) continue;
+      _hit.copy(site).project(camera);
+      if (_hit.z < -1 || _hit.z > 1) continue;
+      if (Math.abs(_hit.x) > 1 || Math.abs(_hit.y) > 1) continue;
+      const score = _hit.x * _hit.x + _hit.y * _hit.y;
+      scoreOf.set(id, score);
+      if (score < bestScore) {
+        bestScore = score;
+        best = id;
+      }
+    }
+    if (snapAnchor) {
+      const keep = scoreOf.get(snapAnchor);
+      if (keep !== undefined && keep < limit2 * 2.8 && (best === null || keep <= bestScore * 1.2)) {
+        best = snapAnchor;
+        bestScore = keep;
+      }
+    }
+    if (!best || bestScore > limit2) return false;
+    if (best !== snapAnchor && now < snapLock) return false;
+    snapAnchor = best;
+    snapLock = now + 560;
+    const site = SITES[best];
+    focusT.set(site.x, focus.y, site.z);
+    selected = best;
+    return true;
+  }
+
+  function finishPan() {
+    if (!didPan) return;
+    const snapped = maybeSnap();
+    if (!snapped && selected && selected !== "cenotaph") {
+      const site = SITES[selected];
+      if (Math.hypot(focus.x - site.x, focus.z - site.z) > 70) selected = null;
+    }
+    if (!snapped && snapAnchor) {
+      const site = SITES[snapAnchor];
+      if (Math.hypot(focus.x - site.x, focus.z - site.z) > 70) snapAnchor = null;
+    }
+    didPan = false;
+    panTravel = 0;
+  }
+
+  function walkInput() {
+    let x = stickX;
+    let y = stickY;
+    if (held.has("a") || held.has("arrowleft")) x -= 1;
+    if (held.has("d") || held.has("arrowright")) x += 1;
+    if (held.has("w") || held.has("arrowup")) y += 1;
+    if (held.has("s") || held.has("arrowdown")) y -= 1;
+    return { x, y, orbiting: gesture !== "none" && ptrs.size > 0 };
+  }
+
+  function beginWalk() {
+    if (walking) return;
+    inside = false;
+    walking = true;
+    selected = null;
+    snapAnchor = null;
+    walker.enter(focus, camera);
+    emit(true);
+  }
+
+  function endWalk() {
+    if (!walking) return;
+    const pose = walker.pose();
+    const aim = walker.aim();
+    walking = false;
+    walker.stop();
+    stickX = 0;
+    stickY = 0;
+    held.clear();
+    focus.copy(aim);
+    focusT.set(pose.x, 8, pose.z);
+    const offX = camera.position.x - focus.x;
+    const offY = camera.position.y - focus.y;
+    const offZ = camera.position.z - focus.z;
+    radius = Math.max(8, Math.hypot(offX, offY, offZ));
+    radiusT = clamp(radius * 1.75, 150, 520);
+    yaw = Math.atan2(offX, offZ);
+    yawT = yaw;
+    const horiz = Math.hypot(offX, offZ) || 0.001;
+    pitch = Math.atan2(offY, horiz);
+    pitchT = clamp(Math.max(0.46, pitch), P_MIN, 0.95);
+    selected = null;
+    snapAnchor = null;
+    emit(true);
+  }
+
   const onPointerDown = (e: PointerEvent) => {
     if (e.target !== canvas) return;
-    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (e.button === 1) return;
+    const pan = e.button === 2 || e.shiftKey;
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, pan });
     try {
       canvas.setPointerCapture(e.pointerId);
     } catch {
       /* Some browsers reject capture. Orbit still works from the pointer map. */
     }
     if (ptrs.size >= 2) {
-      gesture = "pinch";
-      pinchBase = pinchSpan();
-      pinchRadius = radiusT;
+      gesture = "multi";
+      lastSpan = pinchSpan();
+      const c = centroid();
+      centroidX = c.x;
+      centroidY = c.y;
       moved = 40;
       return;
     }
-    gesture = "orbit";
+    gesture = pan ? "pan" : "orbit";
     moved = 0;
+    didPan = false;
+    panTravel = 0;
   };
 
   const onPointerMove = (e: PointerEvent) => {
     const p = ptrs.get(e.pointerId);
     if (!p) return;
+    const prevX = p.x;
+    const prevY = p.y;
     const dx = e.clientX - p.x;
     const dy = e.clientY - p.y;
     p.x = e.clientX;
     p.y = e.clientY;
-    if (gesture === "pinch" && ptrs.size >= 2 && pinchBase > 8) {
+    if (gesture === "multi" && ptrs.size >= 2) {
       const span = pinchSpan();
-      const next = clamp(pinchRadius * (pinchBase / span), minRadius(), maxRadius());
-      if (next < radiusT) {
-        const pts = [...ptrs.values()];
-        const hit = pick((pts[0]!.x + pts[1]!.x) / 2, (pts[0]!.y + pts[1]!.y) / 2);
-        if (hit) selected = hit;
-        else if (!selected) {
-          const center = centeredSite();
-          if (center) selected = center;
-        }
+      if (lastSpan > 8 && Math.abs(span - lastSpan) > 0.6) {
+        zoomIn(lastSpan / span);
       }
-      radiusT = next;
+      lastSpan = span;
+      const c = centroid();
+      const cdx = c.x - centroidX;
+      const cdy = c.y - centroidY;
+      if (walking) {
+        if (cdx * cdx + cdy * cdy > 0.25) walker.orbit(cdx, cdy);
+      } else if (cdx * cdx + cdy * cdy > 0.25) {
+        applyPan(centroidX, centroidY, c.x, c.y);
+        panTravel += Math.hypot(cdx, cdy);
+        if (panTravel > 6) didPan = true;
+      }
+      centroidX = c.x;
+      centroidY = c.y;
+      return;
+    }
+    if (gesture === "pan" && ptrs.size === 1) {
+      moved += Math.hypot(dx, dy);
+      if (walking) {
+        walker.orbit(dx, dy);
+        return;
+      }
+      applyPan(prevX, prevY, e.clientX, e.clientY);
+      panTravel += Math.hypot(dx, dy);
+      if (panTravel > 4) didPan = true;
       return;
     }
     if (gesture === "orbit" && ptrs.size === 1) {
       moved += Math.hypot(dx, dy);
+      if (walking) {
+        walker.orbit(dx, dy);
+        return;
+      }
       yaw -= dx * 0.005;
       yawT = yaw;
       pitch = clamp(pitch - dy * 0.0032, P_MIN, P_MAX);
@@ -1002,20 +1133,40 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   const onPointerUp = (e: PointerEvent) => {
     const was = gesture;
     ptrs.delete(e.pointerId);
-    if (ptrs.size >= 2) return;
-    if (was === "pinch") {
+    if (ptrs.size >= 2) {
+      lastSpan = pinchSpan();
+      const c = centroid();
+      centroidX = c.x;
+      centroidY = c.y;
+      return;
+    }
+    if (was === "multi") {
       gesture = ptrs.size === 1 ? "orbit" : "none";
       moved = 80;
+      finishPan();
+      return;
+    }
+    if (was === "pan") {
+      gesture = "none";
+      finishPan();
       return;
     }
     gesture = "none";
-    if (was !== "orbit" || moved > 8) return;
+    if (walking || was !== "orbit" || moved > 8) return;
     const now = performance.now();
     const double = now - lastTap < 340 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 30;
     const hit = pick(e.clientX, e.clientY);
     if (double && hit) {
       selected = hit;
-      radiusT = hit === "cenotaph" ? NEAR_R : 24;
+      if (hit === "cenotaph") {
+        snapAnchor = null;
+        focusT.copy(cenFocus);
+        radiusT = NEAR_R;
+      } else {
+        snapAnchor = hit;
+        focusT.copy(SITES[hit]);
+        radiusT = 24;
+      }
       lastTap = 0;
       return;
     }
@@ -1032,33 +1183,83 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     zoomIn(Math.exp(dy * 0.00115));
   };
 
+  const onContext = (e: Event) => {
+    e.preventDefault();
+  };
+
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (!walking) return;
+    const k = e.key.toLowerCase();
+    if (k === "w" || k === "a" || k === "s" || k === "d" || k.startsWith("arrow")) {
+      e.preventDefault();
+      held.add(k);
+    }
+  };
+  const onKeyUp = (e: KeyboardEvent) => {
+    held.delete(e.key.toLowerCase());
+  };
+
+  const onBlur = () => {
+    held.clear();
+    stickX = 0;
+    stickY = 0;
+  };
+
   canvas.addEventListener("pointerdown", onPointerDown);
+  canvas.addEventListener("contextmenu", onContext);
   window.addEventListener("pointermove", onPointerMove);
   window.addEventListener("pointerup", onPointerUp);
+  window.addEventListener("pointercancel", onPointerUp);
   window.addEventListener("wheel", onWheel, { passive: false });
+  window.addEventListener("keydown", onKeyDown);
+  window.addEventListener("keyup", onKeyUp);
+  window.addEventListener("blur", onBlur);
 
   function emit(force = false) {
     const scale = inside ? 0.5 : clamp(Math.log(radius / R_MIN) / Math.log(R_MAX / R_MIN), 0, 1);
     let proximity = 0;
-    if (selected === "cenotaph" || inside) proximity = 1 - smoothstep(210, 390, camera.position.distanceTo(cenFocus));
+    if (walking) proximity = walkProx;
+    else if (selected === "cenotaph" || inside) proximity = 1 - smoothstep(210, 390, camera.position.distanceTo(cenFocus));
     else if (selected) proximity = 1 - smoothstep(18, 56, camera.position.distanceTo(SITES[selected]));
     const atHome =
+      !walking &&
       !inside &&
       !selected &&
       Math.abs(radius - HOME_R) < 16 &&
       focus.distanceTo(cenFocus) < 1.2 &&
       Math.abs(angDelta(yaw, HOME_YAW)) < 0.2 &&
       Math.abs(pitch - HOME_P) < 0.08;
-    const key = `${selected ?? "-"}|${scale.toFixed(3)}|${proximity.toFixed(3)}|${atHome ? 1 : 0}|${inside ? 1 : 0}`;
+    const body = walking ? walker.pose() : null;
+    const poseKey = body ? `${body.x.toFixed(0)}|${body.z.toFixed(0)}|${body.heading.toFixed(2)}` : "-";
+    const key = `${selected ?? "-"}|${scale.toFixed(3)}|${proximity.toFixed(3)}|${atHome ? 1 : 0}|${inside ? 1 : 0}|${walking ? "w" : "f"}|${poseKey}`;
     if (!force && key === lastSent) return;
     lastSent = key;
-    onChange({ scale, selected, proximity, atHome, inside });
+    onChange({
+      scale,
+      selected,
+      proximity,
+      atHome,
+      inside,
+      mode: walking ? "walk" : "fly",
+      walker: body
+        ? { x: Math.round(body.x * 10) / 10, z: Math.round(body.z * 10) / 10, heading: Math.round(body.heading * 100) / 100 }
+        : null,
+    });
   }
 
   const api: AtlasApi = {
     returnHome: () => {
+      if (walking) {
+        walking = false;
+        walker.stop();
+        stickX = 0;
+        stickY = 0;
+        held.clear();
+      }
       inside = false;
       selected = null;
+      snapAnchor = null;
+      focusT.copy(cenFocus);
       radiusT = HOME_R;
       pitchT = HOME_P;
       yawT = yaw + angDelta(yaw, HOME_YAW);
@@ -1066,23 +1267,41 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     crossBoundary: () => {
       inside = true;
       selected = "cenotaph";
+      snapAnchor = null;
+      focusT.copy(interiorFocus);
       radiusT = 5.4;
       pitchT = 1.02;
     },
     returnOutside: () => {
       inside = false;
       selected = "cenotaph";
+      snapAnchor = null;
+      focusT.copy(cenFocus);
       radiusT = NEAR_R;
       pitchT = 1.05;
     },
     setCenotaphVariant: (variant) => {
       cenotaph.apply(variant);
     },
+    setMode: (mode) => {
+      if (mode === "walk") beginWalk();
+      else endWalk();
+    },
+    setMove: (x, y) => {
+      stickX = x;
+      stickY = y;
+    },
   };
 
   const frameStudy = (mode: "home" | "approach" | "near") => {
+    if (walking) {
+      walking = false;
+      walker.stop();
+    }
     inside = false;
     selected = null;
+    snapAnchor = null;
+    focusT.copy(cenFocus);
     yawT = yaw + angDelta(yaw, HOME_YAW);
     if (mode === "near") {
       radiusT = NEAR_R;
@@ -1102,15 +1321,64 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
         cenotaph.apply(variant === "a" || variant === "b" || variant === "c" || variant === "m" ? variant : "m"),
       frame: frameStudy,
       aim: (id: DestinationId) => {
+        if (walking) {
+          walking = false;
+          walker.stop();
+        }
         selected = id;
-        radiusT = id === "cenotaph" ? NEAR_R : 28;
+        if (id === "cenotaph") {
+          snapAnchor = null;
+          focusT.copy(cenFocus);
+          radiusT = NEAR_R;
+        } else {
+          snapAnchor = id;
+          focusT.copy(SITES[id]);
+          radiusT = 28;
+        }
       },
       fit: cenFit,
       shot: (on: boolean) => {
         if (on) document.documentElement.dataset.iaShot = "1";
         else delete document.documentElement.dataset.iaShot;
       },
-      reference: (mode: "ours" | "ref" | "overlay") => setReference?.(mode),
+      pose: () => ({
+        x: focus.x,
+        y: focus.y,
+        z: focus.z,
+        tx: focusT.x,
+        ty: focusT.y,
+        tz: focusT.z,
+        radius,
+        yaw,
+        pitch,
+        selected,
+        snap: snapAnchor,
+        mode: walking ? "walk" : "fly",
+        walker: walking ? walker.pose() : null,
+        cam: [camera.position.x, camera.position.y, camera.position.z],
+      }),
+      march: (seconds: number) => {
+        const n = Math.max(1, Math.round(seconds / 0.05));
+        for (let i = 0; i < n; i++) walker.update(0.05, i * 0.05, walkInput(), false);
+        walker.applyCamera(camera, 0.2, true);
+      },
+      screen: () => {
+        camera.updateMatrixWorld();
+        const rect = canvas.getBoundingClientRect();
+        const marks: Record<string, { x: number; y: number; nx: number; ny: number; z: number; d: number }> = {};
+        for (const id of Object.keys(SITES) as ExhibitId[]) {
+          _hit.copy(SITES[id]).project(camera);
+          marks[id] = {
+            x: rect.left + (_hit.x * 0.5 + 0.5) * rect.width,
+            y: rect.top + (-_hit.y * 0.5 + 0.5) * rect.height,
+            nx: _hit.x,
+            ny: _hit.y,
+            z: _hit.z,
+            d: camera.position.distanceTo(SITES[id]),
+          };
+        }
+        return marks;
+      },
     };
   }
 
@@ -1126,14 +1394,15 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   ro.observe(canvas);
   resize();
 
-  const placeCamera = () => {
+  function placeCamera() {
     const cp = Math.cos(pitch);
     const sp = Math.sin(pitch);
     camera.position.set(focus.x + radius * cp * Math.sin(yaw), focus.y + radius * sp, focus.z + radius * cp * Math.cos(yaw));
     camera.lookAt(focus);
     camera.fov = fovFor(46, camera.aspect);
     camera.updateProjectionMatrix();
-  };
+    camera.updateMatrixWorld();
+  }
   placeCamera();
   renderer.render(scene, camera);
 
@@ -1145,22 +1414,26 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     const time = tNow / 1000;
     const ease = reduced ? 1 : 1 - Math.exp(-raw * 2.6);
 
-    radiusT = clamp(radiusT, minRadius(), maxRadius());
-    radius += (radiusT - radius) * ease;
-    pitch += (pitchT - pitch) * ease;
-    yaw += (yawT - yaw) * ease;
+    if (walking) {
+      walker.update(dt, time, walkInput(), reduced);
+      const near = walker.nearest();
+      selected = near.id;
+      walkProx = near.proximity;
+      walker.applyCamera(camera, raw, reduced);
+    } else {
+      radiusT = clamp(radiusT, snapAnchor ? R_MIN : minRadius(), maxRadius());
+      radius += (radiusT - radius) * ease;
+      pitch += (pitchT - pitch) * ease;
+      yaw += (yawT - yaw) * ease;
 
-    _focus.copy(inside ? interiorFocus : cenFocus);
-    if (!inside && selected && selected !== "cenotaph") {
-      const u = 1 - smoothstep(36, 360, radiusT);
-      _focus.lerp(SITES[selected], u);
-    }
-    focus.lerp(_focus, ease);
-    if (!inside && focusOut() < 196) {
-      radius = Math.max(radius, cenOrbitMin());
+      if (inside) focusT.copy(interiorFocus);
+      focus.lerp(focusT, ease);
+      if (!inside && focusOut() < 196) {
+        radius = Math.max(radius, cenOrbitMin());
+      }
     }
 
-    cenotaph.uniforms.uDetail.value = 1 - smoothstep(180, 460, camera.position.distanceTo(interiorFocus));
+    cenotaph.uniforms.uDetail.value = 1 - smoothstep(120, 340, camera.position.distanceTo(interiorFocus));
     interior.uniforms.uMeridian.value = inside ? 0.15 + 0.85 * Math.abs(Math.sin(yaw)) : 0.08;
 
     if (!reduced) {
@@ -1176,7 +1449,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       h.mat.opacity += (target - h.mat.opacity) * (reduced ? 1 : 1 - Math.exp(-dt * 6));
     }
 
-    placeCamera();
+    if (!walking) placeCamera();
 
     if (useComposer && composer) {
       try {
@@ -1211,9 +1484,14 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       renderer.setAnimationLoop(null);
       ro.disconnect();
       canvas.removeEventListener("pointerdown", onPointerDown);
+      canvas.removeEventListener("contextmenu", onContext);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
       window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onBlur);
       composer?.dispose();
       envMap?.dispose();
       glowTex.dispose();

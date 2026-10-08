@@ -86,12 +86,22 @@ export const COLLECTIONS: Destination[] = [];
 /** Future rabbit holes. Absent from paths, pick spheres, and the plate. */
 export const HIDDEN_DESTINATIONS: Destination[] = [];
 
+export type AtlasMode = "fly" | "walk";
+
+export type WalkerPose = {
+  x: number;
+  z: number;
+  heading: number;
+};
+
 export type AtlasUi = {
   scale: number;
   selected: DestinationId | null;
   proximity: number;
   atHome: boolean;
   inside: boolean;
+  mode: AtlasMode;
+  walker: WalkerPose | null;
 };
 
 export type CenotaphVariant = "a" | "b" | "c" | "m";
@@ -101,6 +111,8 @@ export type AtlasApi = {
   crossBoundary: () => void;
   returnOutside: () => void;
   setCenotaphVariant: (variant: CenotaphVariant) => void;
+  setMode: (mode: AtlasMode) => void;
+  setMove: (x: number, y: number) => void;
 };
 
 export function isExhibitId(value: string): value is ExhibitId {
