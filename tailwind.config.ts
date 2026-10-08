@@ -100,6 +100,16 @@ export default {
         fg: "#e6e1d4",
         line: "#2e312a",
         copper: "#c9843f",
+        fr: {
+          ink: "#0c1014",
+          panel: "#151b21",
+          panel2: "#1c242c",
+          paper: "#e7e1d4",
+          mute: "#8f978e",
+          rule: "#2c353e",
+          copper: "#e08a45",
+          snap: "#3dccc7",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
