@@ -22,4 +22,19 @@ export type ForestLink = {
   to: string;
 };
 
-export const FOREST_LINKS: ForestLink[] = [];
+export const FOREST_LINKS: ForestLink[] = [
+  {
+    layer: "forest",
+    id: "photon-hydrogen",
+    kind: "related-instrument",
+    from: "photon",
+    to: "hydrogen",
+  },
+  {
+    layer: "forest",
+    id: "photon-optics",
+    kind: "related-instrument",
+    from: "photon",
+    to: "optics",
+  },
+];

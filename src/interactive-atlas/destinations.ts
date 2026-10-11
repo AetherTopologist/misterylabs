@@ -9,7 +9,7 @@
  */
 export type DestinationKind = "landmark" | "collection" | "exhibit" | "hidden";
 
-export type ExhibitId = "hydrogen" | "triad" | "optics" | "bell" | "xprimeray";
+export type ExhibitId = "hydrogen" | "triad" | "optics" | "bell" | "xprimeray" | "photon";
 
 export type DestinationId = ExhibitId | "cenotaph";
 
@@ -68,6 +68,15 @@ export const EXHIBITS: Record<ExhibitId, Destination> = {
     name: "xPRIMEray",
     question: "What shape does light think space has?",
     released: false,
+    placed: true,
+  },
+  photon: {
+    id: "photon",
+    kind: "exhibit",
+    name: "Photon Journey",
+    question: "Why can a phone photograph the Moon, yet struggle to focus on a droplet?",
+    href: "/observatory/photon-journey",
+    released: true,
     placed: true,
   },
 };

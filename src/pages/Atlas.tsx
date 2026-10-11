@@ -450,6 +450,16 @@ const DEMO_CARDS: Array<{
     status: "Baseline",
   },
   {
+    href: "/observatory/photon-journey",
+    label: "Photon Journey",
+    sub: "Optics / Perception · From Moonlight to Microcosm",
+    desc: "Follow light from the Moon to a camera sensor, then explore the microscopic world through lenses, exposure, and resolution.",
+    accent: "text-amber-400/70",
+    border: "border-amber-500/20 hover:border-amber-500/40",
+    maturity: "Experimental",
+    status: "v1.0 Illustrative",
+  },
+  {
     href: "/observatory/field-resonance",
     label: "Field Resonance",
     sub: "Can a field pattern move without a trajectory?",

@@ -31,6 +31,7 @@ export const PLACES: Record<ExhibitId, Place> = {
   optics: { x: 38 * LAYOUT, y: 2.2, z: -28 * LAYOUT, block: 5.8, reach: 20 },
   xprimeray: { x: 8 * LAYOUT, y: 2.4, z: -42 * LAYOUT, block: 4.6, reach: 18 },
   bell: { x: -26 * LAYOUT, y: 4.2, z: -56 * LAYOUT, block: 5.4, reach: 20 },
+  photon: { x: 54 * LAYOUT, y: 2.2, z: -10 * LAYOUT, block: 5.2, reach: 18 },
 };
 
 const at = (x: number, z: number): [number, number, number] => [x * LAYOUT, 0, z * LAYOUT];
@@ -46,6 +47,7 @@ export const PATHS: Array<{ pts: Array<[number, number, number]>; samples: numbe
   { pts: [at(34, -8), at(38, -16), at(38, -28)], samples: 16, walk: 1.05, glow: 0.22 },
   { pts: [at(34, -8), at(22, -28), at(8, -42)], samples: 18, walk: 1.0, glow: 0.22 },
   { pts: [at(22, -28), at(-4, -36), at(-26, -56)], samples: 20, walk: 1.0, glow: 0.22 },
+  { pts: [at(34, -8), at(44, -9), at(54, -10)], samples: 14, walk: 1.0, glow: 0.2 },
 ];
 
 export function projectOut(x: number, z: number, vx: number, vz: number) {

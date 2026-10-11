@@ -29,6 +29,12 @@ const DOORS = [
     q: "What changes when we change dimensions?",
     to: "/observatory/higher-dimensional",
   },
+  {
+    n: "05",
+    name: "Photon Journey",
+    q: "Why can a phone photograph the Moon?",
+    to: "/observatory/photon-journey",
+  },
 ] as const;
 
 const Index = () => {

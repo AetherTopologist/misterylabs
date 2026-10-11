@@ -1,0 +1,128 @@
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,460;0,6..72,560;1,6..72,460&display=swap");
+
+/* Photon Journey keeps its own bench palette. Scoped so site tokens
+   (bg, line, muted) are not retinted. */
+.photon-instrument {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(1200px 500px at 50% -10%, rgba(226, 168, 75, 0.08), transparent 55%),
+    #08090c;
+  color: #ebe6dc;
+  font-family: Newsreader, Georgia, "Times New Roman", serif;
+}
+
+.photon-world-return {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.35rem 1rem;
+  background: #08090c;
+  color: #e2a84b;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.photon-instrument button:not(:disabled),
+.photon-instrument [role="button"]:not(:disabled),
+.photon-instrument [role="radio"]:not(:disabled),
+.photon-instrument summary {
+  cursor: pointer;
+}
+
+.photon-instrument :focus-visible {
+  outline: 2px solid #e2a84b;
+  outline-offset: 3px;
+}
+
+.photon-instrument .viewfinder {
+  aspect-ratio: 3 / 2;
+  background: #08090c;
+}
+
+.photon-instrument .preview-frame {
+  width: min(100%, 36vh);
+  margin-inline: auto;
+}
+
+@media (min-width: 64rem) {
+  .photon-instrument .preview-frame {
+    width: 100%;
+  }
+}
+
+.photon-instrument .optic-range {
+  appearance: none;
+  height: 2.75rem;
+  width: 100%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.photon-instrument .optic-range:focus {
+  outline: none;
+}
+
+.photon-instrument .optic-range:focus-visible {
+  outline: 2px solid #e2a84b;
+  outline-offset: 4px;
+}
+
+.photon-instrument .optic-range::-webkit-slider-runnable-track {
+  height: 2px;
+  background: #2c2e34;
+}
+
+.photon-instrument .optic-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-top: -0.8rem;
+  border-radius: 999px;
+  background: #ebe6dc;
+  border: 2px solid #e2a84b;
+  box-shadow: 0 0 0 6px rgba(8, 9, 12, 0.7);
+}
+
+.photon-instrument .optic-range::-moz-range-track {
+  height: 2px;
+  background: #2c2e34;
+  border: none;
+}
+
+.photon-instrument .optic-range::-moz-range-thumb {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: #ebe6dc;
+  border: 2px solid #e2a84b;
+}
+
+.photon-instrument .instrument[data-field="macro"] .optic-range::-webkit-slider-thumb,
+.photon-instrument .instrument[data-field="macro"] .optic-range::-moz-range-thumb {
+  border-color: #79c7c2;
+}
+
+.photon-instrument .instrument[data-field="macro"] .optic-range:focus-visible {
+  outline-color: #79c7c2;
+}
+
+.photon-instrument .tap {
+  transition: scale 150ms ease-out;
+}
+
+.photon-instrument .tap:active:not(:disabled) {
+  scale: 0.96;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photon-instrument .tap {
+    transition: none;
+  }
+}

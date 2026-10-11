@@ -53,6 +53,7 @@ const SITES: Record<ExhibitId, THREE.Vector3> = {
   optics: new THREE.Vector3(PLACES.optics.x, PLACES.optics.y, PLACES.optics.z),
   xprimeray: new THREE.Vector3(PLACES.xprimeray.x, PLACES.xprimeray.y, PLACES.xprimeray.z),
   bell: new THREE.Vector3(PLACES.bell.x, PLACES.bell.y, PLACES.bell.z),
+  photon: new THREE.Vector3(PLACES.photon.x, PLACES.photon.y, PLACES.photon.z),
 };
 
 function smoothstep(e0: number, e1: number, x: number) {
@@ -581,6 +582,45 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     const light = new THREE.PointLight(0xfff4e4, 16, 70, 2);
     light.position.set(p.x, 2, p.z);
     scene.add(light);
+  }
+
+  // Photon Journey — a bench, a lens, and a camera. Illustrative, not calibrated.
+  {
+    const p = SITES.photon;
+    addPad(p.x, p.z, 5.4);
+    markSite("photon", 4.8);
+    const g = new THREE.Group();
+    g.position.set(p.x, 0, p.z);
+    const bench = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.12, 1.4), metal);
+    bench.position.y = 0.7;
+    g.add(bench);
+    const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, 0.08, 24), glassMat);
+    lens.rotation.z = Math.PI / 2;
+    lens.position.set(-0.4, 1.55, 0);
+    g.add(lens);
+    const body = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.72, 0.86), metal);
+    body.position.set(2.15, 1.35, 0);
+    g.add(body);
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.7, 12), metal);
+    barrel.rotation.z = Math.PI / 2;
+    barrel.position.set(1.35, 1.45, 0);
+    g.add(barrel);
+    scene.add(g);
+    const ray = emptyRibbon();
+    addRibbon(
+      ray,
+      [
+        new THREE.Vector3(p.x - 3.4, 1.55, p.z),
+        new THREE.Vector3(p.x - 0.4, 1.55, p.z),
+        new THREE.Vector3(p.x + 2.15, 1.45, p.z),
+      ],
+      0.05,
+      true,
+    );
+    scene.add(meshFrom(ray, pathGlow));
+    const lamp = new THREE.PointLight(0xffe2b0, 14, 60, 2);
+    lamp.position.set(p.x, 2.2, p.z);
+    scene.add(lamp);
   }
 
   // xPRIMEray — an open frame and a few bending rays.

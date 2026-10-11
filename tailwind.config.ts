@@ -110,6 +110,16 @@ export default {
           copper: "#e08a45",
           snap: "#3dccc7",
         },
+        photon: {
+          bg: "#08090c",
+          raise: "#12141a",
+          ink: "#ebe6dc",
+          muted: "#9a9488",
+          faint: "#6f6a62",
+          line: "#2c2e34",
+          amber: "#e2a84b",
+          cyan: "#79c7c2",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
