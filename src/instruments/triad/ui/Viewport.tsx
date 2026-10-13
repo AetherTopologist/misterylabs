@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { AIRFRAME_MESH, B777, airframeExtent } from "../sim/airframe";
 import { BORE_LEAD, BORE_MAX, BORE_RING, engine } from "../sim/engine";
 import { PAL } from "../sim/palette";
+import { FieldLines } from "./FieldLines";
 
 const FIELD_N = 52;
 const LOCUS_RGB: [number, number, number][] = [
@@ -639,6 +640,7 @@ function Scene() {
       <RangeFloor />
       <BoreHistory />
       <FieldSlice />
+      <FieldLines />
       <Aircraft />
       <Markers />
       <VelocityTick />

@@ -4,6 +4,7 @@ import { engine } from "./sim/engine";
 import { experimentRun } from "./sim/experimentRun";
 import { useTriad } from "./sim/store";
 import { ExperimentDeck, RangeInset } from "./ui/Experiments";
+import { FieldBureau } from "./ui/FieldBureau";
 import { Header, Inspector, Overlay, PlotDock } from "./ui/Instrument";
 import "./triad.css";
 
@@ -76,6 +77,7 @@ export default function TriadPage() {
             {View ? <View /> : <div className="grid h-full place-items-center kicker">Opening range frame</div>}
             <Overlay />
             <RangeInset />
+            <FieldBureau />
           </div>
           <PlotDock />
           <Inspector />

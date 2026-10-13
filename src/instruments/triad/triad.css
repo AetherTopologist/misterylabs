@@ -523,3 +523,96 @@
   white-space: nowrap;
   text-align: center;
 }
+
+.triad-root .bureau {
+  position: absolute;
+  z-index: 8;
+  top: 4.6rem;
+  right: 0.4rem;
+  width: min(22rem, calc(100% - 0.8rem));
+  max-height: calc(100% - 5.2rem);
+  overflow: auto;
+  padding: 0.55rem 0.65rem 0.75rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-bg) 90%, transparent);
+  pointer-events: auto;
+}
+
+.triad-root .bureau h2 {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.triad-root .bureau-head p,
+.triad-root .bureau-note,
+.triad-root .bureau-list,
+.triad-root .bureau-compare p {
+  margin: 0.35rem 0;
+  color: var(--color-muted);
+}
+
+.triad-root .bureau-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.4rem 0;
+}
+
+.triad-root .bureau-actions .btn {
+  min-height: 2.4rem;
+}
+
+.triad-root .bureau-chip,
+.triad-root .bureau-ride {
+  margin: 0.35rem 0;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+}
+
+.triad-root .bureau-chip[data-state="WITHIN TESTED MODEL"] { color: var(--color-obs); border-color: var(--color-obs); }
+.triad-root .bureau-chip[data-state="APPROXIMATION CAUTION"] { color: #e0a100; border-color: #e0a100; }
+.triad-root .bureau-chip[data-state="OUTSIDE VALIDATED DOMAIN"] { color: var(--color-hyp); border-color: var(--color-hyp); }
+.triad-root .bureau-chip[data-state="NOT EVALUATED"] { color: var(--color-muted); }
+
+.triad-root .bureau-list {
+  padding-left: 1rem;
+}
+
+.triad-root .bureau-list li[data-state="OUTSIDE VALIDATED DOMAIN"] { color: var(--color-hyp); }
+.triad-root .bureau-list li[data-state="APPROXIMATION CAUTION"] { color: #e0a100; }
+
+.triad-root .bureau-slider {
+  display: grid;
+  grid-template-columns: 7.2rem 1fr auto;
+  gap: 0.35rem;
+  align-items: center;
+  margin: 0.35rem 0;
+}
+
+.triad-root .bureau-diff {
+  width: 100%;
+  height: 7.5rem;
+  image-rendering: pixelated;
+  border: 1px solid var(--color-line);
+  background: var(--color-bg);
+}
+
+.triad-root .bureau a { color: var(--color-obs); }
+
+@media (max-width: 63.99rem) {
+  .triad-root .bureau {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: auto;
+    max-height: 46%;
+    border-radius: 0;
+  }
+}

@@ -565,6 +565,9 @@ function FieldTab() {
   return (
     <div className="flex flex-col gap-3 pb-6">
       <p className="text-triad-muted">{snap.fieldNote}</p>
+      <p className="text-triad-muted">
+        Field lines and nulls are computed on the range frame by the Field Bureau. They read this solver. They do not write back.
+      </p>
       <CausalChain />
       <p className="kicker">Source controls</p>
       <LogSlider

@@ -108,3 +108,20 @@ No Pais, Puthoff, or Morris–Thorne transport law is implemented.
 | Aim axis / range inset | `ui/Viewport.tsx`, `ui/Experiments.tsx` `RangeInset`, `sim/anchorView.ts` | local ray; `compressedRadius` |
 
 `clearHistory` on the engine drops plotted samples and source-locus samples only. It does not clear the latency buffer and it does not change the Maxwell update.
+
+## v0.2 field bureau (branch only)
+
+Visualization reads the existing Hertzian kernel. It does not write dipoles, phases, or hypothesis flags back into Maxwell, QED, or the controller.
+
+```
+engine.sources() / formation() / toView()     read-only seam. sources() latches emitter phase to the current params and does not step.
+sim/topology.ts                               instantaneous B = μ0 Re(H exp(+jφ)); RK2 streamlines; null search; div B; C3 residual; validity rows
+sim/qed.ts                                    reused. sampleStrongField, invariantsOf, pairRate. Not rewritten.
+sim/bureau.ts                                 debounced survey, dipole copies at Freeze A/B, |B| difference on a shared slice
+ui/FieldLines.tsx                             streamlines, slice, exclusion spheres (r < 4 m), C3 reference ticks, null marks
+ui/FieldBureau.tsx                            experiments, limit walk, 60 s ride, research tree, mechanism panel
+```
+
+Field-domain states are WITHIN TESTED MODEL, APPROXIMATION CAUTION, OUTSIDE VALIDATED DOMAIN, or NOT EVALUATED. Energy balance stays NOT EVALUATED: source work is not in the ledger. The Schwinger n=1…4 series stays a constant-field estimate. A null is not reconnection. The ????? seam is unchanged.
+
+The five experiment presets are untouched.

@@ -1,5 +1,7 @@
 import { create } from "zustand";
+import { noteFieldFreeze } from "./bureau";
 import { engine } from "./engine";
+import { userIntent } from "./intent";
 import { DEFAULT_PARAMS, type Experiment, type FrozenState, type Params, type SchwingerSweep, type Snapshot } from "./types";
 
 type TriadStore = {
@@ -50,28 +52,34 @@ export const useTriad = create<TriadStore>((set, get) => ({
   captureB: null,
   sweep: null,
   patch: (partial) => {
+    userIntent();
     const params = { ...get().params, ...partial };
     engine.setParams(params);
     set({ params });
   },
   publish: () => set({ snap: engine.snapshot() }),
   reset: () => {
+    userIntent();
     engine.reset();
     set({ snap: engine.snapshot(), params: { ...engine.params } });
   },
   maneuver: () => {
+    userIntent();
     engine.triggerManeuver();
     set({ snap: engine.snapshot() });
   },
   experiment: (kind) => {
+    userIntent();
     engine.applyExperiment(kind);
     set({ params: { ...engine.params }, snap: engine.snapshot() });
   },
   freeze: (which) => {
+    userIntent();
     const snap = engine.snapshot();
     const shot = frozen({ ...engine.params }, snap);
     if (which === "a") set({ captureA: shot, snap });
     else set({ captureB: shot, snap });
+    noteFieldFreeze(which, shot.qed);
   },
   clearCaptures: () => set({ captureA: null, captureB: null }),
   runSweep: () => set({ sweep: engine.schwingerSweep() }),
