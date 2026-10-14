@@ -6,7 +6,10 @@ import { engine } from "../sim/engine";
 import { R_MIN } from "../sim/fields";
 import { PAL } from "../sim/palette";
 import { displayWeights, useDisplayFocus } from "./displayFocus";
-import type { SliceGrid } from "../sim/topology";
+import type { SliceGrid, NullHit } from "../sim/topology";
+import type { Vec } from "../sim/fields";
+
+const EMPTY_NULLS: (NullHit & { view: Vec })[] = [];
 
 function ramp(t: number): [number, number, number] {
   const u = Math.max(0, Math.min(1, t));
@@ -200,8 +203,11 @@ function ExclusionAndSymmetry() {
 }
 
 function NullMarks() {
-  const nulls = useBureau((s) => s.view?.nulls ?? []);
-  const show = useBureau((s) => s.settings.showLines || s.settings.showSymmetry);
+  const view = useBureau((s) => s.view);
+  const showLines = useBureau((s) => s.settings.showLines);
+  const showSymmetry = useBureau((s) => s.settings.showSymmetry);
+  const show = showLines || showSymmetry;
+  const nulls = view?.nulls ?? EMPTY_NULLS;
   if (!show) return null;
   return (
     <>
