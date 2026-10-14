@@ -27,8 +27,19 @@ function still(extra: Partial<Params>) {
   });
 }
 
+function revealField() {
+  useBureau.getState().setSettings({
+    showLines: true,
+    showSlice: true,
+    showExclusion: true,
+    showSymmetry: true,
+    showArrows: true,
+  });
+}
+
 function snowflake() {
   useBureau.getState().setProbe(null);
+  revealField();
   still({
     orient: "vertical",
     phasePreset: "zero",
@@ -159,7 +170,7 @@ export function FieldBureau() {
         <p className="kicker">Field design bureau</p>
         <h2>Calculated B, not a drawn snowflake</h2>
         <p>
-          Three Hertzian electric dipoles. Not plasma spheres. Curves are instantaneous B. A null is not reconnection.
+          Three Hertzian electric dipoles. Not plasma spheres. Curves are instantaneous B. A magnetic-null mark is a |B| minimum, not the Null A/B experiment, and not reconnection.
         </p>
       </header>
       <p className={`bureau-chip`} data-state={domain}>

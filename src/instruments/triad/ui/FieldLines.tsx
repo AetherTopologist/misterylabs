@@ -1,4 +1,3 @@
-import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
@@ -6,6 +5,7 @@ import { useBureau } from "../sim/bureau";
 import { engine } from "../sim/engine";
 import { R_MIN } from "../sim/fields";
 import { PAL } from "../sim/palette";
+import { displayWeights, useDisplayFocus } from "./displayFocus";
 import type { SliceGrid } from "../sim/topology";
 
 function ramp(t: number): [number, number, number] {
@@ -68,7 +68,9 @@ function SliceMesh({ grid, perp }: { grid: SliceGrid; perp: boolean }) {
 
 function Lines() {
   const view = useBureau((s) => s.view);
-  const show = useBureau((s) => s.settings.showLines);
+  const showSetting = useBureau((s) => s.settings.showLines);
+  const focus = useDisplayFocus();
+  const show = showSetting || focus === "field";
   const geo = useMemo(() => {
     const g = new THREE.BufferGeometry();
     if (!view) return g;
@@ -102,10 +104,15 @@ function Lines() {
     g.setDrawRange(0, w * 2);
     return g;
   }, [view]);
+  const ref = useRef<THREE.LineSegments>(null);
+  useFrame(() => {
+    const mat = ref.current?.material as THREE.LineBasicMaterial | undefined;
+    if (mat) mat.opacity = Math.min(0.95, displayWeights().field * 2.4);
+  });
   if (!show) return null;
   return (
-    <lineSegments geometry={geo} frustumCulled={false}>
-      <lineBasicMaterial vertexColors transparent opacity={0.92} />
+    <lineSegments ref={ref} geometry={geo} frustumCulled={false}>
+      <lineBasicMaterial vertexColors transparent opacity={0.75} />
     </lineSegments>
   );
 }
@@ -147,7 +154,6 @@ function ExclusionAndSymmetry() {
   const e1v = useMemo(() => new THREE.Vector3(), []);
   const e2v = useMemo(() => new THREE.Vector3(), []);
   const dir = useMemo(() => new THREE.Vector3(), []);
-  const showSym = useBureau((s) => s.settings.showSymmetry);
   useFrame(() => {
     const d = engine.display;
     const s = useBureau.getState().settings;
@@ -188,15 +194,6 @@ function ExclusionAndSymmetry() {
         {tickLines.map((line, i) => (
           <primitive key={i} object={line} />
         ))}
-        {showSym ? (
-          <Html position={[0, 8, 0]} center zIndexRange={[4, 0]} style={{ pointerEvents: "none" }}>
-            <div className="aim-label" style={{ color: "#8ea0b5", borderColor: "#8ea0b5" }}>
-              C3 reference
-              <br />
-              not a field line
-            </div>
-          </Html>
-        ) : null}
       </group>
     </>
   );
@@ -204,6 +201,8 @@ function ExclusionAndSymmetry() {
 
 function NullMarks() {
   const nulls = useBureau((s) => s.view?.nulls ?? []);
+  const show = useBureau((s) => s.settings.showLines || s.settings.showSymmetry);
+  if (!show) return null;
   return (
     <>
       {nulls.map((n, i) => (
@@ -212,13 +211,6 @@ function NullMarks() {
             <octahedronGeometry args={[n.klass === "verified" ? 1.7 : 1.15, 0]} />
             <meshBasicMaterial color={n.klass === "verified" ? PAL.model : "#e0a100"} wireframe={n.klass !== "verified"} />
           </mesh>
-          <Html center zIndexRange={[4, 0]} style={{ pointerEvents: "none" }}>
-            <div className="aim-label" style={{ color: n.klass === "verified" ? "#f4f7fb" : "#e0a100", borderColor: "currentColor" }}>
-              {n.klass === "verified" ? "Verified null candidate" : "Under-resolved"}
-              <br />
-              not reconnection
-            </div>
-          </Html>
         </group>
       ))}
     </>
@@ -227,10 +219,13 @@ function NullMarks() {
 
 export function FieldLines() {
   const view = useBureau((s) => s.view);
+  const showSlice = useBureau((s) => s.settings.showSlice);
+  const focus = useDisplayFocus();
+  const sliceOn = showSlice || focus === "field";
   return (
     <>
-      {view?.slice ? <SliceMesh grid={view.slice} perp={false} /> : null}
-      {view?.perp ? <SliceMesh grid={view.perp} perp /> : null}
+      {sliceOn && view?.slice ? <SliceMesh grid={view.slice} perp={false} /> : null}
+      {sliceOn && view?.perp ? <SliceMesh grid={view.perp} perp /> : null}
       <Lines />
       <Arrows />
       <ExclusionAndSymmetry />

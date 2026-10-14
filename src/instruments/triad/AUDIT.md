@@ -109,19 +109,24 @@ No Pais, Puthoff, or Morris–Thorne transport law is implemented.
 
 `clearHistory` on the engine drops plotted samples and source-locus samples only. It does not clear the latency buffer and it does not change the Maxwell update.
 
-## v0.2 field bureau (branch only)
+## TRIAD v0.1 presentation (on main)
 
-Visualization reads the existing Hertzian kernel. It does not write dipoles, phases, or hypothesis flags back into Maxwell, QED, or the controller.
+Main designates **TRIAD v0.1 · Research Instrument Preview**. Display focus (`BALANCED | AIRCRAFT | FIELD | SOURCES`) is opacity only in `ui/displayFocus.ts`. It is not a `Params` field and is not written into COPY RUN. Default `showBore` is off so source-locus helices do not cover the first frame. The 239-lives sentence lives in `TriadNotes`, not over the range frame.
+
+The on-screen E/Es ratio is peak delivered `|E| / Es`. `pairRate` uses `ε`, not that displayed peak.
+
+## v0.2 field bureau (this branch)
+
+Visualization reads the existing Hertzian kernel. It does not write dipoles, phases, or hypothesis flags back into Maxwell, QED, or the controller. The five experiment presets are untouched.
 
 ```
-engine.sources() / formation() / toView()     read-only seam. sources() latches emitter phase to the current params and does not step.
-sim/topology.ts                               instantaneous B = μ0 Re(H exp(+jφ)); RK2 streamlines; null search; div B; C3 residual; validity rows
-sim/qed.ts                                    reused. sampleStrongField, invariantsOf, pairRate. Not rewritten.
-sim/bureau.ts                                 debounced survey, dipole copies at Freeze A/B, |B| difference on a shared slice
-ui/FieldLines.tsx                             streamlines, slice, exclusion spheres (r < 4 m), C3 reference ticks, null marks
-ui/FieldBureau.tsx                            experiments, limit walk, 60 s ride, research tree, mechanism panel
+engine.sources() / formation() / toView()     read-only seam. sources() latches emitter phase and does not step.
+sim/topology.ts                               instantaneous B; RK2 streamlines; magnetic-null search; div B; C3 residual
+sim/qed.ts                                    reused, not rewritten
+sim/bureau.ts                                 debounced survey and dipole copies at Freeze A/B
+ui/FieldLines.tsx                             streamlines, slice, r < 4 m spheres, C3 ticks, magnetic-null marks
+ui/RideDock.tsx                               selector, Ride / Pause / Restart over the existing experiment runner
 ```
 
-Field-domain states are WITHIN TESTED MODEL, APPROXIMATION CAUTION, OUTSIDE VALIDATED DOMAIN, or NOT EVALUATED. Energy balance stays NOT EVALUATED: source work is not in the ledger. The Schwinger n=1…4 series stays a constant-field estimate. A null is not reconnection. The ????? seam is unchanged.
+A magnetic-null candidate is a place where sampled `|B|` is numerically small. It is not the Null A/B experiment, which changes one control and compares telemetry. Source helices are emitter history, not magnetic field lines. A null is not reconnection. Energy balance stays NOT EVALUATED. The ????? seam is unchanged.
 
-The five experiment presets are untouched.

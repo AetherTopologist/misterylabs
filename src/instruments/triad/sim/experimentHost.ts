@@ -20,6 +20,7 @@
  * Restore does not rewind a mid-flight pose on its own.
  */
 import { engine } from "./engine";
+import { withoutUserIntent } from "./intent";
 import { useTriad } from "./store";
 import type { Params, Snapshot } from "./types";
 
@@ -29,13 +30,13 @@ export type ControlCheckpoint = {
 
 export const experimentHost = {
   reset(): void {
-    useTriad.getState().reset();
+    withoutUserIntent(() => useTriad.getState().reset());
   },
   setControls(partial: Partial<Params>): void {
-    useTriad.getState().patch(partial);
+    withoutUserIntent(() => useTriad.getState().patch(partial));
   },
   freeze(which: "a" | "b"): void {
-    useTriad.getState().freeze(which);
+    withoutUserIntent(() => useTriad.getState().freeze(which));
   },
   clearHistory(): void {
     engine.clearHistory();
@@ -45,10 +46,10 @@ export const experimentHost = {
     return { params: { ...engine.params } };
   },
   restore(saved: ControlCheckpoint): void {
-    useTriad.getState().patch({ ...saved.params });
+    withoutUserIntent(() => useTriad.getState().patch({ ...saved.params }));
   },
   stop(): void {
-    useTriad.getState().patch({ running: false });
+    withoutUserIntent(() => useTriad.getState().patch({ running: false }));
   },
   /** Integrator time in seconds. Presets schedule against this, not wall time. */
   now(): number {

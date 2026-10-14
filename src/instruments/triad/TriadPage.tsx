@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import { engine } from "./sim/engine";
 import { experimentRun } from "./sim/experimentRun";
 import { useTriad } from "./sim/store";
-import { ExperimentDeck, RangeInset } from "./ui/Experiments";
+import { ExperimentDeck, RangeInset, TriadNotes } from "./ui/Experiments";
 import { FieldBureau } from "./ui/FieldBureau";
+import { RideDock } from "./ui/RideDock";
 import { Header, Inspector, Overlay, PlotDock } from "./ui/Instrument";
 import "./triad.css";
 
@@ -72,12 +73,22 @@ export default function TriadPage() {
       <main className="app-shell">
         <Header />
         <div className="stage">
-          <ExperimentDeck />
-          <div className="viewport-frame">
+          <RideDock />
+          <div className="viewport-frame" data-viewport-frame>
             {View ? <View /> : <div className="grid h-full place-items-center kicker">Opening range frame</div>}
             <Overlay />
             <RangeInset />
-            <FieldBureau />
+          </div>
+          <div className="experiment-stack">
+            <details className="triad-about">
+              <summary>Experiment record</summary>
+              <ExperimentDeck />
+            </details>
+            <details className="triad-about">
+              <summary>Field topology · magnetic structure, not the Null A/B run</summary>
+              <FieldBureau />
+            </details>
+            <TriadNotes />
           </div>
           <PlotDock />
           <Inspector />

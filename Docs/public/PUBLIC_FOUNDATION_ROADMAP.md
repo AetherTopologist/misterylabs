@@ -11,8 +11,8 @@
 > This document may evolve as milestones land. It does not redefine
 > xPRIMEray engine authority.
 
-**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1–RA-8 landed, xPRIMEray semantic-seam narrow fix landed  
-**Updated after:** `405e38a62fbb84e2e6a529f415fefe2dd76033d2` — `fix(public): tighten xPRIMEray semantic seam`
+**Checkpoint:** Post-Supabase retirement, runtime hardening, Claude architecture reconciliation, M1–M3 landed, H1 landed, Public Reality Audit complete, RA-1–RA-8 landed, xPRIMEray semantic-seam narrow fix landed, MisterY Labs home identity seam landed  
+**Updated after:** `e5e4d3d9faf8ef5c3956cb8081f64f54d04effc9` — `fix(public): complete MisterY Labs home identity seam`
 
 ---
 
@@ -20,17 +20,19 @@
 
 The ratified **Navigator Stack** remains authoritative:
 
-- **MisterY Labs** — the navigator / public laboratory surrounding the system
+- **MisterY Labs** — parent public laboratory. Home identity is the method, not an optics domain.
 - **Broch Sphere** — navigation layer; maps relationships between ideas
 - **Atlas** — knowledge layer; organizes observations into learning paths
 - **Observatory** — measurement layer; documents experiments and generates evidence
-- **xPRIMEray** — upstream scientific instrument
+- **xPRIMEray** — one contained research lineage and instrument, not the system the laboratory exists around
+
+Home permanent identity: change one thing, look again. `Light doesn't always travel straight.` belongs to the xPRIMEray lineage. Future featured instruments may rotate without changing that identity.
 
 The visitor journey does not need to mirror this ontology literally.
 
 A compatible public journey is emerging:
 
-**arrive → manipulate an exhibit → become curious → see relationships/context → descend into Observatory → encounter xPRIMEray authority**
+**arrive → manipulate an exhibit → become curious → see relationships/context → descend into Observatory**
 
 This is the basis for a future **Experience** layer.
 

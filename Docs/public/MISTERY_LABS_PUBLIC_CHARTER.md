@@ -4,8 +4,8 @@
 
 Make difficult physical ideas visible, manipulable, and inspectable.
 
-xPRIMEray is the upstream scientific instrument.
-MisterY Labs is the public laboratory surrounding it.
+MisterY Labs is the public laboratory.
+xPRIMEray is one research instrument and lineage within it.
 
 ## Public interaction contract
 

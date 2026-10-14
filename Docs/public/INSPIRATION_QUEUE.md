@@ -77,3 +77,18 @@ Each entry should record:
 - Attribution status: discovery anchor captured from Veritasium; primary provenance unresolved. Credit should trace explainer → researchers → laboratories → optical/source engineering → manufacturing ecosystem. Bell Labs connection UNRESOLVED and must be verified before public attribution
 - Status: captured
 - Next action: research provenance before prototype; verify the Bell Labs connection, identify primary EUV historical sources and ASML/ZEISS/source-development contributions, establish defensible lithography-resolution and contamination/yield primitives, then scope the smallest interactive exhibit — likely Diffraction Wall
+
+## Mister Why — perceptual architecture (not in the V1 homepage)
+
+Captured at the V1 homepage release. Not implemented. Do not treat this entry as a build task for the threshold or the current Atlas avatar.
+
+- Title: Mister Why as observer — biomimetic garment, perceptual interface
+- Source / discovery URL: https://eugenetssui.com/ · Eugene Tssui, *Evolutionary Architecture: Nature as a Basis for Design* (Wiley, 1999) · Donald D. Hoffman, interface theory of perception (*The Case Against Reality*, 2019; https://en.wikipedia.org/wiki/Donald_D._Hoffman)
+- Original creator: Eugene Tssui (evolutionary / biomimetic architecture and garments) · Donald D. Hoffman (interface theory of perception). Mister Why remains a MisterY Labs figure.
+- Concept: Mister Why is the observer inside the World's Fair. Tssui's work is an artistic reference for a future avatar: unconventional garments, organic structure, nature as an engineering teacher. Hoffman's perceptual-interface framework is a conceptual reference for selectable outfits or headsets. A possible later interaction is one physical instrument shown through more than one perceptual representation, so a visitor can compare what each representation reveals and what it hides.
+- What misconception the demonstration dissolves: "An artistic metaphor, a mathematical model, an experimental result, and an interpretation are the same kind of claim"
+- Possible MisterY Labs experiment: none in this release. A later, separate design pass could explore avatar dress and perceptual modes. It must not change instrument mathematics or present the metaphor as evidence.
+- Possible xPRIMEray connection: none claimed. Perceptual outfits would be a public interface metaphor, not an engine result.
+- Attribution status: artistic and philosophical inspiration only. No equivalence is claimed between Tssui, Hoffman, and the laboratory's instruments. Mathematical models, experimental evidence, interpretation, and artistic metaphor stay distinct.
+- Status: captured
+- Next action: leave unimplemented until a later design review. Do not redesign the avatar, add perceptual modes, or add modules as part of the homepage release.

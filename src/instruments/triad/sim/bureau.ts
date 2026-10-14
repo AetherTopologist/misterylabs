@@ -79,11 +79,11 @@ const PARAM_KEYS = [
 ] as const;
 
 export const DEFAULT_BUREAU: BureauSettings = {
-  showLines: true,
-  showSlice: true,
-  showExclusion: true,
-  showSymmetry: true,
-  showArrows: true,
+  showLines: false,
+  showSlice: false,
+  showExclusion: false,
+  showSymmetry: false,
+  showArrows: false,
   auto: true,
   advanced: false,
   seeds: 8,

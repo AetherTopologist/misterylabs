@@ -77,7 +77,14 @@ const RAY = {
   light: { left: "hsl(210,72%,36%)", violet: "hsl(292,58%,44%)", cyan: "hsl(186,72%,34%)" },
 } as const;
 
-export function TransportSphereViz({ className }: { className?: string }) {
+export function TransportSphereViz({
+  className,
+  stamp = "xPRIMEray · 1.0",
+}: {
+  className?: string;
+  /** Top-center caption. Home overrides this so the reduced model is not the laboratory name. */
+  stamp?: string;
+}) {
   const { theme } = useTheme();
   const lm = theme === "light";
   const { left, right } = useMemo(() => buildPaths(11), []);
@@ -228,7 +235,7 @@ export function TransportSphereViz({ className }: { className?: string }) {
       {/* ── Axis annotations ──────────────────────────────── */}
       <text x={CX - R - 14} y={CY + 4}  textAnchor="end"    fontFamily={MONO} fontSize="9" fill={c.axisMuted} letterSpacing={1.5}>n(x)</text>
       <text x={CX + R + 14} y={CY + 4}  textAnchor="start"  fontFamily={MONO} fontSize="9" fill={c.labelCyan} letterSpacing={1.5}>n(0)</text>
-      <text x={CX}          y={TOP - 14} textAnchor="middle" fontFamily={MONO} fontSize="8" fill={c.axisVer}   letterSpacing={2}>xPRIMEray · 1.0</text>
+      <text x={CX}          y={TOP - 14} textAnchor="middle" fontFamily={MONO} fontSize="8" fill={c.axisVer}   letterSpacing={2}>{stamp}</text>
       <text x={CX}          y={BOT + 22} textAnchor="middle" fontFamily={MONO} fontSize="8" fill={c.labelAmb}  letterSpacing={1.5}>Δε / transport boundary</text>
     </svg>
   );

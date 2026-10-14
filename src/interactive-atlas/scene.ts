@@ -1,0 +1,1550 @@
+import * as THREE from "three";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import type { AtlasApi, AtlasUi, CenotaphVariant, DestinationId, ExhibitId } from "./destinations";
+import { COLLECTIONS, HIDDEN_DESTINATIONS } from "./destinations";
+import { buildCenotaph } from "./cenotaph";
+import { FOREST_LINKS } from "./forest";
+import { createWalker } from "./mister-why";
+import { GROUND_R, LAYOUT, PATHS, PLACES } from "./world";
+
+// Forest links are a future horizontal layer. They are not provenance,
+// and they are never drawn with the atlas walkways or roots.
+function architectureHolds() {
+  return (
+    FOREST_LINKS.every((link) => link.layer === "forest") &&
+    HIDDEN_DESTINATIONS.every((place) => place.kind === "hidden" && !place.placed) &&
+    COLLECTIONS.every((place) => place.kind === "collection")
+  );
+}
+
+const HOME_R = 400;
+const HOME_P = 0.47;
+const HOME_YAW = 0.18;
+const R_MIN = 16;
+const R_CEN_MIN = 248;
+const R_MAX = 980;
+const P_MIN = 0.38;
+const P_MAX = 1.22;
+const NEAR_R = 272;
+const APPROACH_R = 336;
+
+// Exhibit islands keep their old bearings. Distances grow so the native
+// cenotaph, not the fair, is the spatial reference.
+const PATH_W = 3.4;
+
+const CEN_Y = 15.04;
+const CEN_R = 16;
+
+type Ribbon = { positions: number[]; indices: number[] };
+
+const _Y = new THREE.Vector3(0, 1, 0);
+const _X = new THREE.Vector3(1, 0, 0);
+const _ndc = new THREE.Vector2();
+const _hit = new THREE.Vector3();
+const _focus = new THREE.Vector3();
+const _sphere = new THREE.Sphere();
+
+const SITES: Record<ExhibitId, THREE.Vector3> = {
+  hydrogen: new THREE.Vector3(PLACES.hydrogen.x, PLACES.hydrogen.y, PLACES.hydrogen.z),
+  triad: new THREE.Vector3(PLACES.triad.x, PLACES.triad.y, PLACES.triad.z),
+  optics: new THREE.Vector3(PLACES.optics.x, PLACES.optics.y, PLACES.optics.z),
+  xprimeray: new THREE.Vector3(PLACES.xprimeray.x, PLACES.xprimeray.y, PLACES.xprimeray.z),
+  bell: new THREE.Vector3(PLACES.bell.x, PLACES.bell.y, PLACES.bell.z),
+  photon: new THREE.Vector3(PLACES.photon.x, PLACES.photon.y, PLACES.photon.z),
+};
+
+function smoothstep(e0: number, e1: number, x: number) {
+  const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
+  return t * t * (3 - 2 * t);
+}
+
+function clamp(v: number, a: number, b: number) {
+  return Math.min(b, Math.max(a, v));
+}
+
+function angDelta(from: number, to: number) {
+  let d = (to - from) % (Math.PI * 2);
+  if (d > Math.PI) d -= Math.PI * 2;
+  if (d < -Math.PI) d += Math.PI * 2;
+  return d;
+}
+
+function emptyRibbon(): Ribbon {
+  return { positions: [], indices: [] };
+}
+
+function curve(pts: Array<[number, number, number]>, n = 22) {
+  const v = pts.map(([x, y, z]) => new THREE.Vector3(x, y, z));
+  return new THREE.CatmullRomCurve3(v, false, "catmullrom", 0.18).getPoints(n);
+}
+
+function addStrip(r: Ribbon, pts: THREE.Vector3[], width: number, axis: 0 | 1) {
+  if (pts.length < 2) return;
+  const base = r.positions.length / 3;
+  const tangent = new THREE.Vector3();
+  const side = new THREE.Vector3();
+  const lateral = new THREE.Vector3();
+  const prevSide = new THREE.Vector3();
+  const hw = width * 0.5;
+  for (let i = 0; i < pts.length; i++) {
+    if (i === pts.length - 1) tangent.subVectors(pts[i]!, pts[i - 1]!);
+    else tangent.subVectors(pts[i + 1]!, pts[i]!);
+    if (tangent.lengthSq() < 1e-10) tangent.set(0, 0, 1);
+    else tangent.normalize();
+    if (i === 0) {
+      const upRef = Math.abs(tangent.y) > 0.92 ? _X : _Y;
+      lateral.crossVectors(tangent, upRef);
+      if (lateral.lengthSq() < 1e-8) lateral.set(1, 0, 0);
+      lateral.normalize();
+      if (axis === 0) side.copy(lateral);
+      else side.crossVectors(tangent, lateral).normalize();
+    } else {
+      side.copy(prevSide);
+      side.addScaledVector(tangent, -side.dot(tangent));
+      if (side.lengthSq() < 1e-8) side.set(1, 0, 0);
+      side.normalize();
+    }
+    prevSide.copy(side);
+    const p = pts[i]!;
+    r.positions.push(
+      p.x + side.x * hw,
+      p.y + side.y * hw,
+      p.z + side.z * hw,
+      p.x - side.x * hw,
+      p.y - side.y * hw,
+      p.z - side.z * hw,
+    );
+    if (i > 0) {
+      const a = base + (i - 1) * 2;
+      const c = base + i * 2;
+      r.indices.push(a, a + 1, c + 1, a, c + 1, c);
+    }
+  }
+}
+
+function addRibbon(r: Ribbon, pts: THREE.Vector3[], width: number, cross = false) {
+  addStrip(r, pts, width, 0);
+  if (cross) addStrip(r, pts, width * 0.72, 1);
+}
+
+function meshFrom(r: Ribbon, material: THREE.Material) {
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(r.positions, 3));
+  geo.setIndex(r.indices);
+  geo.computeBoundingSphere();
+  const mesh = new THREE.Mesh(geo, material);
+  mesh.frustumCulled = false;
+  return mesh;
+}
+
+function glowTexture() {
+  const c = document.createElement("canvas");
+  c.width = 128;
+  c.height = 128;
+  const g = c.getContext("2d");
+  if (!g) return new THREE.Texture();
+  const grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grd.addColorStop(0, "rgba(255,250,242,1)");
+  grd.addColorStop(0.2, "rgba(255,244,220,0.8)");
+  grd.addColorStop(0.5, "rgba(214,196,160,0.16)");
+  grd.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = grd;
+  g.fillRect(0, 0, 128, 128);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function basicGlow(color: number, opacity: number) {
+  return new THREE.MeshBasicMaterial({
+    color,
+    transparent: true,
+    opacity,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    toneMapped: false,
+    side: THREE.DoubleSide,
+  });
+}
+
+function makeInterior(starCut: number) {
+  const uniforms = { uMeridian: { value: 0.12 } };
+  const mat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    depthWrite: true,
+    uniforms,
+    vertexShader: `
+      varying vec3 vN;
+      void main() {
+        vN = normalize(normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vN;
+      uniform float uMeridian;
+      float hsh(vec3 p) {
+        p = fract(p * 0.1031);
+        p += dot(p, p.zyx + 31.32);
+        return fract((p.x + p.y) * p.z);
+      }
+      void main() {
+        vec3 n = normalize(vN);
+        float h = hsh(floor(n * 92.0));
+        float star = step(${starCut.toFixed(3)}, h);
+        float mag = 0.22 + 0.78 * fract(h * 17.0);
+        float equator = smoothstep(0.012, 0.0, abs(n.y));
+        float meridian = smoothstep(0.007, 0.0, abs(n.x));
+        float oculus = smoothstep(0.955, 0.995, n.y);
+        vec3 col = vec3(0.01, 0.011, 0.014);
+        col += vec3(0.9, 0.93, 0.98) * star * mag;
+        col += vec3(0.72, 0.6, 0.38) * equator * 0.16;
+        col += vec3(0.55, 0.7, 0.82) * meridian * uMeridian * 0.07;
+        col += vec3(0.96, 0.91, 0.8) * oculus * 0.28;
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `,
+  });
+  return { mat, uniforms };
+}
+
+function fovFor(base: number, aspect: number) {
+  const h = 2 * Math.atan(Math.tan((base * Math.PI) / 360) * aspect);
+  const minH = aspect < 1 ? 0.82 : 0.62;
+  if (h >= minH) return base;
+  return Math.min(92, (2 * Math.atan(Math.tan(minH / 2) / aspect) * 180) / Math.PI);
+}
+
+function layPath(scene: THREE.Scene, pts: THREE.Vector3[], walkMat: THREE.Material, glowMat: THREE.Material, walkW: number, glowW: number) {
+  const flat = pts.map((p) => new THREE.Vector3(p.x, 0.05, p.z));
+  const walk = emptyRibbon();
+  addRibbon(walk, flat, walkW, false);
+  scene.add(meshFrom(walk, walkMat));
+  const glowPts = pts.map((p) => new THREE.Vector3(p.x, 0.16, p.z));
+  const glow = emptyRibbon();
+  addRibbon(glow, glowPts, glowW, true);
+  scene.add(meshFrom(glow, glowMat));
+}
+
+export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: AtlasUi) => void) {
+  if (!architectureHolds()) {
+    throw new Error("Atlas architecture mixed a hidden, collection, or forest link into the ground.");
+  }
+
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const coarse = window.matchMedia("(pointer: coarse)").matches;
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias: !coarse,
+    alpha: false,
+    powerPreference: "high-performance",
+  });
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.98;
+  renderer.setClearColor(0x07080b, 1);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1.15 : 1.5));
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x07080b);
+  scene.fog = new THREE.FogExp2(0x07080b, 0.00092);
+  const camera = new THREE.PerspectiveCamera(46, 1, 0.25, 6400);
+
+  scene.add(new THREE.HemisphereLight(0x465060, 0x1a1612, 0.72));
+  scene.add(new THREE.AmbientLight(0x14161c, 0.22));
+  const moon = new THREE.DirectionalLight(0xc5ced8, 0.72);
+  moon.position.set(-48, 54, 18);
+  scene.add(moon);
+  const graze = new THREE.DirectionalLight(0xd7e0ea, 0.48);
+  graze.position.set(70, 16, -36);
+  scene.add(graze);
+
+  const stone = new THREE.MeshStandardMaterial({ color: 0x14171c, metalness: 0.18, roughness: 0.78 });
+  const metal = new THREE.MeshStandardMaterial({ color: 0x171a20, metalness: 0.78, roughness: 0.36 });
+  const figureMat = new THREE.MeshStandardMaterial({ color: 0x3a342c, metalness: 0.2, roughness: 0.62 });
+  const walkMat = new THREE.MeshStandardMaterial({
+    color: 0x1c2028,
+    metalness: 0.55,
+    roughness: 0.46,
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -1,
+    side: THREE.DoubleSide,
+  });
+  const pathGlow = basicGlow(0xf4efe6, 0.36);
+  const rootGlow = basicGlow(0xc4a574, 0.26);
+  const goldLine = basicGlow(0xc4a574, 0.5);
+  const coolLine = basicGlow(0xd5dee8, 0.45);
+
+  const glassMat = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    toneMapped: false,
+    vertexShader: `
+      varying vec3 vN; varying vec3 vW;
+      void main() {
+        vec4 w = modelMatrix * vec4(position, 1.0);
+        vW = w.xyz;
+        vN = normalize(mat3(modelMatrix) * normal);
+        gl_Position = projectionMatrix * viewMatrix * w;
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vN; varying vec3 vW;
+      void main() {
+        vec3 V = normalize(cameraPosition - vW);
+        float f = pow(1.0 - abs(dot(normalize(vN), V)), 2.05);
+        gl_FragColor = vec4(0.96, 0.91, 0.82, f * 0.55);
+      }
+    `,
+  });
+
+  const densityMat = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    toneMapped: false,
+    uniforms: { uPulse: { value: 1 } },
+    vertexShader: `
+      varying vec3 vN; varying vec3 vW;
+      void main() {
+        vec4 w = modelMatrix * vec4(position, 1.0);
+        vW = w.xyz;
+        vN = normalize(mat3(modelMatrix) * normal);
+        gl_Position = projectionMatrix * viewMatrix * w;
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vN; varying vec3 vW;
+      uniform float uPulse;
+      void main() {
+        vec3 V = normalize(cameraPosition - vW);
+        float nd = abs(dot(normalize(vN), V));
+        float fres = pow(1.0 - nd, 1.6);
+        float core = pow(nd, 0.9);
+        vec3 col = vec3(1.0, 0.97, 0.9) * core * 1.2 + vec3(0.78, 0.66, 0.42) * fres * 0.35;
+        gl_FragColor = vec4(col, (core * 0.78 + fres * 0.16) * uPulse);
+      }
+    `,
+  });
+
+  const groundMat = new THREE.ShaderMaterial({
+    vertexShader: `
+      varying vec3 vW;
+      void main() {
+        vec4 w = modelMatrix * vec4(position, 1.0);
+        vW = w.xyz;
+        gl_Position = projectionMatrix * viewMatrix * w;
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vW;
+      void main() {
+        float r = length(vW.xz);
+        float edge = smoothstep(${(GROUND_R * 0.77).toFixed(1)}, ${GROUND_R.toFixed(1)}, r);
+        float rings = smoothstep(0.04, 0.0, abs(fract(r * ${(0.045 * (96 / GROUND_R)).toFixed(5)}) - 0.5) - 0.47);
+        float seat = smoothstep(8.0, 0.0, abs(r - 192.0));
+        vec3 col = mix(vec3(0.055, 0.058, 0.066), vec3(0.012, 0.013, 0.016), edge);
+        col += vec3(0.03, 0.028, 0.02) * rings * (1.0 - edge);
+        col += vec3(0.08, 0.065, 0.04) * seat;
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `,
+  });
+
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(GROUND_R, 160), groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = 0;
+  scene.add(ground);
+
+  const abyss = new THREE.Mesh(new THREE.PlaneGeometry(GROUND_R * 4, GROUND_R * 4), new THREE.MeshBasicMaterial({ color: 0x050608 }));
+  abyss.rotation.x = -Math.PI / 2;
+  abyss.position.y = -8.4;
+  scene.add(abyss);
+
+  const cliffPos: number[] = [];
+  const rim = (theta: number, radius = GROUND_R, y = 0) => new THREE.Vector3(Math.sin(theta) * radius, y, Math.cos(theta) * radius);
+  const a0 = Math.PI - 1.15;
+  const a1 = Math.PI + 1.15;
+  const cliffSeg = 36;
+  for (let i = 0; i < cliffSeg; i++) {
+    const t0 = a0 + ((a1 - a0) * i) / cliffSeg;
+    const t1 = a0 + ((a1 - a0) * (i + 1)) / cliffSeg;
+    const wobble = Math.sin(i * 0.65) * 0.28;
+    const p0 = rim(t0, GROUND_R, 0);
+    const p1 = rim(t1, GROUND_R, 0);
+    const q0 = rim(t0, GROUND_R, -7.2 + wobble);
+    const q1 = rim(t1, GROUND_R, -7.2 + wobble);
+    cliffPos.push(p0.x, p0.y, p0.z, p1.x, p1.y, p1.z, q1.x, q1.y, q1.z, p0.x, p0.y, p0.z, q1.x, q1.y, q1.z, q0.x, q0.y, q0.z);
+  }
+  const cliffGeo = new THREE.BufferGeometry();
+  cliffGeo.setAttribute("position", new THREE.Float32BufferAttribute(cliffPos, 3));
+  cliffGeo.computeVertexNormals();
+  const cliff = new THREE.Mesh(cliffGeo, stone);
+  cliff.frustumCulled = false;
+  scene.add(cliff);
+  const lipPts: THREE.Vector3[] = [];
+  for (let i = 0; i <= 40; i++) lipPts.push(rim(a0 + ((a1 - a0) * i) / 40, GROUND_R + 0.2, 0.05));
+  const lip = emptyRibbon();
+  addRibbon(lip, lipPts, 0.18, true);
+  scene.add(meshFrom(lip, goldLine));
+
+  const cenotaph = buildCenotaph(coarse, CEN_Y, CEN_R);
+  const interior = makeInterior(coarse ? 0.978 : 0.952);
+  const cavity = new THREE.Mesh(new THREE.SphereGeometry(CEN_R - 0.22, coarse ? 32 : 48, coarse ? 22 : 32), interior.mat);
+  cavity.position.y = CEN_Y;
+  cenotaph.group.add(cavity);
+  const observer = new THREE.Group();
+  const mark = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), new THREE.MeshBasicMaterial({ color: 0xf3eee4 }));
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.36, 5), new THREE.MeshStandardMaterial({ color: 0xc4a574, metalness: 0.6, roughness: 0.4 }));
+  stem.position.y = -0.2;
+  observer.add(mark, stem);
+  observer.position.y = CEN_Y;
+  cenotaph.group.add(observer);
+  scene.add(cenotaph.group);
+  let cenFit: { center: THREE.Vector3; radius: number; outer: number } | null = null;
+  void cenotaph.ready.then((reg) => {
+    cavity.position.copy(reg.center);
+    cavity.scale.setScalar(reg.radius / CEN_R);
+    observer.position.y = reg.center.y;
+    interiorFocus.copy(reg.center);
+    cenFit = reg;
+    if (import.meta.env.DEV) {
+      (window as Window & { __cenFit?: typeof reg }).__cenFit = reg;
+      const hook = (window as Window & { __atlasStudy?: { fit?: unknown } }).__atlasStudy;
+      if (hook) hook.fit = reg;
+    }
+  });
+
+  const glowTex = glowTexture();
+  const spriteMat = new THREE.SpriteMaterial({
+    map: glowTex,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    toneMapped: false,
+    opacity: 0.85,
+  });
+
+  const highlights: Array<{ id: ExhibitId; mat: THREE.MeshBasicMaterial }> = [];
+
+  const addPad = (x: number, z: number, radius: number) => {
+    const pad = new THREE.Mesh(new THREE.CircleGeometry(radius, 40), metal);
+    pad.rotation.x = -Math.PI / 2;
+    pad.position.set(x, 0.03, z);
+    scene.add(pad);
+  };
+
+  const markSite = (id: ExhibitId, radius: number) => {
+    const mat = goldLine.clone();
+    mat.opacity = 0.42;
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.08, 6, 48), mat);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(SITES[id].x, 0.12, SITES[id].z);
+    scene.add(ring);
+    highlights.push({ id, mat });
+  };
+
+  // Hydrogen — glass pavilion, stationary density. Not the chamber.
+  {
+    const p = SITES.hydrogen;
+    addPad(p.x, p.z, 5.2);
+    markSite("hydrogen", 4.6);
+    const g = new THREE.Group();
+    g.position.set(p.x, 0, p.z);
+    for (let i = 0; i < 4; i++) {
+      const a = (i / 4) * Math.PI * 2 + 0.4;
+      const col = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 2.4, 6), metal);
+      col.position.set(Math.cos(a) * 2.7, 1.2, Math.sin(a) * 2.7);
+      g.add(col);
+    }
+    const shell = new THREE.Mesh(new THREE.SphereGeometry(2.85, 36, 24), glassMat);
+    shell.position.y = 2.55;
+    g.add(shell);
+    const density = new THREE.Mesh(new THREE.SphereGeometry(1.15, 28, 20), densityMat);
+    density.position.y = 2.55;
+    g.add(density);
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), basicGlow(0xfff8ee, 0.95));
+    core.position.y = 2.55;
+    g.add(core);
+    const halo = new THREE.Sprite(spriteMat.clone());
+    halo.position.y = 2.55;
+    halo.scale.set(7.5, 7.5, 1);
+    g.add(halo);
+    scene.add(g);
+    const light = new THREE.PointLight(0xfff3e2, 22, 72, 2);
+    light.position.set(p.x, 2.4, p.z);
+    scene.add(light);
+  }
+
+  // Triad — hangar silhouette and three nodes. Not a flight claim.
+  const triadNodes = new THREE.Group();
+  {
+    const p = SITES.triad;
+    addPad(p.x, p.z, 7.4);
+    markSite("triad", 6.6);
+    const g = new THREE.Group();
+    g.position.set(p.x, 0, p.z);
+    const posts = [
+      [-3.4, -2.1],
+      [3.4, -2.1],
+      [3.4, 2.1],
+      [-3.4, 2.1],
+    ];
+    for (const [x, z] of posts) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.1, 0.12), metal);
+      post.position.set(x, 1.55, z);
+      g.add(post);
+    }
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(6.9, 0.08, 0.08), metal);
+    beam.position.set(0, 3.05, -2.1);
+    const beamB = beam.clone();
+    beamB.position.z = 2.1;
+    g.add(beam, beamB);
+    const craft = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 3.6, 3, 8), metal);
+    craft.rotation.z = Math.PI / 2;
+    craft.position.y = 1.45;
+    g.add(craft);
+    const wing = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.04, 2.4), metal);
+    wing.position.set(-0.2, 1.45, 0);
+    g.add(wing);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(3.5, 0.018, 6, 48), coolLine);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = 1.45;
+    g.add(ring);
+    triadNodes.position.y = 1.45;
+    const nodeMat = basicGlow(0xf7f1e6, 0.95);
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * Math.PI * 2;
+      const node = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 10), nodeMat);
+      node.position.set(Math.cos(a) * 3.5, 0, Math.sin(a) * 3.5);
+      triadNodes.add(node);
+      const mote = new THREE.Sprite(spriteMat.clone());
+      mote.scale.set(2.4, 2.4, 1);
+      mote.position.copy(node.position);
+      triadNodes.add(mote);
+    }
+    g.add(triadNodes);
+    scene.add(g);
+    const light = new THREE.PointLight(0xfff0dc, 16, 78, 2);
+    light.position.set(p.x, 2.2, p.z);
+    scene.add(light);
+  }
+
+  // Apple of the Eye — a glass hall and two rays.
+  {
+    const p = SITES.optics;
+    addPad(p.x, p.z, 6.4);
+    markSite("optics", 5.8);
+    const g = new THREE.Group();
+    g.position.set(p.x, 0, p.z);
+    for (const [x, z] of [
+      [-4.2, -1.8],
+      [4.2, -1.8],
+      [4.2, 1.8],
+      [-4.2, 1.8],
+    ]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, 3.4, 0.1), metal);
+      post.position.set(x, 1.7, z);
+      g.add(post);
+    }
+    const panel = new THREE.Mesh(new THREE.PlaneGeometry(8.2, 2.6), glassMat);
+    panel.position.set(0, 1.8, 1.75);
+    const panelB = panel.clone();
+    panelB.position.z = -1.75;
+    g.add(panel, panelB);
+    const lens = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, 0.06, 28), glassMat);
+    lens.rotation.z = Math.PI / 2;
+    lens.position.y = 1.7;
+    g.add(lens);
+    const end = new THREE.Mesh(new THREE.TorusGeometry(1.35, 0.02, 6, 32), basicGlow(0xf4efe6, 0.45));
+    end.position.set(-4.1, 1.7, 0);
+    g.add(end);
+    scene.add(g);
+    const rays: Array<[number, number, number, number, number, number, number, number, number]> = [
+      [-4.2, 2.15, -0.4, 0, 1.7, 0.05, 4.4, 1.25, 0.35],
+      [-3.6, 1.15, 0.45, -0.4, 1.55, 0.1, 0.8, 1.45, 0.05],
+    ];
+    for (const ray of rays) {
+      const c = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(p.x + ray[0], ray[1], p.z + ray[2]),
+        new THREE.Vector3(p.x + ray[3], ray[4], p.z + ray[5]),
+        new THREE.Vector3(p.x + ray[6], ray[7], p.z + ray[8]),
+      );
+      const ribbon = emptyRibbon();
+      addRibbon(ribbon, c.getPoints(16), 0.16, true);
+      scene.add(meshFrom(ribbon, ray[6] < 2 ? basicGlow(0xf7f2e8, 0.55) : pathGlow));
+    }
+    const light = new THREE.PointLight(0xfff4e4, 16, 70, 2);
+    light.position.set(p.x, 2, p.z);
+    scene.add(light);
+  }
+
+  // Photon Journey — a bench, a lens, and a camera. Illustrative, not calibrated.
+  {
+    const p = SITES.photon;
+    addPad(p.x, p.z, 5.4);
+    markSite("photon", 4.8);
+    const g = new THREE.Group();
+    g.position.set(p.x, 0, p.z);
+    const bench = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.12, 1.4), metal);
+    bench.position.y = 0.7;
+    g.add(bench);
+    const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, 0.08, 24), glassMat);
+    lens.rotation.z = Math.PI / 2;
+    lens.position.set(-0.4, 1.55, 0);
+    g.add(lens);
+    const body = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.72, 0.86), metal);
+    body.position.set(2.15, 1.35, 0);
+    g.add(body);
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.7, 12), metal);
+    barrel.rotation.z = Math.PI / 2;
+    barrel.position.set(1.35, 1.45, 0);
+    g.add(barrel);
+    scene.add(g);
+    const ray = emptyRibbon();
+    addRibbon(
+      ray,
+      [
+        new THREE.Vector3(p.x - 3.4, 1.55, p.z),
+        new THREE.Vector3(p.x - 0.4, 1.55, p.z),
+        new THREE.Vector3(p.x + 2.15, 1.45, p.z),
+      ],
+      0.05,
+      true,
+    );
+    scene.add(meshFrom(ray, pathGlow));
+    const lamp = new THREE.PointLight(0xffe2b0, 14, 60, 2);
+    lamp.position.set(p.x, 2.2, p.z);
+    scene.add(lamp);
+  }
+
+  // xPRIMEray — an open frame and a few bending rays.
+  {
+    const p = SITES.xprimeray;
+    addPad(p.x, p.z, 5.6);
+    markSite("xprimeray", 5);
+    const g = new THREE.Group();
+    g.position.set(p.x, 0, p.z);
+    const posts = [
+      [-2.6, -2.2, 4.2],
+      [2.6, -2.2, 4.2],
+      [2.6, 2.2, 4.2],
+      [-2.6, 2.2, 1.5],
+    ];
+    for (const [x, z, h] of posts) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, h, 0.1), metal);
+      post.position.set(x, h / 2, z);
+      g.add(post);
+    }
+    const top = new THREE.Mesh(new THREE.BoxGeometry(5.3, 0.07, 0.07), metal);
+    top.position.set(0, 4.15, -2.2);
+    g.add(top);
+    const arcPts: THREE.Vector3[] = [];
+    for (let i = 0; i <= 18; i++) {
+      const a = -0.2 + (i / 18) * Math.PI * 1.15;
+      arcPts.push(new THREE.Vector3(Math.cos(a) * 3.1, 2.3 + Math.sin(a) * 1.4, Math.sin(a) * 0.4));
+    }
+    const arc = emptyRibbon();
+    addRibbon(arc, arcPts, 0.05, true);
+    g.add(meshFrom(arc, coolLine));
+    scene.add(g);
+    const bends = [
+      curve(
+        [
+          [p.x - 4.2, 2.1, p.z - 0.6],
+          [p.x, 3.4, p.z + 0.2],
+          [p.x + 4.3, 2.0, p.z + 0.8],
+        ],
+        16,
+      ),
+      curve(
+        [
+          [p.x - 3.4, 1.2, p.z + 1.1],
+          [p.x + 0.4, 2.5, p.z - 0.2],
+          [p.x + 3.6, 1.35, p.z - 1.2],
+        ],
+        16,
+      ),
+    ];
+    for (const pts of bends) {
+      const ribbon = emptyRibbon();
+      addRibbon(ribbon, pts, 0.14, true);
+      scene.add(meshFrom(ribbon, pathGlow));
+    }
+    const light = new THREE.PointLight(0xe7eef8, 14, 64, 2);
+    light.position.set(p.x, 2.4, p.z);
+    scene.add(light);
+  }
+
+  // Bell — two stations, one shared flash, no path between them.
+  const bellMat = basicGlow(0xf7f1e6, 0.35);
+  const bellLights: THREE.PointLight[] = [];
+  {
+    const p = SITES.bell;
+    addPad(p.x, p.z, 6.2);
+    markSite("bell", 5.6);
+    for (const side of [-3.6, 3.6]) {
+      const tower = new THREE.Group();
+      tower.position.set(p.x + side, 0, p.z);
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.28, 7.2, 8), metal);
+      shaft.position.y = 3.6;
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 12), metal);
+      head.position.y = 7.35;
+      const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), bellMat);
+      lamp.position.y = 7.35;
+      const crown = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.02, 6, 20), goldLine);
+      crown.position.y = 7.35;
+      tower.add(shaft, head, lamp, crown);
+      scene.add(tower);
+      const pl = new THREE.PointLight(0xfff0dc, 6, 48, 2);
+      pl.position.set(p.x + side, 7.2, p.z);
+      bellLights.push(pl);
+      scene.add(pl);
+    }
+  }
+
+  for (const id of Object.keys(SITES) as ExhibitId[]) {
+    const p = SITES[id];
+    const pool = new THREE.Mesh(new THREE.CircleGeometry(id === "triad" || id === "bell" ? 10 : 8, 28), basicGlow(0xc4a574, 0.28));
+    pool.rotation.x = -Math.PI / 2;
+    pool.position.set(p.x, 0.07, p.z);
+    scene.add(pool);
+  }
+
+  // Walkways leave the front of the native cenotaph and reach the outer fair.
+  for (const path of PATHS) {
+    layPath(scene, curve(path.pts, path.samples), walkMat, pathGlow, path.walk * PATH_W, path.glow * PATH_W);
+  }
+
+  // Faint provenance under the southern ground, spilling the rim. Not the tree UI.
+  const rootSpecs: Array<Array<[number, number, number]>> = [
+    [
+      [0, -1.2, 4 * LAYOUT],
+      [0, -2.4, -18 * LAYOUT],
+      [2 * LAYOUT, -4.2, -48 * LAYOUT],
+      [0, -6.6, -102 * LAYOUT],
+    ],
+    [
+      [0, -1.4, -6 * LAYOUT],
+      [-14 * LAYOUT, -3.2, -30 * LAYOUT],
+      [-28 * LAYOUT, -5.4, -70 * LAYOUT],
+      [-36 * LAYOUT, -7, -108 * LAYOUT],
+    ],
+    [
+      [0, -1.3, -4 * LAYOUT],
+      [16 * LAYOUT, -3.4, -28 * LAYOUT],
+      [30 * LAYOUT, -5.2, -64 * LAYOUT],
+      [22 * LAYOUT, -6.8, -104 * LAYOUT],
+    ],
+    [
+      [0, -1.6, 2 * LAYOUT],
+      [8 * LAYOUT, -3.6, -16 * LAYOUT],
+      [6 * LAYOUT, -5.8, -40 * LAYOUT],
+      [4 * LAYOUT, -7.1, -78 * LAYOUT],
+    ],
+  ];
+  for (const spec of rootSpecs) {
+    const ribbon = emptyRibbon();
+    addRibbon(ribbon, curve(spec, 18), 0.34 * PATH_W, true);
+    scene.add(meshFrom(ribbon, rootGlow));
+  }
+
+  const bodyGeo = new THREE.CapsuleGeometry(0.16, 0.55, 3, 6);
+  const headGeo = new THREE.SphereGeometry(0.12, 8, 8);
+  const figureCount = 10;
+  const bodies = new THREE.InstancedMesh(bodyGeo, figureMat, figureCount);
+  const heads = new THREE.InstancedMesh(headGeo, figureMat, figureCount);
+  const dummy = new THREE.Object3D();
+  const figureAt: Array<[number, number]> = [
+    [4.4, 36.2],
+    [-4.2, 36.6],
+    [8, 34.5],
+    [36, 16.4],
+    [-46, 10.2],
+    [34, -26],
+    [6, -40],
+    [-22, -52],
+    [-9.5, 35.2],
+    [12.5, 35.4],
+  ].map(([x, z]) => [x * LAYOUT, z * LAYOUT]);
+  figureAt.forEach(([x, z], i) => {
+    dummy.position.set(x, 0.86, z);
+    dummy.rotation.set(0, 0, 0);
+    dummy.scale.set(1, 1, 1);
+    dummy.updateMatrix();
+    bodies.setMatrixAt(i, dummy.matrix);
+    dummy.position.y = 1.32;
+    dummy.updateMatrix();
+    heads.setMatrixAt(i, dummy.matrix);
+  });
+  bodies.instanceMatrix.needsUpdate = true;
+  heads.instanceMatrix.needsUpdate = true;
+  scene.add(bodies, heads);
+
+  const starGeo = new THREE.BufferGeometry();
+  const starPos = new Float32Array(700 * 3);
+  for (let i = 0; i < 700; i++) {
+    const v = new THREE.Vector3().randomDirection().multiplyScalar(2400 + Math.random() * 500);
+    if (v.y < 10) v.y = Math.abs(v.y) + 14;
+    starPos[i * 3] = v.x;
+    starPos[i * 3 + 1] = v.y;
+    starPos[i * 3 + 2] = v.z;
+  }
+  starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
+  const stars = new THREE.Points(
+    starGeo,
+    new THREE.PointsMaterial({
+      color: 0xf3eee6,
+      size: 2.2,
+      sizeAttenuation: true,
+      transparent: true,
+      opacity: 0.7,
+      depthWrite: false,
+      toneMapped: false,
+    }),
+  );
+  stars.material.fog = false;
+  scene.add(stars);
+
+  let envMap: THREE.Texture | null = null;
+  let composer: EffectComposer | null = null;
+  let useComposer = false;
+  let gradeTick = 0;
+
+  function enableGrade() {
+    try {
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const envScene = new THREE.Scene();
+      envScene.background = new THREE.Color(0x10141a);
+      envScene.add(new THREE.HemisphereLight(0x6a7888, 0x2a241c, 1));
+      envMap = pmrem.fromScene(envScene, 0.04).texture;
+      scene.environment = envMap;
+      scene.environmentIntensity = 0.38;
+      pmrem.dispose();
+    } catch {
+      envMap = null;
+    }
+    try {
+      composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+      composer.addPass(new UnrealBloomPass(new THREE.Vector2(2, 2), coarse ? 0.16 : 0.22, 0.4, 0.86));
+      composer.addPass(new OutputPass());
+      composer.setSize(canvas.clientWidth, canvas.clientHeight);
+      useComposer = true;
+    } catch {
+      composer = null;
+      useComposer = false;
+    }
+  }
+
+  const cenFocus = new THREE.Vector3(0, 18, 0);
+  const interiorFocus = new THREE.Vector3(0, CEN_Y, 0);
+  const focusT = cenFocus.clone();
+  let selected: DestinationId | null = null;
+  let inside = false;
+  let radiusT = HOME_R;
+  let radius = HOME_R;
+  let pitchT = HOME_P;
+  let pitch = HOME_P;
+  let yawT = HOME_YAW;
+  let yaw = HOME_YAW;
+  const focus = cenFocus.clone();
+  let snapAnchor: ExhibitId | null = null;
+  let snapLock = 0;
+
+  const pickRay = new THREE.Raycaster();
+  const _plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  const _g0 = new THREE.Vector3();
+  const _g1 = new THREE.Vector3();
+  const _ahead = new THREE.Vector3();
+  const pickList: Array<{ id: DestinationId; pos: THREE.Vector3; radius: number; auto: boolean }> = [
+    ...(Object.keys(SITES) as ExhibitId[]).map((id) => ({
+      id,
+      pos: SITES[id],
+      radius: id === "bell" || id === "triad" ? 20 : 16,
+      auto: true,
+    })),
+    { id: "cenotaph", pos: new THREE.Vector3(0, 40, 0), radius: 190, auto: false },
+  ];
+
+  function setNdc(clientX: number, clientY: number) {
+    const rect = canvas.getBoundingClientRect();
+    _ndc.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    _ndc.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+  }
+
+  function pick(clientX: number, clientY: number): DestinationId | null {
+    if (inside) return null;
+    setNdc(clientX, clientY);
+    pickRay.setFromCamera(_ndc, camera);
+    let best: { id: DestinationId; dist: number } | null = null;
+    for (const site of pickList) {
+      _sphere.center.copy(site.pos);
+      _sphere.radius = site.radius;
+      const hit = pickRay.ray.intersectSphere(_sphere, _hit);
+      if (!hit) continue;
+      const dist = hit.distanceTo(pickRay.ray.origin);
+      if (!best || dist < best.dist) best = { id: site.id, dist };
+    }
+    return best?.id ?? null;
+  }
+
+  function focusOut() {
+    return Math.hypot(focus.x - cenFocus.x, focus.z - cenFocus.z);
+  }
+
+  function cenOrbitMin() {
+    const c = Math.max(0.34, Math.cos(pitch));
+    return Math.max(R_CEN_MIN, 196 / c);
+  }
+
+  function minRadius() {
+    if (inside) return 3.6;
+    if (focusOut() < 196) return cenOrbitMin();
+    return R_MIN;
+  }
+
+  function maxRadius() {
+    return inside ? 7.6 : R_MAX;
+  }
+
+  let lastSent = "";
+  let acc = 0;
+  let lastTime = performance.now();
+
+  const walker = createWalker(scene);
+  let walking = false;
+  let walkProx = 0;
+  const held = new Set<string>();
+  let stickX = 0;
+  let stickY = 0;
+
+  const ptrs = new Map<number, { x: number; y: number; pan: boolean }>();
+  let gesture: "none" | "orbit" | "pan" | "multi" = "none";
+  let lastSpan = 0;
+  let centroidX = 0;
+  let centroidY = 0;
+  let moved = 0;
+  let lastTap = 0;
+  let lastTapX = 0;
+  let lastTapY = 0;
+  let didPan = false;
+  let panTravel = 0;
+
+  function pinchSpan() {
+    const pts = [...ptrs.values()];
+    if (pts.length < 2) return 0;
+    return Math.hypot(pts[0]!.x - pts[1]!.x, pts[0]!.y - pts[1]!.y);
+  }
+
+  function centroid() {
+    const pts = [...ptrs.values()];
+    if (pts.length < 2) return { x: 0, y: 0 };
+    return { x: (pts[0]!.x + pts[1]!.x) / 2, y: (pts[0]!.y + pts[1]!.y) / 2 };
+  }
+
+  function zoomIn(factor: number) {
+    if (walking) {
+      walker.zoom(factor);
+      return;
+    }
+    radiusT = clamp(radiusT * factor, minRadius(), maxRadius());
+  }
+
+  function clampFocusXZ() {
+    const lim = GROUND_R * 0.96;
+    const h = Math.hypot(focus.x, focus.z);
+    if (h > lim) {
+      const s = lim / h;
+      focus.x *= s;
+      focus.z *= s;
+    }
+  }
+
+  function groundAt(clientX: number, clientY: number, out: THREE.Vector3) {
+    setNdc(clientX, clientY);
+    pickRay.setFromCamera(_ndc, camera);
+    const hit = pickRay.ray.intersectPlane(_plane, out);
+    if (!hit) return false;
+    if (out.distanceTo(camera.position) > 5000) return false;
+    return true;
+  }
+
+  function applyPan(x0: number, y0: number, x1: number, y1: number) {
+    if (inside) return;
+    if (!groundAt(x0, y0, _g0) || !groundAt(x1, y1, _g1)) return;
+    const dx = _g0.x - _g1.x;
+    const dz = _g0.z - _g1.z;
+    if (dx * dx + dz * dz > 800 * 800) return;
+    focus.x += dx;
+    focus.z += dz;
+    clampFocusXZ();
+    focusT.set(focus.x, focus.y, focus.z);
+    placeCamera();
+  }
+
+  function maybeSnap() {
+    if (inside) return false;
+    const now = performance.now();
+    camera.updateMatrixWorld();
+    camera.getWorldDirection(_ahead);
+    const ndcLimit = radius > 720 ? 0.075 : radius > 320 ? 0.14 : 0.22;
+    const limit2 = ndcLimit * ndcLimit;
+    const maxCam = radius > 720 ? 520 : Math.max(160, radius * 1.55);
+    let best: ExhibitId | null = null;
+    let bestScore = Infinity;
+    const scoreOf = new Map<ExhibitId, number>();
+    for (const id of Object.keys(SITES) as ExhibitId[]) {
+      const site = SITES[id];
+      _g0.copy(site).sub(camera.position);
+      const camDist = _g0.length();
+      if (camDist > maxCam || _g0.dot(_ahead) <= 1) continue;
+      _hit.copy(site).project(camera);
+      if (_hit.z < -1 || _hit.z > 1) continue;
+      if (Math.abs(_hit.x) > 1 || Math.abs(_hit.y) > 1) continue;
+      const score = _hit.x * _hit.x + _hit.y * _hit.y;
+      scoreOf.set(id, score);
+      if (score < bestScore) {
+        bestScore = score;
+        best = id;
+      }
+    }
+    if (snapAnchor) {
+      const keep = scoreOf.get(snapAnchor);
+      if (keep !== undefined && keep < limit2 * 2.8 && (best === null || keep <= bestScore * 1.2)) {
+        best = snapAnchor;
+        bestScore = keep;
+      }
+    }
+    if (!best || bestScore > limit2) return false;
+    if (best !== snapAnchor && now < snapLock) return false;
+    snapAnchor = best;
+    snapLock = now + 560;
+    const site = SITES[best];
+    focusT.set(site.x, focus.y, site.z);
+    selected = best;
+    return true;
+  }
+
+  function finishPan() {
+    if (!didPan) return;
+    const snapped = maybeSnap();
+    if (!snapped && selected && selected !== "cenotaph") {
+      const site = SITES[selected];
+      if (Math.hypot(focus.x - site.x, focus.z - site.z) > 70) selected = null;
+    }
+    if (!snapped && snapAnchor) {
+      const site = SITES[snapAnchor];
+      if (Math.hypot(focus.x - site.x, focus.z - site.z) > 70) snapAnchor = null;
+    }
+    didPan = false;
+    panTravel = 0;
+  }
+
+  function walkInput() {
+    let x = stickX;
+    let y = stickY;
+    if (held.has("a") || held.has("arrowleft")) x -= 1;
+    if (held.has("d") || held.has("arrowright")) x += 1;
+    if (held.has("w") || held.has("arrowup")) y += 1;
+    if (held.has("s") || held.has("arrowdown")) y -= 1;
+    return { x, y, orbiting: gesture !== "none" && ptrs.size > 0 };
+  }
+
+  function beginWalk() {
+    if (walking) return;
+    inside = false;
+    walking = true;
+    selected = null;
+    snapAnchor = null;
+    walker.enter(focus, camera);
+    emit(true);
+  }
+
+  function endWalk() {
+    if (!walking) return;
+    const pose = walker.pose();
+    const aim = walker.aim();
+    walking = false;
+    walker.stop();
+    stickX = 0;
+    stickY = 0;
+    held.clear();
+    focus.copy(aim);
+    focusT.set(pose.x, 8, pose.z);
+    const offX = camera.position.x - focus.x;
+    const offY = camera.position.y - focus.y;
+    const offZ = camera.position.z - focus.z;
+    radius = Math.max(8, Math.hypot(offX, offY, offZ));
+    radiusT = clamp(radius * 1.75, 150, 520);
+    yaw = Math.atan2(offX, offZ);
+    yawT = yaw;
+    const horiz = Math.hypot(offX, offZ) || 0.001;
+    pitch = Math.atan2(offY, horiz);
+    pitchT = clamp(Math.max(0.46, pitch), P_MIN, 0.95);
+    selected = null;
+    snapAnchor = null;
+    emit(true);
+  }
+
+  const onPointerDown = (e: PointerEvent) => {
+    if (e.target !== canvas) return;
+    if (e.button === 1) return;
+    const pan = e.button === 2 || e.shiftKey;
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, pan });
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch {
+      /* Some browsers reject capture. Orbit still works from the pointer map. */
+    }
+    if (ptrs.size >= 2) {
+      gesture = "multi";
+      lastSpan = pinchSpan();
+      const c = centroid();
+      centroidX = c.x;
+      centroidY = c.y;
+      moved = 40;
+      return;
+    }
+    gesture = pan ? "pan" : "orbit";
+    moved = 0;
+    didPan = false;
+    panTravel = 0;
+  };
+
+  const onPointerMove = (e: PointerEvent) => {
+    const p = ptrs.get(e.pointerId);
+    if (!p) return;
+    const prevX = p.x;
+    const prevY = p.y;
+    const dx = e.clientX - p.x;
+    const dy = e.clientY - p.y;
+    p.x = e.clientX;
+    p.y = e.clientY;
+    if (gesture === "multi" && ptrs.size >= 2) {
+      const span = pinchSpan();
+      if (lastSpan > 8 && Math.abs(span - lastSpan) > 0.6) {
+        zoomIn(lastSpan / span);
+      }
+      lastSpan = span;
+      const c = centroid();
+      const cdx = c.x - centroidX;
+      const cdy = c.y - centroidY;
+      if (walking) {
+        if (cdx * cdx + cdy * cdy > 0.25) walker.orbit(cdx, cdy);
+      } else if (cdx * cdx + cdy * cdy > 0.25) {
+        applyPan(centroidX, centroidY, c.x, c.y);
+        panTravel += Math.hypot(cdx, cdy);
+        if (panTravel > 6) didPan = true;
+      }
+      centroidX = c.x;
+      centroidY = c.y;
+      return;
+    }
+    if (gesture === "pan" && ptrs.size === 1) {
+      moved += Math.hypot(dx, dy);
+      if (walking) {
+        walker.orbit(dx, dy);
+        return;
+      }
+      applyPan(prevX, prevY, e.clientX, e.clientY);
+      panTravel += Math.hypot(dx, dy);
+      if (panTravel > 4) didPan = true;
+      return;
+    }
+    if (gesture === "orbit" && ptrs.size === 1) {
+      moved += Math.hypot(dx, dy);
+      if (walking) {
+        walker.orbit(dx, dy);
+        return;
+      }
+      yaw -= dx * 0.005;
+      yawT = yaw;
+      pitch = clamp(pitch - dy * 0.0032, P_MIN, P_MAX);
+      pitchT = pitch;
+    }
+  };
+
+  const onPointerUp = (e: PointerEvent) => {
+    const was = gesture;
+    ptrs.delete(e.pointerId);
+    if (ptrs.size >= 2) {
+      lastSpan = pinchSpan();
+      const c = centroid();
+      centroidX = c.x;
+      centroidY = c.y;
+      return;
+    }
+    if (was === "multi") {
+      gesture = ptrs.size === 1 ? "orbit" : "none";
+      moved = 80;
+      finishPan();
+      return;
+    }
+    if (was === "pan") {
+      gesture = "none";
+      finishPan();
+      return;
+    }
+    gesture = "none";
+    if (walking || was !== "orbit" || moved > 8) return;
+    const now = performance.now();
+    const double = now - lastTap < 340 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 30;
+    const hit = pick(e.clientX, e.clientY);
+    if (double && hit) {
+      selected = hit;
+      if (hit === "cenotaph") {
+        snapAnchor = null;
+        focusT.copy(cenFocus);
+        radiusT = NEAR_R;
+      } else {
+        snapAnchor = hit;
+        focusT.copy(SITES[hit]);
+        radiusT = 24;
+      }
+      lastTap = 0;
+      return;
+    }
+    if (hit) selected = hit;
+    lastTap = now;
+    lastTapX = e.clientX;
+    lastTapY = e.clientY;
+  };
+
+  const onWheel = (e: WheelEvent) => {
+    e.preventDefault();
+    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 480 : 1;
+    const dy = e.deltaY * unit;
+    zoomIn(Math.exp(dy * 0.00115));
+  };
+
+  const onContext = (e: Event) => {
+    e.preventDefault();
+  };
+
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (!walking) return;
+    const k = e.key.toLowerCase();
+    if (k === "w" || k === "a" || k === "s" || k === "d" || k.startsWith("arrow")) {
+      e.preventDefault();
+      held.add(k);
+    }
+  };
+  const onKeyUp = (e: KeyboardEvent) => {
+    held.delete(e.key.toLowerCase());
+  };
+
+  const onBlur = () => {
+    held.clear();
+    stickX = 0;
+    stickY = 0;
+  };
+
+  canvas.addEventListener("pointerdown", onPointerDown);
+  canvas.addEventListener("contextmenu", onContext);
+  window.addEventListener("pointermove", onPointerMove);
+  window.addEventListener("pointerup", onPointerUp);
+  window.addEventListener("pointercancel", onPointerUp);
+  window.addEventListener("wheel", onWheel, { passive: false });
+  window.addEventListener("keydown", onKeyDown);
+  window.addEventListener("keyup", onKeyUp);
+  window.addEventListener("blur", onBlur);
+
+  function emit(force = false) {
+    const scale = inside ? 0.5 : clamp(Math.log(radius / R_MIN) / Math.log(R_MAX / R_MIN), 0, 1);
+    let proximity = 0;
+    if (walking) proximity = walkProx;
+    else if (selected === "cenotaph" || inside) proximity = 1 - smoothstep(210, 390, camera.position.distanceTo(cenFocus));
+    else if (selected) proximity = 1 - smoothstep(18, 56, camera.position.distanceTo(SITES[selected]));
+    const atHome =
+      !walking &&
+      !inside &&
+      !selected &&
+      Math.abs(radius - HOME_R) < 16 &&
+      focus.distanceTo(cenFocus) < 1.2 &&
+      Math.abs(angDelta(yaw, HOME_YAW)) < 0.2 &&
+      Math.abs(pitch - HOME_P) < 0.08;
+    const body = walking ? walker.pose() : null;
+    const poseKey = body ? `${body.x.toFixed(0)}|${body.z.toFixed(0)}|${body.heading.toFixed(2)}` : "-";
+    const key = `${selected ?? "-"}|${scale.toFixed(3)}|${proximity.toFixed(3)}|${atHome ? 1 : 0}|${inside ? 1 : 0}|${walking ? "w" : "f"}|${poseKey}`;
+    if (!force && key === lastSent) return;
+    lastSent = key;
+    onChange({
+      scale,
+      selected,
+      proximity,
+      atHome,
+      inside,
+      mode: walking ? "walk" : "fly",
+      walker: body
+        ? { x: Math.round(body.x * 10) / 10, z: Math.round(body.z * 10) / 10, heading: Math.round(body.heading * 100) / 100 }
+        : null,
+    });
+  }
+
+  const api: AtlasApi = {
+    returnHome: () => {
+      if (walking) {
+        walking = false;
+        walker.stop();
+        stickX = 0;
+        stickY = 0;
+        held.clear();
+      }
+      inside = false;
+      selected = null;
+      snapAnchor = null;
+      focusT.copy(cenFocus);
+      radiusT = HOME_R;
+      pitchT = HOME_P;
+      yawT = yaw + angDelta(yaw, HOME_YAW);
+    },
+    crossBoundary: () => {
+      inside = true;
+      selected = "cenotaph";
+      snapAnchor = null;
+      focusT.copy(interiorFocus);
+      radiusT = 5.4;
+      pitchT = 1.02;
+    },
+    returnOutside: () => {
+      inside = false;
+      selected = "cenotaph";
+      snapAnchor = null;
+      focusT.copy(cenFocus);
+      radiusT = NEAR_R;
+      pitchT = 1.05;
+    },
+    setCenotaphVariant: (variant) => {
+      cenotaph.apply(variant);
+    },
+    setMode: (mode) => {
+      if (mode === "walk") beginWalk();
+      else endWalk();
+    },
+    setMove: (x, y) => {
+      stickX = x;
+      stickY = y;
+    },
+  };
+
+  const frameStudy = (mode: "home" | "approach" | "near") => {
+    if (walking) {
+      walking = false;
+      walker.stop();
+    }
+    inside = false;
+    selected = null;
+    snapAnchor = null;
+    focusT.copy(cenFocus);
+    yawT = yaw + angDelta(yaw, HOME_YAW);
+    if (mode === "near") {
+      radiusT = NEAR_R;
+      pitchT = 0.32;
+    } else if (mode === "approach") {
+      radiusT = APPROACH_R;
+      pitchT = 0.36;
+    } else {
+      radiusT = HOME_R;
+      pitchT = HOME_P;
+    }
+  };
+
+  if (import.meta.env.DEV) {
+    (window as Window & { __atlasStudy?: unknown }).__atlasStudy = {
+      setVariant: (variant: CenotaphVariant) =>
+        cenotaph.apply(variant === "a" || variant === "b" || variant === "c" || variant === "m" ? variant : "m"),
+      frame: frameStudy,
+      aim: (id: DestinationId) => {
+        if (walking) {
+          walking = false;
+          walker.stop();
+        }
+        selected = id;
+        if (id === "cenotaph") {
+          snapAnchor = null;
+          focusT.copy(cenFocus);
+          radiusT = NEAR_R;
+        } else {
+          snapAnchor = id;
+          focusT.copy(SITES[id]);
+          radiusT = 28;
+        }
+      },
+      fit: cenFit,
+      shot: (on: boolean) => {
+        if (on) document.documentElement.dataset.iaShot = "1";
+        else delete document.documentElement.dataset.iaShot;
+      },
+      pose: () => ({
+        x: focus.x,
+        y: focus.y,
+        z: focus.z,
+        tx: focusT.x,
+        ty: focusT.y,
+        tz: focusT.z,
+        radius,
+        yaw,
+        pitch,
+        selected,
+        snap: snapAnchor,
+        mode: walking ? "walk" : "fly",
+        walker: walking ? walker.pose() : null,
+        cam: [camera.position.x, camera.position.y, camera.position.z],
+      }),
+      march: (seconds: number) => {
+        const n = Math.max(1, Math.round(seconds / 0.05));
+        for (let i = 0; i < n; i++) walker.update(0.05, i * 0.05, walkInput(), false);
+        walker.applyCamera(camera, 0.2, true);
+      },
+      screen: () => {
+        camera.updateMatrixWorld();
+        const rect = canvas.getBoundingClientRect();
+        const marks: Record<string, { x: number; y: number; nx: number; ny: number; z: number; d: number }> = {};
+        for (const id of Object.keys(SITES) as ExhibitId[]) {
+          _hit.copy(SITES[id]).project(camera);
+          marks[id] = {
+            x: rect.left + (_hit.x * 0.5 + 0.5) * rect.width,
+            y: rect.top + (-_hit.y * 0.5 + 0.5) * rect.height,
+            nx: _hit.x,
+            ny: _hit.y,
+            z: _hit.z,
+            d: camera.position.distanceTo(SITES[id]),
+          };
+        }
+        return marks;
+      },
+    };
+  }
+
+  const resize = () => {
+    const w = Math.max(1, canvas.clientWidth);
+    const h = Math.max(1, canvas.clientHeight);
+    renderer.setSize(w, h, false);
+    composer?.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  };
+  const ro = new ResizeObserver(() => resize());
+  ro.observe(canvas);
+  resize();
+
+  function placeCamera() {
+    const cp = Math.cos(pitch);
+    const sp = Math.sin(pitch);
+    camera.position.set(focus.x + radius * cp * Math.sin(yaw), focus.y + radius * sp, focus.z + radius * cp * Math.cos(yaw));
+    camera.lookAt(focus);
+    camera.fov = fovFor(46, camera.aspect);
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld();
+  }
+  placeCamera();
+  renderer.render(scene, camera);
+
+  renderer.setAnimationLoop((now) => {
+    const tNow = typeof now === "number" ? now : performance.now();
+    const raw = Math.min(1.2, (tNow - lastTime) / 1000);
+    lastTime = tNow;
+    const dt = Math.min(0.05, raw);
+    const time = tNow / 1000;
+    const ease = reduced ? 1 : 1 - Math.exp(-raw * 2.6);
+
+    if (walking) {
+      walker.update(dt, time, walkInput(), reduced);
+      const near = walker.nearest();
+      selected = near.id;
+      walkProx = near.proximity;
+      walker.applyCamera(camera, raw, reduced);
+    } else {
+      radiusT = clamp(radiusT, snapAnchor ? R_MIN : minRadius(), maxRadius());
+      radius += (radiusT - radius) * ease;
+      pitch += (pitchT - pitch) * ease;
+      yaw += (yawT - yaw) * ease;
+
+      if (inside) focusT.copy(interiorFocus);
+      focus.lerp(focusT, ease);
+      if (!inside && focusOut() < 196) {
+        radius = Math.max(radius, cenOrbitMin());
+      }
+    }
+
+    cenotaph.uniforms.uDetail.value = 1 - smoothstep(120, 340, camera.position.distanceTo(interiorFocus));
+    interior.uniforms.uMeridian.value = inside ? 0.15 + 0.85 * Math.abs(Math.sin(yaw)) : 0.08;
+
+    if (!reduced) {
+      triadNodes.rotation.y = time * 0.18;
+      densityMat.uniforms.uPulse!.value = 1 + Math.sin(time * 0.6) * 0.035;
+      const flash = Math.pow(Math.max(0, Math.sin(time * 0.8)), 26);
+      bellMat.opacity = 0.22 + flash * 0.78;
+      for (const light of bellLights) light.intensity = 5 + flash * 22;
+    }
+
+    for (const h of highlights) {
+      const target = h.id === selected ? 0.9 : 0.16;
+      h.mat.opacity += (target - h.mat.opacity) * (reduced ? 1 : 1 - Math.exp(-dt * 6));
+    }
+
+    if (!walking) placeCamera();
+
+    if (useComposer && composer) {
+      try {
+        composer.render();
+      } catch {
+        useComposer = false;
+        renderer.render(scene, camera);
+      }
+    } else {
+      renderer.render(scene, camera);
+    }
+
+    if (gradeTick === 1) enableGrade();
+    if (gradeTick < 3) gradeTick += 1;
+
+    acc += dt;
+    if (acc > 0.08) {
+      acc = 0;
+      emit();
+    }
+  });
+
+  emit(true);
+
+  return {
+    api,
+    dispose: () => {
+      if (import.meta.env.DEV) {
+        delete (window as Window & { __atlasStudy?: unknown }).__atlasStudy;
+        delete document.documentElement.dataset.iaShot;
+      }
+      renderer.setAnimationLoop(null);
+      ro.disconnect();
+      canvas.removeEventListener("pointerdown", onPointerDown);
+      canvas.removeEventListener("contextmenu", onContext);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onBlur);
+      composer?.dispose();
+      envMap?.dispose();
+      glowTex.dispose();
+      const mats = new Set<THREE.Material>();
+      scene.traverse((obj) => {
+        const mesh = obj as THREE.Mesh;
+        mesh.geometry?.dispose();
+        const mat = mesh.material as THREE.Material | THREE.Material[] | undefined;
+        if (Array.isArray(mat)) mat.forEach((m) => mats.add(m));
+        else if (mat) mats.add(mat);
+      });
+      mats.forEach((m) => m.dispose());
+      renderer.dispose();
+    },
+  };
+}

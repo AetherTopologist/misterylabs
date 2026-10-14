@@ -2,7 +2,13 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+    "./baselines/ride-map-thought-path/hydrogen/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
@@ -14,6 +20,7 @@ export default {
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
         mono: ["JetBrains Mono", "ui-monospace", "monospace"],
+        display: ["Newsreader", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -87,6 +94,31 @@ export default {
           model: "#f4f7fb",
           hyp: "#d7263d",
           "hyp-dim": "#4a1520",
+        },
+        bg: "#11120f",
+        surface: "#1c1e19",
+        fg: "#e6e1d4",
+        line: "#2e312a",
+        copper: "#c9843f",
+        fr: {
+          ink: "#0c1014",
+          panel: "#151b21",
+          panel2: "#1c242c",
+          paper: "#e7e1d4",
+          mute: "#8f978e",
+          rule: "#2c353e",
+          copper: "#e08a45",
+          snap: "#3dccc7",
+        },
+        photon: {
+          bg: "#08090c",
+          raise: "#12141a",
+          ink: "#ebe6dc",
+          muted: "#9a9488",
+          faint: "#6f6a62",
+          line: "#2c2e34",
+          amber: "#e2a84b",
+          cyan: "#79c7c2",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

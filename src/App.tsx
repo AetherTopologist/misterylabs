@@ -29,6 +29,11 @@ const PolarGrinPage         = lazy(() => import("./pages/observatory/PolarGrin.t
 const SaturnPolygonPage     = lazy(() => import("./pages/observatory/SaturnPolygon.tsx"));
 const DomeInversionPage     = lazy(() => import("./pages/arcade/DomeInversion.tsx"));
 const TriadPage             = lazy(() => import("./pages/observatory/Triad.tsx"));
+const HydrogenPage          = lazy(() => import("./pages/observatory/Hydrogen.tsx"));
+const PhotonJourneyPage     = lazy(() => import("./pages/observatory/PhotonJourney.tsx"));
+const HydrogenBaselinePage  = lazy(() => import("./pages/observatory/HydrogenBaseline.tsx"));
+const FieldResonancePage    = lazy(() => import("./pages/observatory/FieldResonance.tsx"));
+const InteractiveAtlasPage  = lazy(() => import("./interactive-atlas/InteractiveAtlas.tsx"));
 
 function DemoLoading() {
   return (
@@ -73,6 +78,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/atlas" element={<Atlas />} />
+          <Route path="/atlas/interactive" element={<DemoWrapper><InteractiveAtlasPage /></DemoWrapper>} />
           <Route path="/archive" element={<Archive />} />
           <Route path="/research" element={<Research />} />
           <Route path="/media" element={<Media />} />
@@ -91,6 +97,10 @@ const App = () => (
           <Route path="/observatory/saturn-polygon"      element={<DemoWrapper><SaturnPolygonPage /></DemoWrapper>} />
           <Route path="/arcade/dome-inversion"           element={<DemoWrapper><DomeInversionPage /></DemoWrapper>} />
           <Route path="/observatory/triad"               element={<DemoWrapper><TriadPage /></DemoWrapper>} />
+          <Route path="/observatory/hydrogen"            element={<DemoWrapper><HydrogenPage /></DemoWrapper>} />
+          <Route path="/observatory/photon-journey"     element={<DemoWrapper><PhotonJourneyPage /></DemoWrapper>} />
+          <Route path="/observatory/hydrogen-baseline"   element={<DemoWrapper><HydrogenBaselinePage /></DemoWrapper>} />
+          <Route path="/observatory/field-resonance"    element={<DemoWrapper><FieldResonancePage /></DemoWrapper>} />
           {/* Unadvertised maintainer surface — no auth gate, not in public nav */}
           <Route path="/mission" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />

@@ -8,6 +8,12 @@ TRIAD range instrument: https://aethertopologist.github.io/misterylabs/observato
 
 Source map: `src/instruments/triad/AUDIT.md`
 
+Hydrogen instrument: https://aethertopologist.github.io/misterylabs/observatory/hydrogen
+
+Baseline record: https://aethertopologist.github.io/misterylabs/observatory/hydrogen-baseline
+
+Frozen source: `baselines/ride-map-thought-path/`
+
 ## Stack
 
 - React + Vite + TypeScript

@@ -1,4 +1,5 @@
-# Logs
+# Local measuring model. Not a production asset.
+/dev-ref/
 logs
 *.log
 npm-debug.log*

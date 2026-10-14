@@ -29,13 +29,16 @@ export function AppHeader() {
     <>
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="container flex h-16 items-center justify-between gap-4">
-          {/* Logo — official xPRIMEray mark + MisterY Labs wordmark */}
+          {/* Mark is the existing emblem, cropped so the xPRIMEray wordmark is not the site name. */}
           <Link to="/" className="group flex items-center gap-3" onClick={closeMobile}>
-            <img
-              src={`${BASE}assets/xPRIMEray_Logo_Official_256.png`}
-              alt="xPRIMEray"
-              className="h-8 w-auto opacity-90 transition-opacity group-hover:opacity-100 md:h-9"
-            />
+            <span className="block h-8 w-[2.15rem] shrink-0 overflow-hidden md:h-9 md:w-[2.4rem]" aria-hidden>
+              <img
+                src={`${BASE}assets/xPRIMEray_Logo_Official_256.png`}
+                alt=""
+                className="w-full max-w-none"
+                style={{ height: "124%" }}
+              />
+            </span>
             <div className="leading-none">
               <div className="text-sm font-bold tracking-tight">
                 MisterY <span className="text-gradient">Labs</span>
@@ -57,24 +60,18 @@ export function AppHeader() {
                 {link.label}
               </HeaderLink>
             ))}
-            <a
-              href="https://xprimeray.github.io/GD_xPRIMEray/"
-              target="_blank"
-              rel="noreferrer"
-              title="Curved Transport Observatory"
-              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-base hover:bg-secondary/60 hover:text-foreground"
-            >
-              <img src={`${import.meta.env.BASE_URL}assets/xprimeray-icon.svg`} alt="" aria-hidden className="h-3.5 w-3.5 opacity-30" />
-              xPRIMEray <ExternalLink className="h-3 w-3" />
-            </a>
-            <a
-              href="https://github.com/AetherTopologist/GD_xPRIMEray"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-base hover:bg-secondary/60 hover:text-foreground"
-            >
-              GitHub <ExternalLink className="h-3 w-3" />
-            </a>
+            <div className="ml-1 hidden items-center border-l border-border/40 pl-1 md:flex">
+              <a
+                href="https://xprimeray.github.io/GD_xPRIMEray/"
+                target="_blank"
+                rel="noreferrer"
+                title="Research lineage. Opens xPRIMEray documentation outside MisterY Labs."
+                className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-muted-foreground/65 transition-base hover:bg-secondary/60 hover:text-foreground"
+              >
+                xPRIMEray Research
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -132,19 +129,10 @@ export function AppHeader() {
               target="_blank"
               rel="noreferrer"
               onClick={closeMobile}
+              title="Research lineage. Opens xPRIMEray documentation outside MisterY Labs."
               className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-base hover:bg-secondary/60 hover:text-foreground"
             >
-              <img src={`${import.meta.env.BASE_URL}assets/xprimeray-icon.svg`} alt="" aria-hidden className="h-3.5 w-3.5 opacity-30" />
-              xPRIMEray <ExternalLink className="h-3 w-3" />
-            </a>
-            <a
-              href="https://github.com/AetherTopologist/GD_xPRIMEray"
-              target="_blank"
-              rel="noreferrer"
-              onClick={closeMobile}
-              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-base hover:bg-secondary/60 hover:text-foreground"
-            >
-              GitHub <ExternalLink className="h-3 w-3" />
+              xPRIMEray Research <ExternalLink className="h-3 w-3" />
             </a>
           </nav>
         </div>
