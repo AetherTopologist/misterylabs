@@ -1785,6 +1785,27 @@ export function createEngine() {
     now() {
       return t;
     },
+    /** Dipoles for the current params. Aligns the phase latch. Does not step. */
+    sources() {
+      syncPhaseOffsets();
+      return dipoles().map((d) => ({ ...d }));
+    },
+    toView(p: Vec) {
+      return rel(p);
+    },
+    formation() {
+      const plane = orbitPlane(ac, params.frame);
+      return {
+        origin: { x: ac.x, y: ac.y, z: ac.z },
+        e1: { x: plane.e1x, y: plane.e1y, z: plane.e1z },
+        e2: { x: plane.e2x, y: plane.e2y, z: plane.e2z },
+        n: { x: plane.nx, y: plane.ny, z: plane.nz },
+        radius: params.orbitRadius,
+        freqHz: params.freqHz,
+        speed: Math.hypot(ac.vx, ac.vy, ac.vz),
+        orbitRate: params.orbitRate,
+      };
+    },
     poke() {
       refreshVisuals();
     },

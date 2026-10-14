@@ -158,6 +158,8 @@ export function TriadNotes() {
               <li>a flight dynamics simulator</li>
               <li>a derived propulsion or transport model</li>
               <li>evidence that Schwinger-scale fields create a metric, bore, portal, or displacement</li>
+              <li>a magnetic-null finder inside the Null A/B experiment. Null A/B changes one control. A magnetic-null mark is a separate |B| search.</li>
+              <li>field lines drawn along the source helices. Helices are emitter history.</li>
             </ul>
           </div>
         </div>

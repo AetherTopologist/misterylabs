@@ -61,10 +61,10 @@ export function Header() {
         <div>
           <p className="kicker text-triad-obs">MisterY Labs · range instrument</p>
           <h1 className="font-sans text-3xl leading-none tracking-wide text-triad-model">TRIAD</h1>
-          <p className="kicker text-triad-obs">TRIAD v0.1 · RESEARCH INSTRUMENT PREVIEW</p>
+          <p className="kicker text-triad-obs">TRIAD v0.2 · research preview</p>
           <p className="text-triad-muted">Source locus ≠ Maxwell structure · not a tunnel</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="header-tools flex flex-wrap gap-2">
           <button
             className="btn"
             data-on={params.running}
@@ -92,7 +92,7 @@ export function Header() {
           </button>
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="header-scale flex flex-wrap items-center gap-2">
         <span className="kicker">Time scale</span>
         {[0.25, 1, 2, 4].map((r) => (
           <button
@@ -122,16 +122,20 @@ export function Overlay() {
     (params.rayMode && params.constitutive !== "vacuum") ||
     (params.anchor && params.ashton) ||
     params.anchor;
+  const event = useExperimentRun((s) => s.event);
   return (
-    <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-3">
+    <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-2">
       <div className="flex flex-wrap gap-2">
-        <Chip k="Mode" v={snap.mode} tone="model" />
         <Chip k="120°" v={`${snap.gapErrDeg.toFixed(1)}°`} tone="obs" />
         <Chip k="Track" v={`${snap.trackErr.toFixed(1)} m`} tone="model" />
-        <Chip k="E/Es" v={snap.qed.ePeak > 0 ? `10^${Math.log10(snap.qed.eOverEs).toFixed(1)}` : "0"} tone="model" />
-        <Chip k="Δz120" v={Number.isFinite(snap.dz120) ? `${snap.dz120.toFixed(0)} m` : "∞"} tone="model" />
-        <Chip k="Csweep" v={Number.isFinite(snap.cSweep) ? snap.cSweep.toFixed(2) : "—"} tone="obs" />
+        <span className="overlay-extra contents">
+          <Chip k="Mode" v={snap.mode} tone="model" />
+          <Chip k="E/Es" v={snap.qed.ePeak > 0 ? `10^${Math.log10(snap.qed.eOverEs).toFixed(1)}` : "0"} tone="model" />
+          <Chip k="Δz120" v={Number.isFinite(snap.dz120) ? `${snap.dz120.toFixed(0)} m` : "∞"} tone="model" />
+          <Chip k="Csweep" v={Number.isFinite(snap.cSweep) ? snap.cSweep.toFixed(2) : "—"} tone="obs" />
+        </span>
       </div>
+      {event ? <p className="event-mark max-w-md">{event}</p> : null}
       {snap.saturated && (
         <p className="banner mt-2 max-w-xl border border-triad-model bg-triad-surface/95 px-2 py-2 text-triad-model">
           Control saturated · ω²R / a_max = {snap.demandRatio.toFixed(2)}
@@ -156,11 +160,6 @@ export function Overlay() {
             Hypothesis inserted — not derived from the Maxwell solution. Aircraft state is unchanged.
           </p>
         )}
-        <p className="banner text-triad-model">B777-200ER schematic · 63.7 × 60.9 × 18.5 m · kinematic, not a flight model</p>
-        <p className="banner text-triad-model">
-          Helices = source locus (emitter history), not field lines and not a tunnel. Face and arrows = Maxwell structure.
-        </p>
-        <p className="banner text-triad-model">{snap.qed.regime}</p>
       </div>
     </div>
   );
@@ -562,6 +561,9 @@ function FieldTab() {
   return (
     <div className="flex flex-col gap-3 pb-6">
       <p className="text-triad-muted">{snap.fieldNote}</p>
+      <p className="text-triad-muted">
+        Field lines and nulls are computed on the range frame by the Field Bureau. They read this solver. They do not write back.
+      </p>
       <CausalChain />
       <p className="kicker">Source controls</p>
       <LogSlider

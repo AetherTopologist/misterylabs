@@ -109,54 +109,24 @@ No Pais, Puthoff, or Morris–Thorne transport law is implemented.
 
 `clearHistory` on the engine drops plotted samples and source-locus samples only. It does not clear the latency buffer and it does not change the Maxwell update.
 
-## TRIAD v0.1 · Research Instrument Preview
+## TRIAD v0.1 presentation (on main)
 
-Release designation: **TRIAD v0.1 · Research Instrument Preview**. Not v1.0.
-Feature development is frozen after this presentation pass. No new physics, solvers, hypothesis mechanisms, controls, presets, or experimental capabilities were added.
+Main designates **TRIAD v0.1 · Research Instrument Preview**. Display focus (`BALANCED | AIRCRAFT | FIELD | SOURCES`) is opacity only in `ui/displayFocus.ts`. It is not a `Params` field and is not written into COPY RUN. Default `showBore` is off so source-locus helices do not cover the first frame. The 239-lives sentence lives in `TriadNotes`, not over the range frame.
 
-The visible header reads `TRIAD v0.1 · RESEARCH INSTRUMENT PREVIEW`. The subtitle remains `Source locus ≠ Maxwell structure · not a tunnel`. The MH370 epistemic disclaimer stays on the header.
+The on-screen E/Es ratio is peak delivered `|E| / Es`. `pairRate` uses `ε`, not that displayed peak.
 
-Default / Reset presentation:
+## v0.2 field bureau (this branch)
 
-- Forbes-associated module (`ashton`) off
-- plasma cosmetic shell off
-- vacuum bore off
-- destination anchor off
-- source-locus history (`showBore`) off, so the helices do not dominate the first frame. The toggle still turns the existing history on.
-- Display focus defaults to **Balanced**
+Visualization reads the existing Hertzian kernel. It does not write dipoles, phases, or hypothesis flags back into Maxwell, QED, or the controller. The five experiment presets are untouched.
 
-Display focus is `BALANCED | AIRCRAFT | FIELD | SOURCES`. It changes viewport opacity only (`ui/displayFocus.ts`, read by `ui/Viewport.tsx`). It is not a `Params` field, does not enter `engine.step`, and is not written into COPY RUN.
+```
+engine.sources() / formation() / toView()     read-only seam. sources() latches emitter phase and does not step.
+sim/topology.ts                               instantaneous B; RK2 streamlines; magnetic-null search; div B; C3 residual
+sim/qed.ts                                    reused, not rewritten
+sim/bureau.ts                                 debounced survey and dipole copies at Freeze A/B
+ui/FieldLines.tsx                             streamlines, slice, r < 4 m spheres, C3 ticks, magnetic-null marks
+ui/RideDock.tsx                               selector, Ride / Pause / Restart over the existing experiment runner
+```
 
-`/research` is unchanged. `/observatory/triad` is unchanged.
-
-### |E| / Es versus ε / Es
-
-The on-screen ratio labeled E/Es is peak delivered `|E| / Es` (`ePeak / ES` in `qed.ts`). The pair approximation does **not** use that displayed peak. `pairRate` takes the invariant-derived electric-like eigenvalue `ε` (`eps`) and `β`. The exponent is `−π Es / ε`. A sweep can cross `|E|/Es` markers 0.01, 0.1, 1, and 10 while the pair series is responding to `ε`, which is not identical to displayed peak `|E|`. This release does not change that equation.
-
-### Calibration record — 01 Control cliff
-
-Parameters: R = 48 m, a_max = 80 m/s².
-Predicted ωcrit = sqrt(80/48) = 1.291 rad/s.
-Numerical first demand/cap > 1 occurred at ω = 1.292 rad/s, demand/cap = 1.002.
-Max demand/cap = 4.045.
-Tracking subsequently departed from commanded geometry.
-Acquisition transitioned TRACK → SEARCH.
-
-Interpretation: the numerical controller reproduces the analytically expected centripetal saturation boundary. This is a controller test and not an electromagnetic or aircraft-interaction result.
-
-### Calibration record — 04 Schwinger sweep
-
-Fixed: R = 48 m, ω = 1.2 rad/s, phase = 0/120/240°, frequency = 1e8 Hz, vertical polarization, 3 active sources, aircraft/controller/geometry frozen.
-Sweep: E0 = 1.72e14 → 5.10e18 V/m.
-Delivered E/Es ≈ 1e-3 → 2.99e1.
-E/Es markers 0.01, 0.1, 1, 10 crossed.
-Pair approximation became strongly nonlinear.
-Vacuum bore remained off. Anchor remained off.
-No transport or displacement transition exists.
-
-Interpretation: the amplitude/QED diagnostic changes while geometry and hypothesis layers remain isolated. Pair nonlinearity follows `ε`, not a claim that displayed peak `|E|` is the exponent argument.
-
-Release commit: `018a380090df4212b651276fbbe9810895f967e3` — `fix(public): freeze TRIAD v0.1 presentation`.
-Visual QA: `reports/visual-qa/public/018a380-triad-v01/`.
-The Pages route remains `https://aethertopologist.github.io/misterylabs/observatory/triad`.
+A magnetic-null candidate is a place where sampled `|B|` is numerically small. It is not the Null A/B experiment, which changes one control and compares telemetry. Source helices are emitter history, not magnetic field lines. A null is not reconnection. Energy balance stays NOT EVALUATED. The ????? seam is unchanged.
 
