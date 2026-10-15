@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { HD_INDEX, HD_RIDES } from "@/instruments/higher-dimensional/rides";
 
 // ── XenoCitation Data ─────────────────────────────────────
 // CANONICAL ORDER — do not reorder without updating this comment.
@@ -544,8 +545,8 @@ const DEMO_CARDS: Array<{
   {
     href: "/observatory/higher-dimensional",
     label: "Higher-Dimensional Instruments",
-    sub: "OBS-HD · Topology & Perception",
-    desc: "Cube nets, 4D tesseract projection, hollow mask depth inversion, bistable rotation silhouette.",
+    sub: "OBS-HD · Collection index",
+    desc: "The original cube net, tesseract, hollow-mask drawing, and dancer stay here. Three rides open from the group below.",
     accent: "text-violet-400/70",
     border: "border-violet-500/20 hover:border-violet-500/40",
     maturity: "Experimental",
@@ -622,6 +623,35 @@ function DemoInstrumentsSection() {
               </div>
             </Link>
           ))}
+        </div>
+        <div className="mt-10 border-t border-violet-500/20 pt-8">
+          <div className="mb-1 font-mono text-[9px] uppercase tracking-[0.35em] text-violet-400/70">
+            Higher-Dimensional Observatory
+          </div>
+          <h3 className="text-xl font-bold tracking-tight md:text-2xl">Three rides</h3>
+          <p className="mb-5 mt-2 max-w-xl text-sm text-muted-foreground/70">
+            Separate entrances. The{" "}
+            <Link to={HD_INDEX} className="underline decoration-violet-400/40 underline-offset-4">
+              collection index
+            </Link>{" "}
+            still holds the original instruments.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {HD_RIDES.map((ride) => (
+              <Link
+                key={ride.href}
+                to={ride.href}
+                className={`group flex min-h-11 flex-col rounded-sm border bg-card/20 p-5 transition-base ${ride.border}`}
+              >
+                <div className={`font-mono text-[8px] uppercase tracking-[0.3em] ${ride.accent}`}>{ride.sub}</div>
+                <div className="mb-2 mt-2 text-sm font-semibold">{ride.label}</div>
+                <p className="flex-1 text-xs leading-relaxed text-muted-foreground/60">{ride.desc}</p>
+                <div className="mt-3 border-t border-border/20 pt-3 font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/35 group-hover:text-primary/50">
+                  Open ride →
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </section>

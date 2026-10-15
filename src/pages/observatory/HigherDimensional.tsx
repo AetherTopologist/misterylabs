@@ -1,9 +1,11 @@
 import { lazy, Suspense } from "react";
+import { Link } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { DemoNav } from "@/components/observatory/DemoNav";
 import { useTheme } from "@/hooks/useTheme";
+import { HD_RIDES } from "@/instruments/higher-dimensional/rides";
 
 const CubeNetExplorer = lazy(() =>
   import("@/components/CubeNetExplorer").then(m => ({ default: m.CubeNetExplorer }))
@@ -52,10 +54,22 @@ export default function HigherDimensionalPage() {
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground/60">
               Curved transport operates in a field that connects to higher-dimensional geometry
-              and to the limits of observer perception. These instruments explore how topology
-              unfolds, how 4D structure projects, and how two observers can look at the same
-              boundary and disagree on its curvature.
+              and to the limits of observer perception. The original four instruments remain on
+              this route. Three rides open the same questions one at a time.
             </p>
+          </div>
+          <div className="mb-10 grid gap-3 sm:grid-cols-3">
+            {HD_RIDES.map((ride) => (
+              <Link
+                key={ride.href}
+                to={ride.href}
+                className={`rounded-sm border bg-card/20 p-4 ${ride.border}`}
+              >
+                <div className={`font-mono text-[8px] uppercase tracking-[0.28em] ${ride.accent}`}>{ride.sub}</div>
+                <div className="mt-2 text-sm font-semibold">{ride.label}</div>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground/60">{ride.desc}</p>
+              </Link>
+            ))}
           </div>
           <div className="spectral-bar mb-10" aria-hidden />
 

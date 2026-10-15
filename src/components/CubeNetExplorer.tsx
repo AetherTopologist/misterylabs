@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 
 // ── Face palette ───────────────────────────────────────────
 
-const FACE_COLORS = [
+export const FACE_COLORS = [
   { fill: "rgba(34,211,238,0.82)",  stroke: "rgba(34,211,238,1)",   name: "Front",  tailwind: "bg-cyan-400",   text: "text-cyan-400"   },
   { fill: "rgba(167,139,250,0.82)", stroke: "rgba(167,139,250,1)",  name: "Back",   tailwind: "bg-violet-400", text: "text-violet-400" },
   { fill: "rgba(251,191,36,0.82)",  stroke: "rgba(251,191,36,1)",   name: "Top",    tailwind: "bg-amber-400",  text: "text-amber-400"  },
@@ -40,7 +40,7 @@ const FACE_NORMALS: [number,number,number][] = [
 
 type NetCell = [number, number];
 
-const NETS: NetCell[][] = [
+export const NETS: NetCell[][] = [
   [[1,0],[1,3],[1,1],[1,2],[0,1],[2,1]],  //  1 — Classic cross
   [[1,0],[0,3],[1,1],[0,2],[0,1],[2,1]],  //  2 — L-Cross
   [[1,0],[2,3],[1,1],[2,2],[0,1],[2,1]],  //  3 — J-Cross
@@ -54,7 +54,7 @@ const NETS: NetCell[][] = [
   [[2,0],[0,2],[3,0],[1,2],[2,1],[1,1]],  // 11 — Z-Staircase
 ];
 
-const NET_LABELS = [
+export const NET_LABELS = [
   "Classic Cross","L-Cross","J-Cross","Row + Tail A","Row + Tail B",
   "Row Skip 1-3","Row Skip 0-2","Row Adjacent 1-2","Row Adjacent 0-1",
   "S-Staircase","Z-Staircase",
@@ -162,6 +162,7 @@ export function computeUnfoldPath(
     });
 
     for (const child of children) {
+      if (visited[child]) continue;
       edges.push([node, child]);
       dfs(child, node);
     }

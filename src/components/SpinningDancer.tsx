@@ -1,4 +1,23 @@
 import { useRef, useEffect, useState } from "react";
+import { DANCER_OMEGA, type SpinDirection } from "@/instruments/higher-dimensional/dancer-motion";
+
+export type DancerRender = {
+  shaded: boolean;
+  perspective: boolean;
+  depthCues: boolean;
+  floorShadow: boolean;
+  markers: boolean;
+  direction: SpinDirection;
+};
+
+const SILHOUETTE: DancerRender = {
+  shaded: false,
+  perspective: false,
+  depthCues: false,
+  floorShadow: false,
+  markers: false,
+  direction: 1,
+};
 
 // ── Types & 3D model ───────────────────────────────────────────────────────
 type V3 = [number, number, number];
@@ -85,6 +104,7 @@ function drawDancer(
   legEm: number,
   armPos: number,
   focusPct: number,
+  render: DancerRender = SILHOUETTE,
 ) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
@@ -111,13 +131,44 @@ function drawDancer(
   const J = buildJoints(legEm, armPos);
   const pts: Record<string, [number, number]> = {};
   const zs:  Record<string, number>            = {};
+  const rotated: Record<string, V3> = {};
+  function project(v: V3): [number, number] {
+    if (!render.perspective) return orth(v, sc, cx, cy);
+    const dist = 4.4;
+    const z = dist - v[2];
+    const s = z > 0.08 ? (sc * dist) / z : sc;
+    return [cx + v[0] * s, cy - v[1] * s];
+  }
   for (const [k, v] of Object.entries(J)) {
     const r = rotY(v, phi);
-    pts[k] = orth(r, sc, cx, cy);
+    rotated[k] = r;
+    pts[k] = project(r);
     zs[k]  = r[2];
   }
 
   const segAvgZ = (a: string, b: string) => (zs[a] + zs[b]) * 0.5;
+
+  if (render.depthCues || render.floorShadow || render.markers) {
+    const floorY = -1.28;
+    const floor = project([0, floorY, 0]);
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.lineWidth = 1 * dpr;
+    ctx.beginPath();
+    ctx.ellipse(floor[0], floor[1], sc * 0.72, sc * (render.perspective ? 0.22 : 0.08), 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  if (render.floorShadow) {
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    for (const [a, b, rf] of SEGS) {
+      const ra = rotated[a], rb = rotated[b];
+      const pa = project([ra[0] + ra[2] * 0.15, -1.27, ra[2] * 0.15]);
+      const pb = project([rb[0] + rb[2] * 0.15, -1.27, rb[2] * 0.15]);
+      ctx.lineWidth = rf * sc * 1.4;
+      ctx.strokeStyle = "rgba(0,0,0,0.35)";
+      ctx.beginPath(); ctx.moveTo(pa[0], pa[1]); ctx.lineTo(pb[0], pb[1]); ctx.stroke();
+    }
+  }
 
   // ── Ambient glow (back-lit silhouette) ────────────────────────────────────
   const midY = (pts.neck[1] + pts.footR[1]) * 0.5;
@@ -160,16 +211,28 @@ function drawDancer(
     ctx.beginPath(); ctx.arc(px, py, rf * sc + GR, 0, Math.PI * 2); ctx.fill();
   }
 
-  // Pass 2 — dark fill (blocks glow interior, forms solid silhouette)
-  for (const { a, b, rf } of sorted) {
+  // Pass 2 — body. Silhouette stays a flat fill. Shaded mode uses depth as a light cue.
+  for (const { a, b, rf, z } of sorted) {
     const [x1, y1] = pts[a], [x2, y2] = pts[b];
     ctx.lineWidth   = rf * sc * 2;
-    ctx.strokeStyle = "#05060c";
+    if (render.shaded) {
+      const t = Math.max(0, Math.min(1, (z + 1.1) / 2.2));
+      const lit = Math.round(48 + t * 170);
+      ctx.strokeStyle = `rgb(${lit},${Math.round(lit * 0.9)},${Math.round(lit * 0.78)})`;
+    } else {
+      ctx.strokeStyle = "#05060c";
+    }
     ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
   }
-  ctx.fillStyle = "#05060c";
   for (const [k, rf] of [["head", 0.108], ["bun", 0.060]] as const) {
     const [px, py] = pts[k];
+    if (render.shaded) {
+      const t = Math.max(0, Math.min(1, (zs[k] + 1.1) / 2.2));
+      const lit = Math.round(48 + t * 170);
+      ctx.fillStyle = `rgb(${lit},${Math.round(lit * 0.9)},${Math.round(lit * 0.78)})`;
+    } else {
+      ctx.fillStyle = "#05060c";
+    }
     ctx.beginPath(); ctx.arc(px, py, rf * sc, 0, Math.PI * 2); ctx.fill();
   }
 
@@ -181,6 +244,25 @@ function drawDancer(
   ctx.beginPath(); ctx.moveTo(cx - fr * 2.6, fy); ctx.lineTo(cx + fr * 2.6, fy); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(cx, fy - fr * 1.8); ctx.lineTo(cx, fy + fr * 1.8); ctx.stroke();
   ctx.beginPath(); ctx.arc(cx, fy, fr, 0, Math.PI * 2); ctx.stroke();
+
+  if (render.markers) {
+    const foot = pts.footR;
+    const ahead = project(rotY([0.45, -1.22, 0.05], phi));
+    ctx.strokeStyle = "rgba(251,191,36,0.85)";
+    ctx.fillStyle = "rgba(251,191,36,0.9)";
+    ctx.lineWidth = 2 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(foot[0], foot[1]);
+    ctx.lineTo(ahead[0], ahead[1]);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(ahead[0], ahead[1], 4 * dpr, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = `${8 * dpr}px "JetBrains Mono",ui-monospace,monospace`;
+    ctx.fillStyle = "rgba(251,191,36,0.8)";
+    ctx.textAlign = "left";
+    ctx.fillText(render.direction === 1 ? "PHYSICAL CW" : "PHYSICAL CCW", ahead[0] + 8 * dpr, ahead[1]);
+  }
 
   // ── Diagnostic frame ─────────────────────────────────────────────────────
   const m = 14 * dpr, ml = 10 * dpr;
@@ -203,10 +285,12 @@ function drawDancer(
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
-export function SpinningDancer() {
+export function SpinningDancer({ ride = false }: { ride?: boolean }) {
   const canvasRef   = useRef<HTMLCanvasElement>(null);
   const rafRef      = useRef<number>(0);
   const phiRef      = useRef(0.4);
+  const rideRef     = useRef(ride);
+  const lastTRef    = useRef<number | null>(null);
 
   // Live refs — state values mirrored for RAF closure access
   const dirRef      = useRef<1 | -1>(1);
@@ -217,6 +301,7 @@ export function SpinningDancer() {
   const focusRef    = useRef(0.72);   // default: near standing foot
   const dragRef     = useRef(false);
   const lastXRef    = useRef(0);
+  const renderRef   = useRef<DancerRender>(SILHOUETTE);
 
   const [dir,     setDir]     = useState<1 | -1>(1);
   const [speed,   setSpeed]   = useState(1.0);
@@ -224,6 +309,13 @@ export function SpinningDancer() {
   const [legEm,   setLegEm]   = useState(0.70);
   const [armPos,  setArmPos]  = useState(0.60);
   const [focus,   setFocus]   = useState(72);
+  const [shaded, setShaded] = useState(false);
+  const [perspective, setPerspective] = useState(false);
+  const [depthCues, setDepthCues] = useState(false);
+  const [floorShadow, setFloorShadow] = useState(false);
+  const [markers, setMarkers] = useState(false);
+  const [perceived, setPerceived] = useState<"clockwise" | "counterclockwise" | "unstable" | null>(null);
+  const [reversalArmed, setReversalArmed] = useState(false);
 
   useEffect(() => { dirRef.current    = dir;         }, [dir]);
   useEffect(() => { speedRef.current  = speed;       }, [speed]);
@@ -231,6 +323,11 @@ export function SpinningDancer() {
   useEffect(() => { legEmRef.current  = legEm;       }, [legEm]);
   useEffect(() => { armPosRef.current = armPos;      }, [armPos]);
   useEffect(() => { focusRef.current  = focus / 100; }, [focus]);
+  useEffect(() => {
+    renderRef.current = {
+      shaded, perspective, depthCues, floorShadow, markers, direction: dir,
+    };
+  }, [shaded, perspective, depthCues, floorShadow, markers, dir]);
 
   // RAF + mouse/touch drag
   useEffect(() => {
@@ -247,11 +344,20 @@ export function SpinningDancer() {
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
 
-    function frame() {
-      if (autoRef.current && !dragRef.current) {
-        phiRef.current += 0.014 * speedRef.current * dirRef.current;
+    function frame(now: number) {
+      if (rideRef.current) {
+        const dt = lastTRef.current == null ? 0 : Math.min(0.05, (now - lastTRef.current) / 1000);
+        lastTRef.current = now;
+        if (autoRef.current && !dragRef.current) {
+          phiRef.current += dirRef.current * speedRef.current * DANCER_OMEGA * dt;
+        }
+        drawDancer(canvas!, phiRef.current, legEmRef.current, armPosRef.current, focusRef.current, renderRef.current);
+      } else {
+        if (autoRef.current && !dragRef.current) {
+          phiRef.current += 0.014 * speedRef.current * dirRef.current;
+        }
+        drawDancer(canvas!, phiRef.current, legEmRef.current, armPosRef.current, focusRef.current);
       }
-      drawDancer(canvas!, phiRef.current, legEmRef.current, armPosRef.current, focusRef.current);
       rafRef.current = requestAnimationFrame(frame);
     }
     rafRef.current = requestAnimationFrame(frame);
@@ -359,7 +465,7 @@ export function SpinningDancer() {
         <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-sm border border-white/10 bg-black/55 px-2 py-1 backdrop-blur-sm">
           {autoSpin && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-violet-400/85" />}
           <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-violet-400/75">
-            {dir === 1 ? "clockwise" : "counter-cw"}
+            {ride ? (dir === 1 ? "physical cw" : "physical ccw") : (dir === 1 ? "clockwise" : "counter-cw")}
           </span>
         </div>
 
@@ -541,6 +647,108 @@ export function SpinningDancer() {
             </span>
           </div>
         </div>
+
+        {ride && (
+          <div className="flex flex-col gap-3">
+            <div className="font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/40">
+              Depth information
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {([
+                ["Silhouette", !shaded, () => setShaded(false)],
+                ["Shaded", shaded, () => setShaded(true)],
+                ["Orthographic", !perspective, () => setPerspective(false)],
+                ["Perspective", perspective, () => setPerspective(true)],
+              ] as const).map(([label, on, go]) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={go}
+                  className={`min-h-11 rounded-sm border px-2 py-2 font-mono text-[9px] uppercase tracking-[0.08em] ${
+                    on ? "border-violet-500/50 bg-violet-950/40 text-violet-300" : "border-border/30 text-muted-foreground/55"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 gap-1.5">
+              {([
+                ["Depth cues", depthCues, setDepthCues],
+                ["Floor shadow", floorShadow, setFloorShadow],
+                ["Physical marker", markers, setMarkers],
+              ] as const).map(([label, on, set]) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => set(!on)}
+                  className={`min-h-11 rounded-sm border px-2 py-2 text-left font-mono text-[9px] uppercase tracking-[0.08em] ${
+                    on ? "border-cyan-500/50 bg-cyan-950/30 text-cyan-300" : "border-border/30 text-muted-foreground/55"
+                  }`}
+                >
+                  {label} {on ? "on" : "off"}
+                </button>
+              ))}
+            </div>
+            <p className="text-[9px] leading-relaxed text-muted-foreground/40">
+              Physical yaw is the model angle. A silhouette can still be read both ways.
+              Shading, perspective, shadow, and the floor marker add cues. They do not report your perception.
+            </p>
+            <button
+              type="button"
+              className="min-h-11 rounded-sm border border-amber-500/40 bg-amber-950/30 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-amber-200"
+              onClick={() => {
+                const next: 1 | -1 = dir === 1 ? -1 : 1;
+                setDir(next);
+                dirRef.current = next;
+                setReversalArmed(true);
+              }}
+            >
+              Reverse physical direction
+            </button>
+            <div className="rounded-sm border border-border/30 bg-secondary/20 px-3 py-3">
+              <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.2em] text-muted-foreground/45">
+                {reversalArmed ? "Physical yaw just reversed. What did the spin appear to do?" : "Perceived rotation — your report"}
+              </div>
+              <div className="grid grid-cols-1 gap-1.5">
+                {([
+                  ["clockwise", "Looks clockwise"],
+                  ["counterclockwise", "Looks counter-clockwise"],
+                  ["unstable", "Unstable / unsure"],
+                ] as const).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => {
+                      setPerceived(id);
+                      setReversalArmed(false);
+                      try {
+                        const key = "misterylabs.ambiguous-dancer.reports";
+                        const prev = JSON.parse(localStorage.getItem(key) || "[]");
+                        prev.push({
+                          t: Date.now(),
+                          perceived: id,
+                          physical: dirRef.current === 1 ? "cw" : "ccw",
+                          shaded, perspective, depthCues, floorShadow, markers,
+                        });
+                        localStorage.setItem(key, JSON.stringify(prev.slice(-40)));
+                      } catch { /* storage unavailable */ }
+                    }}
+                    className={`min-h-11 rounded-sm border px-2 py-2 text-left text-[11px] ${
+                      perceived === id ? "border-amber-500/50 text-amber-200" : "border-border/30 text-muted-foreground/70"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-[9px] leading-relaxed text-muted-foreground/38">
+                Saved in this browser only. The figure is not scored against your answer.
+                {perceived ? ` Last report: ${perceived}. Physical is ${dir === 1 ? "CW" : "CCW"}.` : ""}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Observer note */}
         <div className="rounded-sm border border-violet-500/15 bg-violet-950/15 px-3.5 py-3">
