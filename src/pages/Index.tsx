@@ -58,10 +58,46 @@ const Index = () => {
 
         <section className="wf-register" aria-labelledby="wf-instruments">
           <div className="container">
+            <p className="wf-founding">
+              We don’t build monuments to what we know. We build instruments for what we don’t yet
+              understand.
+            </p>
+            <p className="wf-invite">
+              Wonder comes before explanation. A world can feel complete while the evidence is not.
+              Step inside a question, change it, and find where a worldview stops working.
+            </p>
+            <p className="wf-progress">
+              <span className="sr-only">Wonder, observe, model, interpret, question again.</span>
+              <span aria-hidden="true">
+                Wonder → Observe → Model → Interpret → Question again
+              </span>
+            </p>
+            <ol className="wf-layers">
+              <li>
+                <span>Observation</span>
+                <span>What is actually measured.</span>
+              </li>
+              <li>
+                <span>Model</span>
+                <span>A representation, and the assumptions it makes.</span>
+              </li>
+              <li>
+                <span>Interpretation</span>
+                <span>A meaning drawn from the model.</span>
+              </li>
+              <li>
+                <span>Open question</span>
+                <span>What is still untested, or only imagined.</span>
+              </li>
+            </ol>
+            <p className="wf-humility">
+              An observation is not an explanation. A model is not the world. An analogy is not
+              evidence.
+            </p>
             <h2 id="wf-instruments" className="wf-kicker">
               Open instruments
             </h2>
-            <ol>
+            <ol className="wf-doors">
               {DOORS.map((door) => (
                 <li key={door.to}>
                   <Link className="wf-door" to={door.to}>
@@ -88,6 +124,10 @@ const Index = () => {
             </p>
             <p className="wf-horizon">On the horizon, not yet open — Bell and xPRIMEray.</p>
             <p className="wf-note">Atmosphere is not evidence.</p>
+            <p className="wf-close">
+              How much of what we experience is the world itself, and how much is the model through
+              which we perceive it?
+            </p>
           </div>
         </section>
       </main>
