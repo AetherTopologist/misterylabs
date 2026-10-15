@@ -73,8 +73,11 @@ const Index = () => {
               ))}
             </ol>
             <p className="wf-rooms">
-              The Dimensional Pavilion is one collection: cube unfolding, tesseract projection,
-              hollow mask, spinning dancer, and{" "}
+              The Dimensional Pavilion keeps the original instruments and adds three rides:{" "}
+              <Link to="/observatory/higher-dimensional/hollow-genius">Hollow Genius</Link>,{" "}
+              <Link to="/observatory/higher-dimensional/ambiguous-dancer">Ambiguous Dancer</Link>, and{" "}
+              <Link to="/observatory/higher-dimensional/inside-out">Inside-Out Universe</Link>,
+              plus{" "}
               <Link to="/observatory/quaternion">quaternion rotation</Link>.
             </p>
             <p className="wf-satellite">

@@ -24,6 +24,9 @@ const TransportSpherePage   = lazy(() => import("./pages/observatory/TransportSp
 const PoissonDotPage        = lazy(() => import("./pages/observatory/PoissonDot.tsx"));
 const QuaternionPage        = lazy(() => import("./pages/observatory/Quaternion.tsx"));
 const HigherDimensionalPage = lazy(() => import("./pages/observatory/HigherDimensional.tsx"));
+const HollowGeniusPage = lazy(() => import("./pages/observatory/HollowGenius.tsx"));
+const AmbiguousDancerPage = lazy(() => import("./pages/observatory/AmbiguousDancer.tsx"));
+const InsideOutUniversePage = lazy(() => import("./pages/observatory/InsideOutUniverse.tsx"));
 const CavendishPaisPage     = lazy(() => import("./pages/observatory/CavendishPais.tsx"));
 const PolarGrinPage         = lazy(() => import("./pages/observatory/PolarGrin.tsx"));
 const SaturnPolygonPage     = lazy(() => import("./pages/observatory/SaturnPolygon.tsx"));
@@ -92,6 +95,9 @@ const App = () => (
           <Route path="/observatory/poisson-dot"         element={<DemoWrapper><PoissonDotPage /></DemoWrapper>} />
           <Route path="/observatory/quaternion"          element={<DemoWrapper><QuaternionPage /></DemoWrapper>} />
           <Route path="/observatory/higher-dimensional"  element={<DemoWrapper><HigherDimensionalPage /></DemoWrapper>} />
+          <Route path="/observatory/higher-dimensional/hollow-genius" element={<DemoWrapper><HollowGeniusPage /></DemoWrapper>} />
+          <Route path="/observatory/higher-dimensional/ambiguous-dancer" element={<DemoWrapper><AmbiguousDancerPage /></DemoWrapper>} />
+          <Route path="/observatory/higher-dimensional/inside-out" element={<DemoWrapper><InsideOutUniversePage /></DemoWrapper>} />
           <Route path="/observatory/cavendish-pais"      element={<DemoWrapper><CavendishPaisPage /></DemoWrapper>} />
           <Route path="/observatory/polar-grin"          element={<DemoWrapper><PolarGrinPage /></DemoWrapper>} />
           <Route path="/observatory/saturn-polygon"      element={<DemoWrapper><SaturnPolygonPage /></DemoWrapper>} />

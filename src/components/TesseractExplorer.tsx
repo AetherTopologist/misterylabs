@@ -1,62 +1,11 @@
 import { useRef, useEffect, useState } from "react";
-
-// ── 4D geometry (precomputed) ──────────────────────────────
-
-type Vec4 = [number, number, number, number];
-type Vec3 = [number, number, number];
-
-// 16 vertices: all (±1,±1,±1,±1) combinations
-const T_VERTS: Vec4[] = Array.from({ length: 16 }, (_, i) => [
-  i & 8 ? 1 : -1,
-  i & 4 ? 1 : -1,
-  i & 2 ? 1 : -1,
-  i & 1 ? 1 : -1,
-]);
-
-type EdgeKind = "outer" | "inner" | "bridge";
-
-// 32 edges: vertex pairs differing in exactly 1 coordinate
-const T_EDGES: [number, number, EdgeKind][] = (() => {
-  const edges: [number, number, EdgeKind][] = [];
-  for (let i = 0; i < 16; i++) {
-    for (let j = i + 1; j < 16; j++) {
-      let diff = 0;
-      for (let k = 0; k < 4; k++) if (T_VERTS[i][k] !== T_VERTS[j][k]) diff++;
-      if (diff === 1) {
-        const wi = T_VERTS[i][3], wj = T_VERTS[j][3];
-        const kind: EdgeKind = wi === 1 && wj === 1 ? "outer"
-                             : wi === -1 && wj === -1 ? "inner"
-                             : "bridge";
-        edges.push([i, j, kind]);
-      }
-    }
-  }
-  return edges;
-})();
-
-// ── Math ───────────────────────────────────────────────────
-
-function rot4D(v: Vec4, a: number, b: number, angle: number): Vec4 {
-  const r = [...v] as Vec4;
-  const c = Math.cos(angle), s = Math.sin(angle);
-  r[a] = v[a] * c - v[b] * s;
-  r[b] = v[a] * s + v[b] * c;
-  return r;
-}
-
-function proj4to3(v: Vec4, d4: number): Vec3 {
-  const w = d4 - v[3];
-  const s = Math.abs(w) > 0.01 ? 1 / w : 50;
-  return [v[0] * s, v[1] * s, v[2] * s];
-}
-
-function proj3to2(
-  v: Vec3, d3: number, scale: number, cx: number, cy: number
-): [number, number, number] {
-  const z = d3 - v[2];
-  const s = Math.abs(z) > 0.01 ? scale / z : scale * 50;
-  return [cx + v[0] * s, cy - v[1] * s, v[2]];
-}
+import {
+  T_EDGES,
+  T_VERTS,
+  proj3to2,
+  proj4to3,
+  rot4D,
+} from "@/instruments/higher-dimensional/tesseract-math";
 
 // ── Canvas draw ────────────────────────────────────────────
 
