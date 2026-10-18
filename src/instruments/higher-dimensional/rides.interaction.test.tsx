@@ -102,14 +102,53 @@ describe("higher-dimensional routes", () => {
 describe("hollow genius controls", () => {
   it("offers ground truth, appearance, and both reliefs without claiming perception", () => {
     render(<HollowGenius />);
-    expect(screen.getByText("Ground truth")).toBeInTheDocument();
+    expect(document.querySelector('[data-pane="truth"] figcaption')).toHaveTextContent("Ground truth");
     expect(screen.getByText("not a perception model")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Concave shell" }));
     fireEvent.click(screen.getByRole("button", { name: "Convex relief" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Camera" }));
     fireEvent.click(screen.getByRole("button", { name: "Reset camera" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Observer" }));
     fireEvent.click(screen.getByRole("button", { name: "Looks concave" }));
     expect(screen.getByText(/Recorded: you reported “concave”/)).toBeInTheDocument();
     expect(screen.getByText(/does not infer an answer/)).toBeInTheDocument();
+  });
+
+  it("keeps the instrument state when the dock tab changes", () => {
+    render(<HollowGenius />);
+    fireEvent.click(screen.getByRole("button", { name: "Tesla" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Lighting" }));
+    expect(screen.getByLabelText("Light azimuth")).toBeInTheDocument();
+    expect(screen.getByText("Tesla", { selector: ".hg-status span" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Geometry" }));
+    expect(screen.getByRole("button", { name: "Tesla" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Concave shell" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Einstein" })).toHaveAttribute("aria-pressed", "false");
+    fireEvent.keyDown(screen.getByRole("tab", { name: "Geometry" }), { key: "ArrowRight" });
+    expect(screen.getByRole("tab", { name: "Camera" })).toHaveAttribute("aria-selected", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Hide controls" }));
+    expect(screen.queryByRole("tab", { name: "Camera" })).not.toBeInTheDocument();
+    expect(screen.getByText("Tesla", { selector: ".hg-status span" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Show controls" }));
+    expect(screen.getByRole("tab", { name: "Camera" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("changes the mobile view without dropping either pane or the canvas key", () => {
+    const { container } = render(<HollowGenius />);
+    const src = readFileSync(path.resolve("src/components/higher-dimensional/HollowGenius.tsx"), "utf8");
+    expect(src).toContain("key={projection}");
+    expect(src).toContain("frameloop={");
+    expect(src).not.toMatch(/key=\{[^}]*pane/);
+    expect(container.querySelector(".hg-cockpit")).toHaveAttribute("data-view", "appearance");
+    expect(container.querySelector('[data-pane="truth"]')).toHaveAttribute("data-live", "false");
+    expect(container.querySelector('[data-pane="appearance"]')).toHaveAttribute("data-live", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Compare" }));
+    expect(container.querySelector(".hg-cockpit")).toHaveAttribute("data-view", "compare");
+    expect(container.querySelector('[data-pane="truth"]')).toHaveAttribute("data-live", "true");
+    expect(container.querySelector('[data-pane="appearance"]')).toHaveAttribute("data-live", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Ground truth" }));
+    expect(container.querySelector(".hg-cockpit")).toHaveAttribute("data-view", "truth");
+    expect(screen.getByRole("button", { name: "Tesla" })).toBeInTheDocument();
   });
 });
 

@@ -17,6 +17,7 @@ import {
   type MaskBuffers,
 } from "@/instruments/higher-dimensional/mask-geometry";
 import { renderLoopOwner } from "@/instruments/higher-dimensional/render-loop";
+import "./hollow-genius.css";
 
 type Subject = "einstein" | "tesla";
 type Shape = "convex" | "concave";
@@ -269,6 +270,7 @@ function MaskViewport({
   elevation,
   separation,
   resetToken,
+  frameloop,
 }: {
   geometry: THREE.BufferGeometry;
   yawRef: React.MutableRefObject<number>;
@@ -280,6 +282,7 @@ function MaskViewport({
   elevation: number;
   separation: number;
   resetToken: number;
+  frameloop: "always" | "never";
 }) {
   const ortho = projection === "orthographic";
   const manual = renderLoopOwner(diagnostic, viewing) === "anaglyph";
@@ -303,6 +306,7 @@ function MaskViewport({
     >
       <Canvas
         key={projection}
+        frameloop={frameloop}
         orthographic={ortho}
         dpr={[1, 1.5]}
         camera={ortho
@@ -332,6 +336,31 @@ function saveReport(entry: Record<string, unknown>) {
   } catch { /* storage unavailable */ }
 }
 
+type PaneView = "appearance" | "truth" | "compare";
+type DockTab = "geometry" | "camera" | "lighting" | "vision" | "observer";
+
+const DOCK_TABS: { id: DockTab; label: string }[] = [
+  { id: "geometry", label: "Geometry" },
+  { id: "camera", label: "Camera" },
+  { id: "lighting", label: "Lighting" },
+  { id: "vision", label: "Vision" },
+  { id: "observer", label: "Observer" },
+];
+
+function useWideScreen() {
+  const [wide, setWide] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(min-width: 900px)").matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 900px)");
+    const apply = () => setWide(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+  return wide;
+}
+
 export function HollowGenius() {
   const [subject, setSubject] = useState<Subject>("einstein");
   const [shape, setShape] = useState<Shape>("concave");
@@ -347,11 +376,25 @@ export function HollowGenius() {
   const [report, setReport] = useState<Report | null>(null);
   const [prepared, setPrepared] = useState<Prepared | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pane, setPane] = useState<PaneView>("appearance");
+  const [tab, setTab] = useState<DockTab>("geometry");
+  const [collapsed, setCollapsed] = useState(false);
+  const [full, setFull] = useState(false);
+  const wide = useWideScreen();
   const yawRef = useRef(0);
   const spinRef = useRef(spin);
   const turnRef = useRef(turntable);
   useEffect(() => { spinRef.current = spin; }, [spin]);
   useEffect(() => { turnRef.current = turntable; }, [turntable]);
+
+  useEffect(() => {
+    if (!full) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [full]);
 
   useEffect(() => {
     let dead = false;
@@ -408,128 +451,202 @@ export function HollowGenius() {
     separation,
     resetToken,
   };
+  const truthLive = wide || pane === "truth" || pane === "compare";
+  const appearanceLive = wide || pane === "appearance" || pane === "compare";
+
+  function onTabKey(event: React.KeyboardEvent<HTMLDivElement>) {
+    const key = event.key;
+    if (key !== "ArrowRight" && key !== "ArrowLeft" && key !== "Home" && key !== "End") return;
+    event.preventDefault();
+    const ids = DOCK_TABS.map((item) => item.id);
+    const index = ids.indexOf(tab);
+    const next = key === "Home"
+      ? ids[0]
+      : key === "End"
+        ? ids[ids.length - 1]
+        : ids[(index + (key === "ArrowRight" ? 1 : -1) + ids.length) % ids.length];
+    setTab(next);
+    document.getElementById(`hg-tab-${next}`)?.focus();
+  }
+
+  function record(id: Report) {
+    setReport(id);
+    saveReport({
+      t: Date.now(), subject, shape, cameraMode, projection, viewing, report: id, truth: kind,
+    });
+  }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid gap-3 lg:grid-cols-2">
-        <figure className="order-2 overflow-hidden border border-cyan-500/25 bg-black lg:order-1">
-          <figcaption className="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2">
-            <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-cyan-300/80">Ground truth</span>
-            <span className="font-mono text-[10px] text-cyan-100/80">{prepared ? kind : "…"}</span>
-          </figcaption>
-          <div className="relative h-[320px] sm:h-[420px]">
-            {geometry && <MaskViewport geometry={geometry} diagnostic {...shared} />}
-            {!geometry && !error && <p className="p-4 font-mono text-xs text-white/50">Loading {subject} relief…</p>}
-            {error && <p className="p-4 text-xs text-amber-200">{error}</p>}
-          </div>
-          <p className="border-t border-white/10 px-3 py-2 text-[11px] leading-relaxed text-white/55">
-            Computed from vertex positions: the central region is {sign >= 0 ? "closer to" : "farther from"} a camera on +Z than the periphery
-            {prepared ? ` (depth sign ${sign.toFixed(3)})` : ""}. Wireframe and normals follow the surface that is actually drawn.
-            Cover this pane if you want to judge the other one first.
-          </p>
-        </figure>
+    <div className={full ? "hg-cockpit is-full" : "hg-cockpit"} data-view={pane}>
+      <div className="hg-stage">
+        <Pane
+          id="truth"
+          title="Ground truth"
+          tone="text-cyan-300/80"
+          badge={prepared ? kind : "…"}
+          live={truthLive}
+          note={prepared
+            ? `Sign ${sign.toFixed(3)}. The center is ${sign >= 0 ? "closer to" : "farther from"} a +Z camera than the rim. Normals follow the drawn surface.`
+            : "The depth sign is computed from the vertices."}
+        >
+          {geometry
+            ? <MaskViewport geometry={geometry} diagnostic frameloop={truthLive ? "always" : "never"} {...shared} />
+            : <p className="hg-wait">{error || `Loading ${subject} relief…`}</p>}
+        </Pane>
+        <Pane
+          id="appearance"
+          title="Appearance"
+          tone="text-amber-300/80"
+          badge="not a perception model"
+          live={appearanceLive}
+          note="Shaded only. Nothing here decides what the face should look like."
+        >
+          {geometry
+            ? <MaskViewport geometry={geometry} diagnostic={false} frameloop={appearanceLive ? "always" : "never"} {...shared} />
+            : <p className="hg-wait">{error || `Loading ${subject} relief…`}</p>}
+        </Pane>
+      </div>
 
-        <figure className="order-1 overflow-hidden border border-amber-500/25 bg-black lg:order-2">
-          <figcaption className="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2">
-            <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-amber-300/80">Appearance</span>
-            <span className="font-mono text-[10px] text-white/45">not a perception model</span>
-          </figcaption>
-          <div className="relative h-[320px] sm:h-[420px]">
-            {geometry && <MaskViewport geometry={geometry} diagnostic={false} {...shared} />}
+      <section className="hg-dock" aria-label="Hollow Genius controls">
+        <div className="hg-dock-top">
+          <p className="hg-status" aria-live="polite">
+            <span>{subject === "einstein" ? "Einstein" : "Tesla"}</span>
+            <span>{shape === "convex" ? "Convex relief" : "Concave shell"}</span>
+            <span>{viewing === "monocular" ? "Monocular" : "Red-cyan"}</span>
+          </p>
+          <div className="hg-row">
+            <button type="button" className="hg-tool" aria-pressed={collapsed} onClick={() => setCollapsed((v) => !v)}>
+              {collapsed ? "Show controls" : "Hide controls"}
+            </button>
+            <button type="button" className="hg-tool" aria-pressed={full} onClick={() => setFull((v) => !v)}>
+              {full ? "Close" : "Expand"}
+            </button>
           </div>
-          <div className="border-t border-white/10 px-3 py-3">
-            <p className="mb-2 text-[11px] leading-relaxed text-white/60">
-              What does this shaded view look like? The page does not infer an answer from the geometry.
-            </p>
-            <div className="grid grid-cols-3 gap-1.5">
-              {([
-                ["convex", "Looks convex"],
-                ["concave", "Looks concave"],
-                ["unsure", "Unsure"],
-              ] as const).map(([id, label]) => (
+        </div>
+
+        <div className="hg-views" role="group" aria-label="Which view">
+          {([
+            ["appearance", "Appearance"],
+            ["truth", "Ground truth"],
+            ["compare", "Compare"],
+          ] as const).map(([id, label]) => (
+            <button key={id} type="button" aria-pressed={pane === id} onClick={() => setPane(id)}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {collapsed ? null : (
+          <>
+            <div className="hg-tabs" role="tablist" aria-label="Control groups" onKeyDown={onTabKey}>
+              {DOCK_TABS.map((item) => (
                 <button
-                  key={id}
+                  key={item.id}
+                  id={`hg-tab-${item.id}`}
                   type="button"
-                  onClick={() => {
-                    setReport(id);
-                    saveReport({
-                      t: Date.now(), subject, shape, cameraMode, projection, viewing, report: id, truth: kind,
-                    });
-                  }}
-                  className={`min-h-11 rounded-sm border px-1 py-2 text-[11px] ${
-                    report === id ? "border-amber-400/70 text-amber-100" : "border-white/15 text-white/70"
-                  }`}
+                  role="tab"
+                  aria-selected={tab === item.id}
+                  aria-controls={`hg-panel-${item.id}`}
+                  tabIndex={tab === item.id ? 0 : -1}
+                  onClick={() => setTab(item.id)}
                 >
-                  {label}
+                  {item.label}
                 </button>
               ))}
             </div>
-            {report && (
-              <p className="mt-2 text-[11px] text-white/45">
-                Recorded: you reported “{report}”. Geometry on screen is a {kind}. Those can disagree. The report stays in this browser.
-              </p>
-            )}
-          </div>
-        </figure>
-      </div>
-
-      <div className="grid gap-4 border border-border/35 bg-secondary/20 p-4 md:grid-cols-2">
-        <ControlGroup label="Subject">
-          {(["einstein", "tesla"] as const).map((id) => (
-            <Toggle key={id} on={subject === id} onClick={() => setSubject(id)}>
-              {id === "einstein" ? "Einstein" : "Tesla"}
-            </Toggle>
-          ))}
-        </ControlGroup>
-        <ControlGroup label="Geometry">
-          <Toggle on={shape === "convex"} onClick={() => setShape("convex")}>Convex relief</Toggle>
-          <Toggle on={shape === "concave"} onClick={() => setShape("concave")}>Concave shell</Toggle>
-        </ControlGroup>
-        <ControlGroup label="Camera">
-          <Toggle on={cameraMode === "orbit"} onClick={() => setCameraMode("orbit")}>Orbit</Toggle>
-          <Toggle on={cameraMode === "fixed"} onClick={() => setCameraMode("fixed")}>Fixed</Toggle>
-          <Toggle on={projection === "perspective"} onClick={() => setProjection("perspective")}>Perspective</Toggle>
-          <Toggle on={projection === "orthographic"} onClick={() => setProjection("orthographic")}>Orthographic</Toggle>
-          <button
-            type="button"
-            onClick={() => setResetToken((n) => n + 1)}
-            className="min-h-11 rounded-sm border border-border/40 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.1em] text-foreground/80"
-          >
-            Reset camera
-          </button>
-        </ControlGroup>
-        <ControlGroup label="Eyes">
-          <Toggle on={viewing === "monocular"} onClick={() => setViewing("monocular")}>Monocular</Toggle>
-          <Toggle on={viewing === "binocular"} onClick={() => setViewing("binocular")}>Binocular</Toggle>
-          <Toggle on={turntable} onClick={() => setTurntable((v) => !v)}>{turntable ? "Turntable on" : "Turntable off"}</Toggle>
-        </ControlGroup>
-        <Slider label="Light azimuth" min={-180} max={180} step={1} value={azimuth} onChange={setAzimuth} unit="°" />
-        <Slider label="Light elevation" min={5} max={85} step={1} value={elevation} onChange={setElevation} unit="°" />
-        <Slider label="Turntable speed" min={0} max={1.2} step={0.01} value={spin} onChange={setSpin} unit=" rad/s" />
-        <Slider label="Camera separation" min={0} max={0.12} step={0.005} value={separation} onChange={setSeparation} unit="" />
-      </div>
+            <div className="hg-panel" role="tabpanel" id={`hg-panel-${tab}`} aria-labelledby={`hg-tab-${tab}`}>
+              {tab === "geometry" && (
+                <div className="hg-row">
+                  {(["einstein", "tesla"] as const).map((id) => (
+                    <Toggle key={id} on={subject === id} onClick={() => setSubject(id)}>
+                      {id === "einstein" ? "Einstein" : "Tesla"}
+                    </Toggle>
+                  ))}
+                  <Toggle on={shape === "convex"} onClick={() => setShape("convex")}>Convex relief</Toggle>
+                  <Toggle on={shape === "concave"} onClick={() => setShape("concave")}>Concave shell</Toggle>
+                </div>
+              )}
+              {tab === "camera" && (
+                <div className="hg-row">
+                  <Toggle on={cameraMode === "fixed"} onClick={() => setCameraMode("fixed")}>Fixed</Toggle>
+                  <Toggle on={cameraMode === "orbit"} onClick={() => setCameraMode("orbit")}>Orbit</Toggle>
+                  <Toggle on={projection === "perspective"} onClick={() => setProjection("perspective")}>Perspective</Toggle>
+                  <Toggle on={projection === "orthographic"} onClick={() => setProjection("orthographic")}>Orthographic</Toggle>
+                  <button type="button" className="hg-choice" onClick={() => setResetToken((n) => n + 1)}>
+                    Reset camera
+                  </button>
+                </div>
+              )}
+              {tab === "lighting" && (
+                <>
+                  <Slider label="Light azimuth" min={-180} max={180} step={1} value={azimuth} onChange={setAzimuth} unit="°" />
+                  <Slider label="Light elevation" min={5} max={85} step={1} value={elevation} onChange={setElevation} unit="°" />
+                </>
+              )}
+              {tab === "vision" && (
+                <>
+                  <div className="hg-row">
+                    <Toggle on={viewing === "monocular"} onClick={() => setViewing("monocular")}>Monocular</Toggle>
+                    <Toggle on={viewing === "binocular"} onClick={() => setViewing("binocular")}>Binocular</Toggle>
+                    <Toggle on={turntable} onClick={() => setTurntable((v) => !v)}>{turntable ? "Turntable on" : "Turntable off"}</Toggle>
+                  </div>
+                  <Slider label="Camera separation" min={0} max={0.12} step={0.005} value={separation} onChange={setSeparation} unit="" />
+                  <Slider label="Turntable speed" min={0} max={1.2} step={0.01} value={spin} onChange={setSpin} unit=" rad/s" />
+                </>
+              )}
+              {tab === "observer" && (
+                <>
+                  <p className="hg-report">What does this shaded view look like? The page does not infer an answer from the geometry.</p>
+                  <div className="hg-row">
+                    {([
+                      ["convex", "Looks convex"],
+                      ["concave", "Looks concave"],
+                      ["unsure", "Unsure"],
+                    ] as const).map(([id, label]) => (
+                      <Toggle key={id} on={report === id} onClick={() => record(id)}>{label}</Toggle>
+                    ))}
+                  </div>
+                  <p className="hg-report">
+                    {report
+                      ? `Recorded: you reported “${report}”. Geometry on screen is a ${kind}. Those can disagree. The report stays in this browser.`
+                      : `No report yet. Geometry on screen is a ${prepared ? kind : "relief still loading"}.`}
+                  </p>
+                </>
+              )}
+            </div>
+          </>
+        )}
+      </section>
     </div>
   );
 }
 
-function ControlGroup({ label, children }: { label: string; children: React.ReactNode }) {
+function Pane({
+  id, title, tone, badge, note, live, children,
+}: {
+  id: "truth" | "appearance";
+  title: string;
+  tone: string;
+  badge: string;
+  note: string;
+  live: boolean;
+  children: React.ReactNode;
+}) {
   return (
-    <div>
-      <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/45">{label}</div>
-      <div className="flex flex-wrap gap-1.5">{children}</div>
-    </div>
+    <figure className="hg-pane" data-pane={id} data-live={live ? "true" : "false"} aria-hidden={live ? undefined : true}>
+      <figcaption className="hg-cap">
+        <span className={tone}>{title}</span>
+        <span>{badge}</span>
+      </figcaption>
+      <p className="hg-note">{note}</p>
+      <div className="hg-view">{children}</div>
+    </figure>
   );
 }
 
 function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`min-h-11 rounded-sm border px-3 py-2 font-mono text-[9px] uppercase tracking-[0.1em] ${
-        on ? "border-amber-500/50 bg-amber-950/40 text-amber-200" : "border-border/30 text-muted-foreground/60"
-      }`}
-    >
+    <button type="button" className="hg-choice" aria-pressed={on} onClick={onClick}>
       {children}
     </button>
   );
@@ -541,13 +658,12 @@ function Slider({
   label: string; min: number; max: number; step: number; value: number; onChange: (n: number) => void; unit: string;
 }) {
   return (
-    <label className="block">
-      <div className="mb-1 flex justify-between font-mono text-[8px] uppercase tracking-[0.2em] text-muted-foreground/45">
+    <label className="hg-slider">
+      <span>
         <span>{label}</span>
-        <span className="tabular-nums text-foreground/70">{value.toFixed(step < 1 ? 2 : 0)}{unit}</span>
-      </div>
+        <span className="tabular-nums">{value.toFixed(step < 1 ? 2 : 0)}{unit}</span>
+      </span>
       <input
-        className="h-11 w-full accent-amber-400"
         type="range" min={min} max={max} step={step} value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
         aria-label={label}

@@ -16,7 +16,7 @@ export default function HollowGeniusPage() {
       <AppHeader />
       <DemoNav next={{ label: HD_RIDES[1].label, to: HD_RIDES[1].href }} />
       <section className="border-t border-border/25 bg-atlas-hero">
-        <div className="container py-10 md:py-14">
+        <div className="container py-6 md:py-8">
           {fromWorld ? (
             <p className="mb-4">
               <Link
@@ -35,9 +35,9 @@ export default function HollowGeniusPage() {
             Familiar faces are usually convex. Shading from above, a weak perspective, and a fixed viewpoint can agree with that prior even when the shell recedes. Concave mode mirrors the relief through its depth plane — the vertices move. It is not a normal flip on the convex mesh. Tesla is the same instrument with a second subject, loaded only when chosen.
           </p>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground/70">
-            The left pane, on a wide screen, states the geometric depth sign and draws normals. The right pane is the appearance. Report what you see. This ride does not compute your perception. Orbit is independent in each pane; the fixed camera is the matched comparison. Motion of the turntable is object yaw, which supplies motion parallax without moving the viewpoint.
+            On a wide screen the panes sit side by side and share one turntable yaw. The left pane states the geometric depth sign and draws normals. The right pane is the appearance. On a narrow screen the appearance is shown first; Ground truth and Compare are choices, not a second instrument. Report what you see. This ride does not compute your perception. Orbit is independent in each pane; the fixed camera is the matched comparison. Motion of the turntable is object yaw, which supplies motion parallax without moving the viewpoint.
           </p>
-          <div className="spectral-bar my-8" aria-hidden />
+          <div className="spectral-bar my-5" aria-hidden />
           <HollowGenius />
           <p className="mt-6 max-w-2xl text-xs leading-relaxed text-muted-foreground/55">
             Binocular view is a red-cyan anaglyph from two parallel cameras on the appearance pane. It is not your eyes, and without glasses it only doubles. Orthographic projection removes the perspective cue that often gives a hollow mask away.

@@ -1,0 +1,278 @@
+/* Hollow Genius cockpit. The panes stay mounted; a view change only
+   hides one of them. The Canvas key remains the projection, so this
+   layout cannot rebuild the WebGL context. */
+
+.hg-cockpit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: calc(100dvh - 4.5rem - env(safe-area-inset-bottom, 0px));
+  min-height: 28rem;
+  max-height: calc(100dvh - 4.5rem - env(safe-area-inset-bottom, 0px));
+}
+
+.hg-cockpit.is-full {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  height: 100dvh;
+  max-height: none;
+  min-height: 0;
+  padding:
+    env(safe-area-inset-top, 0px)
+    max(0.5rem, env(safe-area-inset-right, 0px))
+    env(safe-area-inset-bottom, 0px)
+    max(0.5rem, env(safe-area-inset-left, 0px));
+  background: #07080b;
+}
+
+.hg-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.hg-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #05060c;
+  color: #f3eee4;
+}
+
+.hg-pane[data-pane="truth"] { border-color: rgba(34, 211, 238, 0.28); }
+.hg-pane[data-pane="appearance"] { border-color: rgba(251, 191, 36, 0.28); }
+
+.hg-cap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex: 0 0 auto;
+  padding: 0.35rem 0.7rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.hg-note {
+  margin: 0;
+  padding: 0.28rem 0.7rem 0.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(243, 238, 228, 0.62);
+  font-size: 0.68rem;
+  line-height: 1.35;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.hg-view {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  touch-action: none;
+}
+
+.hg-view canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.hg-wait {
+  margin: 0;
+  padding: 1rem;
+  color: rgba(243, 238, 228, 0.7);
+  font-size: 0.75rem;
+}
+
+.hg-dock {
+  flex: 0 1 auto;
+  max-height: 46%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  background: color-mix(in srgb, canvas 92%, transparent);
+  padding: 0.45rem 0.55rem 0.55rem;
+}
+
+.hg-dock-top,
+.hg-status,
+.hg-views,
+.hg-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.hg-dock-top {
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.hg-status {
+  flex-wrap: wrap;
+  margin: 0;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.hg-status span + span::before {
+  content: "·";
+  margin-right: 0.35rem;
+  opacity: 0.45;
+}
+
+.hg-views,
+.hg-tabs {
+  margin-top: 0.35rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.hg-views::-webkit-scrollbar,
+.hg-tabs::-webkit-scrollbar { display: none; }
+
+.hg-views button,
+.hg-tabs button,
+.hg-tool {
+  flex: 0 0 auto;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hg-views button[aria-pressed="true"],
+.hg-tabs button[aria-selected="true"] {
+  border-color: rgba(196, 165, 116, 0.85);
+  color: #c4a574;
+}
+
+.hg-panel {
+  margin-top: 0.45rem;
+}
+
+.hg-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.hg-choice {
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  background: transparent;
+  color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hg-choice[aria-pressed="true"] {
+  border-color: rgba(251, 191, 36, 0.7);
+  background: rgba(69, 26, 3, 0.45);
+  color: #fde68a;
+}
+
+.hg-slider {
+  display: block;
+  margin-top: 0.45rem;
+}
+
+.hg-slider span {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.15rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.hg-slider input {
+  width: 100%;
+  height: 44px;
+  accent-color: #fbbf24;
+}
+
+.hg-report {
+  margin: 0.45rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  opacity: 0.75;
+}
+
+@media (max-width: 899px) {
+  .hg-cockpit[data-view="appearance"] .hg-pane[data-pane="truth"],
+  .hg-cockpit[data-view="truth"] .hg-pane[data-pane="appearance"] {
+    visibility: hidden;
+    position: absolute;
+    inset: 0;
+    height: auto;
+    pointer-events: none;
+  }
+
+  .hg-cockpit[data-view="compare"] .hg-stage {
+    display: grid;
+    grid-template-rows: minmax(10.5rem, 1fr) minmax(10.5rem, 1fr);
+    gap: 0.4rem;
+  }
+
+  .hg-cockpit[data-view="compare"] .hg-pane[data-pane="appearance"] { order: 1; }
+  .hg-cockpit[data-view="compare"] .hg-pane[data-pane="truth"] { order: 2; }
+
+  .hg-cockpit[data-view="compare"] .hg-pane {
+    position: relative;
+    visibility: visible;
+    height: auto;
+    pointer-events: auto;
+  }
+}
+
+@media (min-width: 900px) {
+  .hg-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+
+  .hg-pane {
+    position: relative !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    height: auto;
+  }
+
+  .hg-pane[data-pane="truth"] { order: 1; }
+  .hg-pane[data-pane="appearance"] { order: 2; }
+
+  .hg-views { display: none; }
+
+  .hg-dock { max-height: 38%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hg-cockpit * { scroll-behavior: auto; }
+}
