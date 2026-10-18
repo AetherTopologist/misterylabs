@@ -1,16 +1,22 @@
 import { OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import {
-  centerScale,
+  orthographicZoomFor,
+  perspectiveStandOff,
+} from "@/instruments/higher-dimensional/camera-frame";
+import {
+  bakeWorldBuffers,
   classifyRelief,
   concaveFromConvex,
   maskAssetUrl,
   reliefDepthSign,
   type MaskBuffers,
 } from "@/instruments/higher-dimensional/mask-geometry";
+import { renderLoopOwner } from "@/instruments/higher-dimensional/render-loop";
 
 type Subject = "einstein" | "tesla";
 type Shape = "convex" | "concave";
@@ -48,21 +54,21 @@ function firstMesh(root: THREE.Object3D): THREE.Mesh | null {
 
 function prepareMesh(mesh: THREE.Mesh): Prepared {
   mesh.updateWorldMatrix(true, true);
-  const src = mesh.geometry.clone();
-  src.applyMatrix4(mesh.matrixWorld);
-  const positions = centerScale(src.attributes.position.array as Float32Array);
-  const normals = new Float32Array(src.attributes.normal.array as Float32Array);
-  const indexAttr = src.index;
+  const geo = mesh.geometry;
+  const pos = geo.attributes.position.array as Float32Array;
+  const nrm = geo.attributes.normal?.array as Float32Array | undefined;
+  const indexAttr = geo.index;
   const indices = indexAttr
     ? new Uint32Array(indexAttr.array)
-    : Uint32Array.from({ length: positions.length / 3 }, (_, i) => i);
-  src.dispose();
-  const convex: MaskBuffers = { positions, normals, indices };
+    : Uint32Array.from({ length: pos.length / 3 }, (_, i) => i);
+  const normals = nrm ? new Float32Array(nrm) : new Float32Array(pos.length);
+  const convex = bakeWorldBuffers(pos, normals, indices, mesh.matrixWorld);
+  geo.dispose();
   const concave = concaveFromConvex(convex);
   return {
     convex,
     concave,
-    convexSign: reliefDepthSign(positions),
+    convexSign: reliefDepthSign(convex.positions),
     concaveSign: reliefDepthSign(concave.positions),
   };
 }
@@ -124,31 +130,117 @@ function MaskBody({
   );
 }
 
-function AnaglyphPass({ enabled, separation }: { enabled: boolean; separation: number }) {
+function AnaglyphPass({ separation }: { separation: number }) {
   const { gl, scene, camera } = useThree();
+  const right = useRef(new THREE.Vector3());
+  const base = useRef(new THREE.Vector3());
   useFrame(() => {
-    if (!enabled) return;
     const ctx = gl.getContext();
-    const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
-    const base = camera.position.clone();
+    const color = gl.state.buffers.color;
+    right.current.set(1, 0, 0).applyQuaternion(camera.quaternion);
+    base.current.copy(camera.position);
+    const prevAutoClear = gl.autoClear;
     gl.autoClear = false;
-    gl.clear(true, true, true);
-    camera.position.copy(base).addScaledVector(right, -separation / 2);
-    camera.updateMatrixWorld();
-    ctx.colorMask(true, false, false, true);
-    gl.render(scene, camera);
-    gl.clearDepth();
-    camera.position.copy(base).addScaledVector(right, separation / 2);
-    camera.updateMatrixWorld();
-    ctx.colorMask(false, true, true, true);
-    gl.render(scene, camera);
-    ctx.colorMask(true, true, true, true);
-    camera.position.copy(base);
-    camera.updateMatrixWorld();
-    gl.autoClear = true;
+    const drawEye = (offset: number, mask: [boolean, boolean, boolean, boolean]) => {
+      camera.position.copy(base.current).addScaledVector(right.current, offset);
+      camera.updateMatrixWorld();
+      color.setLocked(false);
+      ctx.colorMask(mask[0], mask[1], mask[2], mask[3]);
+      color.setLocked(true);
+      gl.render(scene, camera);
+      color.setLocked(false);
+    };
+    try {
+      gl.clear(true, true, true);
+      drawEye(-separation / 2, [true, false, false, true]);
+      gl.clearDepth();
+      drawEye(separation / 2, [false, true, true, true]);
+    } finally {
+      color.setLocked(false);
+      ctx.colorMask(true, true, true, true);
+      color.reset();
+      camera.position.copy(base.current);
+      camera.updateMatrixWorld();
+      gl.autoClear = prevAutoClear;
+    }
   }, 1);
   return null;
 }
+
+function frameFront(camera: THREE.Camera, viewportHeight: number) {
+  if (viewportHeight < 2) return;
+  if (camera instanceof THREE.OrthographicCamera) {
+    camera.zoom = orthographicZoomFor(viewportHeight);
+    camera.position.set(0, 0, 4);
+    camera.up.set(0, 1, 0);
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+    return;
+  }
+  if (camera instanceof THREE.PerspectiveCamera) {
+    const distance = perspectiveStandOff(camera.fov);
+    camera.position.set(0, 0, distance);
+    camera.up.set(0, 1, 0);
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+  }
+}
+
+function FrameCamera({ resetToken, cameraMode }: { resetToken: number; cameraMode: CameraMode }) {
+  const camera = useThree((s) => s.camera);
+  const size = useThree((s) => s.size);
+  const controls = useThree((s) => s.controls);
+  useLayoutEffect(() => {
+    const orbit = controls as {
+      target?: THREE.Vector3;
+      update?: () => void;
+      saveState?: () => void;
+      _sphericalDelta?: { set: (x: number, y: number, z: number) => void };
+      _panOffset?: { set: (x: number, y: number, z: number) => void };
+    } | null;
+    orbit?._sphericalDelta?.set(0, 0, 0);
+    orbit?._panOffset?.set(0, 0, 0);
+    if (orbit?.target) orbit.target.set(0, 0, 0);
+    frameFront(camera, size.height);
+    orbit?.saveState?.();
+    orbit?.update?.();
+  }, [camera, cameraMode, controls, resetToken, size.height, size.width]);
+  return null;
+}
+
+function GLWatch({ onLost }: { onLost: (message: string) => void }) {
+  const gl = useThree((s) => s.gl);
+  useEffect(() => {
+    const el = gl.domElement;
+    const lost = (event: Event) => {
+      event.preventDefault();
+      onLost("WebGL context was lost. Reload this page to draw the relief again.");
+    };
+    el.addEventListener("webglcontextlost", lost);
+    return () => el.removeEventListener("webglcontextlost", lost);
+  }, [gl, onLost]);
+  return null;
+}
+
+function webglBlocker(): string | null {
+  if (typeof document === "undefined") return null;
+  if (typeof WebGLRenderingContext === "undefined") {
+    return "This browser has no WebGL. The depth sign above still comes from the vertices, but the relief cannot be drawn.";
+  }
+  try {
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
+    if (!gl) {
+      return "WebGL did not start. The depth sign above still comes from the vertices, but the relief cannot be drawn.";
+    }
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    return null;
+  } catch {
+    return "WebGL is blocked. The depth sign above still comes from the vertices, but the relief cannot be drawn.";
+  }
+}
+
+const GL_FALLBACK = "WebGL could not create a drawing surface for this pane. The other pane may still be available. The depth reading above comes from the vertices, not from this picture.";
 
 function StageLights({ azimuth, elevation }: { azimuth: number; elevation: number }) {
   const az = (azimuth * Math.PI) / 180;
@@ -176,6 +268,7 @@ function MaskViewport({
   azimuth,
   elevation,
   separation,
+  resetToken,
 }: {
   geometry: THREE.BufferGeometry;
   yawRef: React.MutableRefObject<number>;
@@ -186,25 +279,48 @@ function MaskViewport({
   azimuth: number;
   elevation: number;
   separation: number;
+  resetToken: number;
 }) {
   const ortho = projection === "orthographic";
-  const stereo = viewing === "binocular" && !diagnostic;
+  const manual = renderLoopOwner(diagnostic, viewing) === "anaglyph";
+  const [glError, setGlError] = useState<string | null>(null);
+  const blocked = useMemo(() => webglBlocker(), []);
+  if (blocked || glError) {
+    return (
+      <p className="p-4 text-xs leading-relaxed text-amber-100" role="status">
+        {blocked || glError}
+      </p>
+    );
+  }
+  const distance = perspectiveStandOff(32);
   return (
-    <Canvas
-      key={projection}
-      orthographic={ortho}
-      dpr={[1, 1.5]}
-      camera={ortho
-        ? { zoom: 220, position: [0, 0.05, 4], near: 0.01, far: 20 }
-        : { fov: 32, position: [0, 0.05, 2.7], near: 0.05, far: 20 }}
-      gl={{ antialias: true, alpha: false }}
-      onCreated={({ gl }) => gl.setClearColor("#05060c", 1)}
+    <ErrorBoundary
+      fallback={
+        <p className="p-4 text-xs leading-relaxed text-amber-100" role="status">
+          {GL_FALLBACK}
+        </p>
+      }
     >
-      <StageLights azimuth={azimuth} elevation={elevation} />
-      <MaskBody geometry={geometry} yawRef={yawRef} wireframe={diagnostic} normals={diagnostic} />
-      {cameraMode === "orbit" && <OrbitControls enablePan={false} target={[0, 0, 0]} />}
-      <AnaglyphPass enabled={stereo} separation={separation} />
-    </Canvas>
+      <Canvas
+        key={projection}
+        orthographic={ortho}
+        dpr={[1, 1.5]}
+        camera={ortho
+          ? { zoom: orthographicZoomFor(420), position: [0, 0, 4], near: 0.01, far: 40 }
+          : { fov: 32, position: [0, 0, distance], near: 0.05, far: 40 }}
+        gl={{ antialias: true, alpha: false }}
+        onCreated={({ gl }) => gl.setClearColor("#05060c", 1)}
+      >
+        <FrameCamera resetToken={resetToken} cameraMode={cameraMode} />
+        <GLWatch onLost={setGlError} />
+        <StageLights azimuth={azimuth} elevation={elevation} />
+        <MaskBody geometry={geometry} yawRef={yawRef} wireframe={diagnostic} normals={diagnostic} />
+        {cameraMode === "orbit" && (
+          <OrbitControls makeDefault enablePan={false} enableDamping={false} target={[0, 0, 0]} />
+        )}
+        {manual && <AnaglyphPass separation={separation} />}
+      </Canvas>
+    </ErrorBoundary>
   );
 }
 
@@ -227,6 +343,7 @@ export function HollowGenius() {
   const [turntable, setTurntable] = useState(true);
   const [spin, setSpin] = useState(0.35);
   const [separation, setSeparation] = useState(0.045);
+  const [resetToken, setResetToken] = useState(0);
   const [report, setReport] = useState<Report | null>(null);
   const [prepared, setPrepared] = useState<Prepared | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -289,6 +406,7 @@ export function HollowGenius() {
     azimuth,
     elevation,
     separation,
+    resetToken,
   };
 
   return (
@@ -372,6 +490,13 @@ export function HollowGenius() {
           <Toggle on={cameraMode === "fixed"} onClick={() => setCameraMode("fixed")}>Fixed</Toggle>
           <Toggle on={projection === "perspective"} onClick={() => setProjection("perspective")}>Perspective</Toggle>
           <Toggle on={projection === "orthographic"} onClick={() => setProjection("orthographic")}>Orthographic</Toggle>
+          <button
+            type="button"
+            onClick={() => setResetToken((n) => n + 1)}
+            className="min-h-11 rounded-sm border border-border/40 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.1em] text-foreground/80"
+          >
+            Reset camera
+          </button>
         </ControlGroup>
         <ControlGroup label="Eyes">
           <Toggle on={viewing === "monocular"} onClick={() => setViewing("monocular")}>Monocular</Toggle>
