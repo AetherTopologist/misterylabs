@@ -1,8 +1,10 @@
+import * as THREE from "three";
+
 // Hollow-mask geometry.
 // A convex relief is turned into a concave shell by reflecting vertex
-// positions through the depth plane. Normals are updated to match that
-// reflection and to keep the interior facing +Z. Reversing normals on the
-// unmoved mesh is not this operation.
+// positions through the depth plane. Normals become normalize(-nx, -ny, nz)
+// so the interior still faces +Z. Winding stays with those normals; reversing
+// it culls the shell. Reversing normals on the unmoved mesh is not this operation.
 
 export type MaskBuffers = {
   positions: Float32Array;
@@ -35,6 +37,43 @@ export function centerScale(positions: Float32Array, targetHeight = 1.65): Float
     out[i * 3 + 2] = (positions[i * 3 + 2] - cz) * s;
   }
   return out;
+}
+
+/**
+ * Bake a mesh world matrix into a copy of the buffers, then center the
+ * positions. Normals use the inverse-transpose of that matrix. A mirrored
+ * matrix also swaps winding so front-face culling still matches the normals.
+ * centerScale is a uniform scale plus a translation, so it does not rotate
+ * those normals.
+ */
+export function bakeWorldBuffers(
+  positions: Float32Array,
+  normals: Float32Array,
+  indices: Uint32Array,
+  matrixWorld: THREE.Matrix4,
+): MaskBuffers {
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(positions.slice(), 3));
+  const hadNormals = normals.length === positions.length && normals.some((n) => n !== 0);
+  if (hadNormals) {
+    geo.setAttribute("normal", new THREE.BufferAttribute(normals.slice(), 3));
+  }
+  geo.setIndex(new THREE.BufferAttribute(indices.slice(), 1));
+  geo.applyMatrix4(matrixWorld);
+  if (matrixWorld.determinant() < 0 && geo.index) {
+    const idx = geo.index;
+    for (let i = 0; i < idx.count; i += 3) {
+      const a = idx.getX(i + 1);
+      idx.setX(i + 1, idx.getX(i + 2));
+      idx.setX(i + 2, a);
+    }
+  }
+  if (!hadNormals) geo.computeVertexNormals();
+  const centered = centerScale(geo.getAttribute("position").array as Float32Array);
+  const bakedNormals = new Float32Array(geo.getAttribute("normal").array as ArrayLike<number>);
+  const bakedIndices = new Uint32Array(geo.index ? geo.index.array : indices);
+  geo.dispose();
+  return { positions: centered, normals: bakedNormals, indices: bakedIndices };
 }
 
 /**
@@ -94,11 +133,6 @@ export function concaveFromConvex(source: MaskBuffers): MaskBuffers {
     normals[i] = nx / l;
     normals[i + 1] = ny / l;
     normals[i + 2] = nz / l;
-  }
-  for (let i = 0; i < indices.length; i += 3) {
-    const tmp = indices[i + 1];
-    indices[i + 1] = indices[i + 2];
-    indices[i + 2] = tmp;
   }
   return { positions, normals, indices };
 }

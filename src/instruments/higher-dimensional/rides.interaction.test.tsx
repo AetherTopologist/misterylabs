@@ -106,6 +106,7 @@ describe("hollow genius controls", () => {
     expect(screen.getByText("not a perception model")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Concave shell" }));
     fireEvent.click(screen.getByRole("button", { name: "Convex relief" }));
+    fireEvent.click(screen.getByRole("button", { name: "Reset camera" }));
     fireEvent.click(screen.getByRole("button", { name: "Looks concave" }));
     expect(screen.getByText(/Recorded: you reported “concave”/)).toBeInTheDocument();
     expect(screen.getByText(/does not infer an answer/)).toBeInTheDocument();

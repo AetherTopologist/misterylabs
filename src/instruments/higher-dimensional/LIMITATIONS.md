@@ -6,10 +6,11 @@ These rides are instruments for looking. They do not measure a visitor's percept
 
 - The Einstein and Tesla assets are decimated, untextured reliefs (`einstein-vase-face`, `tesla_vase_face`). They are not scans of a physical hollow mask, and they have no material or UV map. Shading is a synthetic skin response to a directional light.
 - Both meshes bulge toward +Z (center farther along +Z than the periphery). Stored normals agree with the triangle winding. Vertices are not welded; that does not change the relief.
-- Concave mode reflects vertex positions through the depth midplane, then updates normals and winding so the interior still faces the +Z camera. It is not a normal reversal on the unmoved convex mesh.
+- Concave mode reflects vertex positions through the depth midplane and sets normals to `normalize(-nx, -ny, nz)` so the interior still faces a camera on +Z. Winding is left in agreement with those normals. An earlier index swap pointed the front face away from the camera, and front-face culling hid the shell. It is not a normal reversal on the unmoved convex mesh.
 - The ground-truth label is that geometric depth sign. It is not an estimate of what the visitor sees.
 - The appearance pane asks for a self-report. Reports stay in `localStorage` on this browser. Nothing is inferred from gaze, stereo acuity, or reaction time.
-- "Binocular" is a red-cyan anaglyph from two parallel cameras. It is not the visitor's eyes, not a clinical stereopsis test, and not meaningful without red-cyan glasses. Orthographic projection removes perspective even when the anaglyph is on.
+- "Binocular" is a red-cyan anaglyph from two parallel cameras on the appearance pane only. It takes over that pane's render loop and draws both eyes. Ground truth and monocular viewing use the automatic render. It is not the visitor's eyes, not a clinical stereopsis test, and not meaningful without red-cyan glasses. Orthographic projection removes perspective even when the anaglyph is on.
+- Both panes are real WebGL canvases. A phone keeps two contexts while the comparison is on screen. If a context cannot be created or is lost, that pane says so instead of staying black; the depth sign is still computed from the file.
 - A face-convexity prior is a known tendency in human vision, strongest for familiar upright faces, and it can be helped or hurt by shading, perspective, and motion parallax. This page illustrates those controls. It does not demonstrate that any particular visitor is subject to the prior.
 
 ## Ride 02 — Ambiguous Dancer
