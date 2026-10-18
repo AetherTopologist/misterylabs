@@ -1,0 +1,234 @@
+/* Ambiguous Dancer cockpit. One canvas stays mounted outside the
+   tabs, so a dock change cannot restart the yaw integral. */
+
+.ad-cockpit {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  height: calc(100dvh - 4.5rem - env(safe-area-inset-bottom, 0px));
+  min-height: 26rem;
+  max-height: calc(100dvh - 4.5rem - env(safe-area-inset-bottom, 0px));
+  overflow: hidden;
+  border: 1px solid rgba(167, 139, 250, 0.28);
+  background: #07080d;
+  color: #f3eee4;
+}
+
+.ad-cockpit.is-full {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  height: 100dvh;
+  max-height: none;
+  min-height: 0;
+  padding:
+    env(safe-area-inset-top, 0px)
+    max(0.5rem, env(safe-area-inset-right, 0px))
+    env(safe-area-inset-bottom, 0px)
+    max(0.5rem, env(safe-area-inset-left, 0px));
+  background: #07080d;
+}
+
+.ad-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 10.5rem;
+  background: #05060c;
+}
+
+.ad-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.ad-badge,
+.ad-drag {
+  position: absolute;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.55);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.ad-badge {
+  top: 0.6rem;
+  left: 0.6rem;
+  padding: 0.35rem 0.5rem;
+  color: rgba(196, 181, 253, 0.9);
+}
+
+.ad-drag {
+  right: 0.6rem;
+  bottom: 0.6rem;
+  padding: 0.3rem 0.45rem;
+  color: rgba(255, 255, 255, 0.38);
+  letter-spacing: 0.12em;
+  font-size: 0.58rem;
+}
+
+.ad-dock {
+  flex: 0 1 auto;
+  max-height: 46%;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.45rem 0.55rem 0.55rem;
+}
+
+.ad-dock-top,
+.ad-status,
+.ad-tabs,
+.ad-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ad-dock-top {
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.ad-status {
+  flex-wrap: wrap;
+  margin: 0;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ad-status span + span::before {
+  content: "·";
+  margin-right: 0.35rem;
+  opacity: 0.45;
+}
+
+.ad-tools {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.35rem;
+}
+
+.ad-tabs {
+  margin-top: 0.35rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ad-tabs::-webkit-scrollbar { display: none; }
+
+.ad-tabs button,
+.ad-tool,
+.ad-choice {
+  flex: 0 0 auto;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.ad-tabs button[aria-selected="true"],
+.ad-choice[aria-pressed="true"] {
+  border-color: rgba(167, 139, 250, 0.85);
+  background: rgba(76, 29, 149, 0.35);
+  color: #ddd6fe;
+}
+
+.ad-panel { margin-top: 0.45rem; }
+
+.ad-row { flex-wrap: wrap; }
+
+.ad-choice.ad-block,
+.ad-panel > .ad-choice {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 0.35rem;
+}
+
+.ad-note,
+.ad-hint,
+.ad-report p {
+  margin: 0.4rem 0 0;
+  color: rgba(243, 238, 228, 0.68);
+  font-size: 0.72rem;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.ad-report {
+  margin-top: 0.15rem;
+  padding: 0.55rem 0.65rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ad-report > div {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.ad-slider { display: block; margin-top: 0.45rem; }
+
+.ad-slider span {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.1rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.ad-slider input {
+  width: 100%;
+  height: 44px;
+  accent-color: #a78bfa;
+}
+
+@media (min-width: 900px) {
+  .ad-cockpit { flex-direction: row; }
+
+  .ad-dock {
+    width: 22rem;
+    max-height: none;
+    height: 100%;
+    border-top: 0;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .ad-cockpit.is-bare,
+  .ad-cockpit.is-full.is-bare {
+    flex-direction: column;
+  }
+
+  .ad-cockpit.is-bare .ad-dock {
+    width: auto;
+    height: auto;
+    max-height: none;
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}

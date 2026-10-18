@@ -156,21 +156,57 @@ describe("ambiguous dancer ride", () => {
   it("reverses physical yaw and stores a perceived report separately", () => {
     localStorage.clear();
     render(<SpinningDancer ride />);
-    expect(screen.getByText("physical cw")).toBeInTheDocument();
+    expect(screen.queryByText("physical cw")).not.toBeInTheDocument();
+    expect(screen.queryByText("physical ccw")).not.toBeInTheDocument();
+    expect(screen.getByText("Silhouette", { selector: ".ad-status span" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Rotation speed")).toHaveAttribute("max", "6");
+    fireEvent.click(screen.getByRole("tab", { name: "Appearance" }));
     fireEvent.click(screen.getByRole("button", { name: "Shaded" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Motion" }));
     fireEvent.click(screen.getByRole("button", { name: "Reverse physical direction" }));
+    expect(screen.queryByText("physical ccw")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Appearance" }));
+    fireEvent.click(screen.getByRole("button", { name: "Physical marker off" }));
     expect(screen.getByText("physical ccw")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Observer" }));
     expect(screen.getByText(/Physical yaw just reversed/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Looks counter-clockwise" }));
     const saved = JSON.parse(localStorage.getItem("misterylabs.ambiguous-dancer.reports") || "[]");
     expect(saved.at(-1)).toMatchObject({ perceived: "counterclockwise", physical: "ccw", shaded: true });
     expect(screen.getByText(/Last report: counterclockwise/)).toBeInTheDocument();
+    expect(screen.getByText("Report counterclockwise", { selector: ".ad-status span" })).toBeInTheDocument();
+  });
+
+  it("keeps the canvas and the phase controls when the dock changes", () => {
+    const { container } = render(<SpinningDancer ride />);
+    const canvas = container.querySelector("canvas");
+    const speed = screen.getByLabelText("Rotation speed");
+    fireEvent.change(speed, { target: { value: "6" } });
+    expect(speed).toHaveValue("6");
+    expect(screen.getByText(/one turn every 1\.25 s/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Observer" }));
+    expect(container.querySelector("canvas")).toBe(canvas);
+    expect(screen.getByText("Paused", { selector: ".ad-status span" })).toBeInTheDocument();
+    fireEvent.keyDown(screen.getByRole("tab", { name: "Observer" }), { key: "ArrowLeft" });
+    expect(screen.getByRole("tab", { name: "Appearance" })).toHaveAttribute("aria-selected", "true");
+    fireEvent.click(screen.getByRole("tab", { name: "Motion" }));
+    expect(screen.getByLabelText("Rotation speed")).toHaveValue("6");
+    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Hide controls" }));
+    expect(screen.queryByRole("tab", { name: "Motion" })).not.toBeInTheDocument();
+    expect(container.querySelector("canvas")).toBe(canvas);
+    fireEvent.click(screen.getByRole("button", { name: "Show controls" }));
+    expect(screen.getByRole("tab", { name: "Motion" })).toHaveAttribute("aria-selected", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Expand" }));
+    expect(container.querySelector(".ad-cockpit")).toHaveClass("is-full");
   });
 
   it("keeps the legacy silhouette when ride mode is off", () => {
     render(<SpinningDancer />);
     expect(screen.queryByRole("button", { name: "Reverse physical direction" })).not.toBeInTheDocument();
     expect(screen.getByText("clockwise")).toBeInTheDocument();
+    expect(screen.getByLabelText("Rotation speed")).toHaveAttribute("max", "6");
   });
 });
 

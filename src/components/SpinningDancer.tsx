@@ -1,5 +1,13 @@
-import { useRef, useEffect, useState } from "react";
-import { DANCER_OMEGA, type SpinDirection } from "@/instruments/higher-dimensional/dancer-motion";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import {
+  DANCER_OMEGA,
+  DANCER_SPEED_MAX,
+  DANCER_SPEED_MIN,
+  DANCER_SPEED_STEP,
+  physicalAngle,
+  type SpinDirection,
+} from "@/instruments/higher-dimensional/dancer-motion";
+import "./spinning-dancer.css";
 
 export type DancerRender = {
   shaded: boolean;
@@ -18,6 +26,14 @@ const SILHOUETTE: DancerRender = {
   markers: false,
   direction: 1,
 };
+
+type DancerTab = "motion" | "appearance" | "observer";
+
+const DANCER_TABS: { id: DancerTab; label: string }[] = [
+  { id: "motion", label: "Motion" },
+  { id: "appearance", label: "Appearance" },
+  { id: "observer", label: "Observer" },
+];
 
 // ── Types & 3D model ───────────────────────────────────────────────────────
 type V3 = [number, number, number];
@@ -316,6 +332,9 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
   const [markers, setMarkers] = useState(false);
   const [perceived, setPerceived] = useState<"clockwise" | "counterclockwise" | "unstable" | null>(null);
   const [reversalArmed, setReversalArmed] = useState(false);
+  const [tab, setTab] = useState<DancerTab>("motion");
+  const [collapsed, setCollapsed] = useState(false);
+  const [full, setFull] = useState(false);
 
   useEffect(() => { dirRef.current    = dir;         }, [dir]);
   useEffect(() => { speedRef.current  = speed;       }, [speed]);
@@ -328,6 +347,15 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
       shaded, perspective, depthCues, floorShadow, markers, direction: dir,
     };
   }, [shaded, perspective, depthCues, floorShadow, markers, dir]);
+
+  useEffect(() => {
+    if (!full) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [full]);
 
   // RAF + mouse/touch drag
   useEffect(() => {
@@ -349,7 +377,12 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
         const dt = lastTRef.current == null ? 0 : Math.min(0.05, (now - lastTRef.current) / 1000);
         lastTRef.current = now;
         if (autoRef.current && !dragRef.current) {
-          phiRef.current += dirRef.current * speedRef.current * DANCER_OMEGA * dt;
+          phiRef.current = physicalAngle({
+            elapsed: dt,
+            speed: speedRef.current,
+            direction: dirRef.current,
+            offset: phiRef.current,
+          });
         }
         drawDancer(canvas!, phiRef.current, legEmRef.current, armPosRef.current, focusRef.current, renderRef.current);
       } else {
@@ -415,7 +448,7 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
   }, []);
 
   // Slider fill percentages (no style={{}} — use ref callbacks)
-  const spdPct = ((speed  - 0.25) / 2.75) * 100;
+  const spdPct = ((speed - DANCER_SPEED_MIN) / (DANCER_SPEED_MAX - DANCER_SPEED_MIN)) * 100;
   const legPct = legEm  * 100;
   const armPct = armPos * 100;
 
@@ -449,6 +482,234 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
   }
 
   const focusLabel = focus < 18 ? "Head" : focus < 40 ? "Torso" : focus < 62 ? "Hips" : focus < 82 ? "Knee" : "Foot";
+
+  function onTabKey(event: KeyboardEvent<HTMLDivElement>) {
+    const key = event.key;
+    if (key !== "ArrowRight" && key !== "ArrowLeft" && key !== "Home" && key !== "End") return;
+    event.preventDefault();
+    const ids = DANCER_TABS.map((item) => item.id);
+    const index = ids.indexOf(tab);
+    const next = key === "Home"
+      ? ids[0]
+      : key === "End"
+        ? ids[ids.length - 1]
+        : ids[(index + (key === "ArrowRight" ? 1 : -1) + ids.length) % ids.length];
+    setTab(next);
+    document.getElementById(`ad-tab-${next}`)?.focus();
+  }
+
+  function saveReport(id: "clockwise" | "counterclockwise" | "unstable") {
+    setPerceived(id);
+    setReversalArmed(false);
+    try {
+      const key = "misterylabs.ambiguous-dancer.reports";
+      const prev = JSON.parse(localStorage.getItem(key) || "[]");
+      prev.push({
+        t: Date.now(),
+        perceived: id,
+        physical: dirRef.current === 1 ? "cw" : "ccw",
+        shaded, perspective, depthCues, floorShadow, markers,
+      });
+      localStorage.setItem(key, JSON.stringify(prev.slice(-40)));
+    } catch { /* storage unavailable */ }
+  }
+
+  function reverseYaw() {
+    const next: 1 | -1 = dir === 1 ? -1 : 1;
+    setDir(next);
+    dirRef.current = next;
+    setReversalArmed(true);
+  }
+
+  if (ride) {
+    const turn = (2 * Math.PI) / (DANCER_SPEED_MAX * DANCER_OMEGA);
+    return (
+      <div className={`ad-cockpit${full ? " is-full" : ""}${collapsed ? " is-bare" : ""}`}>
+        <div className="ad-stage">
+          <canvas
+            ref={canvasRef}
+            className="h-full w-full"
+            aria-label="Spinning dancer bistable silhouette — drag to rotate manually"
+          />
+          {markers && (
+            <div className="ad-badge">
+              physical {dir === 1 ? "cw" : "ccw"}
+            </div>
+          )}
+          <div className="ad-drag">drag · rotate</div>
+        </div>
+
+        <section className="ad-dock" aria-label="Ambiguous Dancer controls">
+          <div className="ad-dock-top">
+            <p className="ad-status" aria-live="polite">
+              <span>{speed.toFixed(2)}×</span>
+              <span>{autoSpin ? "Running" : "Paused"}</span>
+              <span>{shaded ? "Shaded" : "Silhouette"}</span>
+              <span>{perceived ? `Report ${perceived}` : "No report"}</span>
+            </p>
+            <div className="ad-tools">
+              <button type="button" className="ad-tool" aria-pressed={collapsed} onClick={() => setCollapsed((v) => !v)}>
+                {collapsed ? "Show controls" : "Hide controls"}
+              </button>
+              <button type="button" className="ad-tool" aria-pressed={full} onClick={() => setFull((v) => !v)}>
+                {full ? "Close" : "Expand"}
+              </button>
+            </div>
+          </div>
+          <p className="ad-note">
+            Missing depth cues leave the silhouette bistable: one drawing fits both physical directions. Your report does not change the yaw.
+          </p>
+
+          {collapsed ? null : (
+            <>
+              <div className="ad-tabs" role="tablist" aria-label="Control groups" onKeyDown={onTabKey}>
+                {DANCER_TABS.map((item) => (
+                  <button
+                    key={item.id}
+                    id={`ad-tab-${item.id}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === item.id}
+                    aria-controls={`ad-panel-${item.id}`}
+                    tabIndex={tab === item.id ? 0 : -1}
+                    onClick={() => setTab(item.id)}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              <div className="ad-panel" role="tabpanel" id={`ad-panel-${tab}`} aria-labelledby={`ad-tab-${tab}`}>
+                {tab === "motion" && (
+                  <>
+                    <div className="ad-row">
+                      <button
+                        type="button"
+                        className="ad-choice"
+                        aria-pressed={autoSpin}
+                        onClick={() => { const n = !autoSpin; setAutoSpin(n); autoRef.current = n; }}
+                      >
+                        {autoSpin ? "Pause" : "Play"}
+                      </button>
+                      <button type="button" className="ad-choice" onClick={reverseYaw}>
+                        Reverse physical direction
+                      </button>
+                    </div>
+                    <label className="ad-slider">
+                      <span>
+                        <span>Speed</span>
+                        <span>{speed.toFixed(2)}×</span>
+                      </span>
+                      <input
+                        type="range"
+                        min={DANCER_SPEED_MIN}
+                        max={DANCER_SPEED_MAX}
+                        step={DANCER_SPEED_STEP}
+                        value={speed}
+                        aria-label="Rotation speed"
+                        onChange={(e) => setSpeed(parseFloat(e.target.value))}
+                      />
+                    </label>
+                    <p className="ad-hint">
+                      1× is {DANCER_OMEGA.toFixed(2)} rad/s. {DANCER_SPEED_MAX}× is {(DANCER_SPEED_MAX * DANCER_OMEGA).toFixed(2)} rad/s, about one turn every {turn.toFixed(2)} s. Speed, pause, and reverse keep the current angle.
+                    </p>
+                    <label className="ad-slider">
+                      <span>
+                        <span>Leg emphasis</span>
+                        <span>{Math.round(legEm * 100)}%</span>
+                      </span>
+                      <input
+                        type="range" min={0} max={1} step={0.01} value={legEm}
+                        aria-label="Raised leg height"
+                        onChange={(e) => setLegEm(parseFloat(e.target.value))}
+                      />
+                    </label>
+                    <label className="ad-slider">
+                      <span>
+                        <span>Arm position</span>
+                        <span>{Math.round(armPos * 100)}%</span>
+                      </span>
+                      <input
+                        type="range" min={0} max={1} step={0.01} value={armPos}
+                        aria-label="Arm extension"
+                        onChange={(e) => setArmPos(parseFloat(e.target.value))}
+                      />
+                    </label>
+                    <label className="ad-slider">
+                      <span>
+                        <span>Focus point</span>
+                        <span>{focusLabel}</span>
+                      </span>
+                      <input
+                        type="range" min={0} max={100} step={1} value={focus}
+                        aria-label="Focus point on body"
+                        onChange={(e) => setFocus(parseInt(e.target.value, 10))}
+                      />
+                    </label>
+                    <p className="ad-hint">Sustained gaze on the foot or hand can trigger a perceptual flip.</p>
+                    <button type="button" className="ad-choice ad-block" onClick={() => { phiRef.current = 0.4; }}>
+                      Reset motion
+                    </button>
+                  </>
+                )}
+                {tab === "appearance" && (
+                  <>
+                    <div className="ad-row">
+                      <button type="button" className="ad-choice" aria-pressed={!shaded} onClick={() => setShaded(false)}>Silhouette</button>
+                      <button type="button" className="ad-choice" aria-pressed={shaded} onClick={() => setShaded(true)}>Shaded</button>
+                      <button type="button" className="ad-choice" aria-pressed={!perspective} onClick={() => setPerspective(false)}>Orthographic</button>
+                      <button type="button" className="ad-choice" aria-pressed={perspective} onClick={() => setPerspective(true)}>Perspective</button>
+                    </div>
+                    <div className="ad-row">
+                      <button type="button" className="ad-choice" aria-pressed={depthCues} onClick={() => setDepthCues((v) => !v)}>
+                        Depth cues {depthCues ? "on" : "off"}
+                      </button>
+                      <button type="button" className="ad-choice" aria-pressed={floorShadow} onClick={() => setFloorShadow((v) => !v)}>
+                        Floor shadow {floorShadow ? "on" : "off"}
+                      </button>
+                      <button type="button" className="ad-choice" aria-pressed={markers} onClick={() => setMarkers((v) => !v)}>
+                        Physical marker {markers ? "on" : "off"}
+                      </button>
+                    </div>
+                    <p className="ad-hint">
+                      Optional experiments. Shading, perspective, a floor shadow, and the marker add visual evidence. They do not report your perception, and they are off until you turn them on.
+                    </p>
+                  </>
+                )}
+                {tab === "observer" && (
+                  <div className="ad-report">
+                    <div>
+                      {reversalArmed
+                        ? "Physical yaw just reversed. What did the spin appear to do?"
+                        : "Perceived rotation — your report"}
+                    </div>
+                    <button type="button" className="ad-choice ad-block" aria-pressed={perceived === "clockwise"} onClick={() => saveReport("clockwise")}>
+                      Looks clockwise
+                    </button>
+                    <button type="button" className="ad-choice ad-block" aria-pressed={perceived === "counterclockwise"} onClick={() => saveReport("counterclockwise")}>
+                      Looks counter-clockwise
+                    </button>
+                    <button type="button" className="ad-choice ad-block" aria-pressed={perceived === "unstable"} onClick={() => saveReport("unstable")}>
+                      Unstable / unsure
+                    </button>
+                    <p>
+                      Saved in this browser only. The figure is not scored against your answer.
+                      {perceived ? ` Last report: ${perceived}.` : ""}
+                    </p>
+                    <p>
+                      Model yaw is {dir === 1 ? "clockwise" : "counter-clockwise"}. Reversing it does not rewrite the pose, and it is not a claim about what you saw.
+                    </p>
+                    <p>
+                      In xPRIMEray, two transport rays entering the same curved boundary from opposite sides make opposite assumptions about which side is interior — and both remain consistent with the boundary's 2D cross-section.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col overflow-hidden border border-border/35 bg-card/20 lg:flex-row">
@@ -542,7 +803,7 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
                 className="pointer-events-none absolute left-0 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-violet-400/60"
               />
               <input
-                type="range" min={0.25} max={3} step={0.05} value={speed}
+                type="range" min={DANCER_SPEED_MIN} max={DANCER_SPEED_MAX} step={DANCER_SPEED_STEP} value={speed}
                 onChange={e => setSpeed(parseFloat(e.target.value))}
                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                 aria-label="Rotation speed"
@@ -647,108 +908,6 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
             </span>
           </div>
         </div>
-
-        {ride && (
-          <div className="flex flex-col gap-3">
-            <div className="font-mono text-[8px] uppercase tracking-[0.25em] text-muted-foreground/40">
-              Depth information
-            </div>
-            <div className="grid grid-cols-2 gap-1.5">
-              {([
-                ["Silhouette", !shaded, () => setShaded(false)],
-                ["Shaded", shaded, () => setShaded(true)],
-                ["Orthographic", !perspective, () => setPerspective(false)],
-                ["Perspective", perspective, () => setPerspective(true)],
-              ] as const).map(([label, on, go]) => (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={go}
-                  className={`min-h-11 rounded-sm border px-2 py-2 font-mono text-[9px] uppercase tracking-[0.08em] ${
-                    on ? "border-violet-500/50 bg-violet-950/40 text-violet-300" : "border-border/30 text-muted-foreground/55"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div className="grid grid-cols-1 gap-1.5">
-              {([
-                ["Depth cues", depthCues, setDepthCues],
-                ["Floor shadow", floorShadow, setFloorShadow],
-                ["Physical marker", markers, setMarkers],
-              ] as const).map(([label, on, set]) => (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={() => set(!on)}
-                  className={`min-h-11 rounded-sm border px-2 py-2 text-left font-mono text-[9px] uppercase tracking-[0.08em] ${
-                    on ? "border-cyan-500/50 bg-cyan-950/30 text-cyan-300" : "border-border/30 text-muted-foreground/55"
-                  }`}
-                >
-                  {label} {on ? "on" : "off"}
-                </button>
-              ))}
-            </div>
-            <p className="text-[9px] leading-relaxed text-muted-foreground/40">
-              Physical yaw is the model angle. A silhouette can still be read both ways.
-              Shading, perspective, shadow, and the floor marker add cues. They do not report your perception.
-            </p>
-            <button
-              type="button"
-              className="min-h-11 rounded-sm border border-amber-500/40 bg-amber-950/30 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-amber-200"
-              onClick={() => {
-                const next: 1 | -1 = dir === 1 ? -1 : 1;
-                setDir(next);
-                dirRef.current = next;
-                setReversalArmed(true);
-              }}
-            >
-              Reverse physical direction
-            </button>
-            <div className="rounded-sm border border-border/30 bg-secondary/20 px-3 py-3">
-              <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.2em] text-muted-foreground/45">
-                {reversalArmed ? "Physical yaw just reversed. What did the spin appear to do?" : "Perceived rotation — your report"}
-              </div>
-              <div className="grid grid-cols-1 gap-1.5">
-                {([
-                  ["clockwise", "Looks clockwise"],
-                  ["counterclockwise", "Looks counter-clockwise"],
-                  ["unstable", "Unstable / unsure"],
-                ] as const).map(([id, label]) => (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => {
-                      setPerceived(id);
-                      setReversalArmed(false);
-                      try {
-                        const key = "misterylabs.ambiguous-dancer.reports";
-                        const prev = JSON.parse(localStorage.getItem(key) || "[]");
-                        prev.push({
-                          t: Date.now(),
-                          perceived: id,
-                          physical: dirRef.current === 1 ? "cw" : "ccw",
-                          shaded, perspective, depthCues, floorShadow, markers,
-                        });
-                        localStorage.setItem(key, JSON.stringify(prev.slice(-40)));
-                      } catch { /* storage unavailable */ }
-                    }}
-                    className={`min-h-11 rounded-sm border px-2 py-2 text-left text-[11px] ${
-                      perceived === id ? "border-amber-500/50 text-amber-200" : "border-border/30 text-muted-foreground/70"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-              <p className="mt-2 text-[9px] leading-relaxed text-muted-foreground/38">
-                Saved in this browser only. The figure is not scored against your answer.
-                {perceived ? ` Last report: ${perceived}. Physical is ${dir === 1 ? "CW" : "CCW"}.` : ""}
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* Observer note */}
         <div className="rounded-sm border border-violet-500/15 bg-violet-950/15 px-3.5 py-3">
