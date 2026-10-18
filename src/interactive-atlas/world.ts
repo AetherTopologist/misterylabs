@@ -32,6 +32,9 @@ export const PLACES: Record<ExhibitId, Place> = {
   xprimeray: { x: 8 * LAYOUT, y: 2.4, z: -42 * LAYOUT, block: 4.6, reach: 18 },
   bell: { x: -26 * LAYOUT, y: 4.2, z: -56 * LAYOUT, block: 5.4, reach: 20 },
   photon: { x: 54 * LAYOUT, y: 2.2, z: -10 * LAYOUT, block: 5.2, reach: 18 },
+  // The western spur already ended on this court. Hollow Genius occupies it
+  // instead of cutting a new avenue past the Cenotaph or the other halls.
+  "hollow-genius": { x: -36 * LAYOUT, y: 2.35, z: 4 * LAYOUT, block: 5.2, reach: 18 },
 };
 
 const at = (x: number, z: number): [number, number, number] => [x * LAYOUT, 0, z * LAYOUT];
@@ -42,7 +45,9 @@ export const PATHS: Array<{ pts: Array<[number, number, number]>; samples: numbe
   { pts: [at(3.2, 36.4), at(16, 32), at(28, 24), at(36, 18)], samples: 24, walk: 1.15, glow: 0.28 },
   { pts: [at(3.2, 36.4), at(-14, 34), at(-26, 26)], samples: 18, walk: 1.15, glow: 0.28 },
   { pts: [at(-26, 26), at(-36, 18), at(-48, 12)], samples: 18, walk: 1.05, glow: 0.24 },
-  { pts: [at(-26, 26), at(-34, 16), at(-36, 4)], samples: 14, walk: 0.8, glow: 0.14 },
+  // Approach to the Hollow Genius court. Same control points; the walk is
+  // lit like the other exhibit spurs so the hall can be found on foot.
+  { pts: [at(-26, 26), at(-34, 16), at(-36, 4)], samples: 14, walk: 1.05, glow: 0.22 },
   { pts: [at(3.2, 36.4), at(22, 30), at(34, 12), at(34, -8)], samples: 24, walk: 1.15, glow: 0.26 },
   { pts: [at(34, -8), at(38, -16), at(38, -28)], samples: 16, walk: 1.05, glow: 0.22 },
   { pts: [at(34, -8), at(22, -28), at(8, -42)], samples: 18, walk: 1.0, glow: 0.22 },

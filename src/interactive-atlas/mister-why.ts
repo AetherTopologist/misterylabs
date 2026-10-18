@@ -39,6 +39,17 @@ export type Walker = {
   pose: () => { x: number; z: number; heading: number };
   aim: () => THREE.Vector3;
   nearest: () => { id: ExhibitId | null; proximity: number };
+  snapshot: () => WalkerSnapshot;
+  restore: (pose: WalkerSnapshot) => void;
+};
+
+export type WalkerSnapshot = {
+  x: number;
+  z: number;
+  heading: number;
+  camYaw: number;
+  back: number;
+  lookLift: number;
 };
 
 export function createWalker(scene: THREE.Scene): Walker {
@@ -277,6 +288,28 @@ export function createWalker(scene: THREE.Scene): Walker {
     pose: () => ({ x, z, heading }),
     aim: () => look.clone(),
     nearest,
+    snapshot: () => ({ x, z, heading, camYaw, back: backT, lookLift: lookLiftT }),
+    restore(pose) {
+      active = true;
+      group.visible = true;
+      x = pose.x;
+      z = pose.z;
+      heading = pose.heading;
+      vx = 0;
+      vz = 0;
+      phase = 0;
+      camYaw = pose.camYaw;
+      moveBasis = pose.camYaw;
+      back = pose.back;
+      backT = pose.back;
+      lookLift = pose.lookLift;
+      lookLiftT = pose.lookLift;
+      placeBody();
+      const ox = Math.sin(camYaw);
+      const oz = Math.cos(camYaw);
+      look.set(x - ox * AHEAD, lookLift, z - oz * AHEAD);
+      lookT.copy(look);
+    },
   };
 
   return walker;

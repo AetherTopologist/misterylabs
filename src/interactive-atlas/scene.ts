@@ -7,7 +7,9 @@ import type { AtlasApi, AtlasUi, CenotaphVariant, DestinationId, ExhibitId } fro
 import { COLLECTIONS, HIDDEN_DESTINATIONS } from "./destinations";
 import { buildCenotaph } from "./cenotaph";
 import { FOREST_LINKS } from "./forest";
+import { buildHallOfFaces } from "./hall-of-faces";
 import { createWalker } from "./mister-why";
+import { captureAtlasResume, takeAtlasResume } from "./resume";
 import { GROUND_R, LAYOUT, PATHS, PLACES } from "./world";
 
 // Forest links are a future horizontal layer. They are not provenance,
@@ -47,14 +49,12 @@ const _hit = new THREE.Vector3();
 const _focus = new THREE.Vector3();
 const _sphere = new THREE.Sphere();
 
-const SITES: Record<ExhibitId, THREE.Vector3> = {
-  hydrogen: new THREE.Vector3(PLACES.hydrogen.x, PLACES.hydrogen.y, PLACES.hydrogen.z),
-  triad: new THREE.Vector3(PLACES.triad.x, PLACES.triad.y, PLACES.triad.z),
-  optics: new THREE.Vector3(PLACES.optics.x, PLACES.optics.y, PLACES.optics.z),
-  xprimeray: new THREE.Vector3(PLACES.xprimeray.x, PLACES.xprimeray.y, PLACES.xprimeray.z),
-  bell: new THREE.Vector3(PLACES.bell.x, PLACES.bell.y, PLACES.bell.z),
-  photon: new THREE.Vector3(PLACES.photon.x, PLACES.photon.y, PLACES.photon.z),
-};
+const SITES: Record<ExhibitId, THREE.Vector3> = Object.fromEntries(
+  (Object.keys(PLACES) as ExhibitId[]).map((id) => {
+    const place = PLACES[id];
+    return [id, new THREE.Vector3(place.x, place.y, place.z)];
+  }),
+) as Record<ExhibitId, THREE.Vector3>;
 
 function smoothstep(e0: number, e1: number, x: number) {
   const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
@@ -708,6 +708,16 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     }
   }
 
+  // Hollow Genius — a tholos and one concave shell. Not the observatory ride.
+  const hall = buildHallOfFaces();
+  {
+    const p = SITES["hollow-genius"];
+    addPad(p.x, p.z, 5.05);
+    markSite("hollow-genius", 4.6);
+    hall.group.position.set(p.x, 0, p.z);
+    scene.add(hall.group);
+  }
+
   for (const id of Object.keys(SITES) as ExhibitId[]) {
     const p = SITES[id];
     const pool = new THREE.Mesh(new THREE.CircleGeometry(id === "triad" || id === "bell" ? 10 : 8, 28), basicGlow(0xc4a574, 0.28));
@@ -1331,6 +1341,19 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       stickX = x;
       stickY = y;
     },
+    remember: () => {
+      captureAtlasResume({
+        v: 1,
+        t: Date.now(),
+        mode: walking ? "walk" : "fly",
+        focus: [focus.x, focus.y, focus.z],
+        radius,
+        yaw,
+        pitch,
+        selected,
+        walker: walking ? walker.snapshot() : null,
+      });
+    },
   };
 
   const frameStudy = (mode: "home" | "approach" | "near") => {
@@ -1402,6 +1425,29 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
         for (let i = 0; i < n; i++) walker.update(0.05, i * 0.05, walkInput(), false);
         walker.applyCamera(camera, 0.2, true);
       },
+      approach: (id: DestinationId) => {
+        if (id === "cenotaph" || !(id in PLACES)) return;
+        const place = PLACES[id as ExhibitId];
+        const dist = place.block + 2.6;
+        const x = place.x;
+        const z = place.z + dist;
+        inside = false;
+        walking = true;
+        walker.restore({
+          x,
+          z,
+          heading: Math.atan2(place.x - x, place.z - z),
+          camYaw: Math.atan2(x - place.x, z - place.z),
+          back: 11,
+          lookLift: 3.4,
+        });
+        const near = walker.nearest();
+        selected = near.id;
+        walkProx = near.proximity;
+        snapAnchor = null;
+        walker.applyCamera(camera, 1, true);
+        emit(true);
+      },
       screen: () => {
         camera.updateMatrixWorld();
         const rect = canvas.getBoundingClientRect();
@@ -1444,6 +1490,31 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     camera.updateMatrixWorld();
   }
   placeCamera();
+  const resumed = takeAtlasResume();
+  if (resumed?.mode === "walk" && resumed.walker) {
+    inside = false;
+    walking = true;
+    walker.restore(resumed.walker);
+    const near = walker.nearest();
+    selected = near.id;
+    walkProx = near.proximity;
+    snapAnchor = null;
+    walker.applyCamera(camera, 1, true);
+  } else if (resumed) {
+    inside = false;
+    walking = false;
+    focus.set(resumed.focus[0], resumed.focus[1], resumed.focus[2]);
+    focusT.copy(focus);
+    radius = resumed.radius;
+    radiusT = resumed.radius;
+    yaw = resumed.yaw;
+    yawT = resumed.yaw;
+    pitch = resumed.pitch;
+    pitchT = resumed.pitch;
+    selected = resumed.selected;
+    snapAnchor = resumed.selected && resumed.selected !== "cenotaph" ? resumed.selected : null;
+    placeCamera();
+  }
   renderer.render(scene, camera);
 
   renderer.setAnimationLoop((now) => {
@@ -1483,6 +1554,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       bellMat.opacity = 0.22 + flash * 0.78;
       for (const light of bellLights) light.intensity = 5 + flash * 22;
     }
+    hall.tick(time, camera.position, reduced);
 
     for (const h of highlights) {
       const target = h.id === selected ? 0.9 : 0.16;
@@ -1523,6 +1595,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       }
       renderer.setAnimationLoop(null);
       ro.disconnect();
+      hall.dispose();
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("contextmenu", onContext);
       window.removeEventListener("pointermove", onPointerMove);
