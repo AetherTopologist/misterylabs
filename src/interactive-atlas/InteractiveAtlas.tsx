@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasMode, type AtlasUi, type CenotaphVariant, type WalkerPose } from "./destinations";
 import { FairMap, WalkStick } from "./walk-ui";
@@ -57,7 +57,15 @@ export default function InteractiveAtlas() {
   const [ui, setUi] = useState<AtlasUi>(INITIAL);
   const [failed, setFailed] = useState(() => (typeof document === "undefined" ? false : !canWebGL()));
   const [mapOpen, setMapOpen] = useState(false);
+  const [params, setSearchParams] = useSearchParams();
   const variantRef = useRef<CenotaphVariant>(studyVariant());
+
+  useEffect(() => {
+    if (params.get("resume") !== "1") return;
+    const next = new URLSearchParams(params);
+    next.delete("resume");
+    setSearchParams(next, { replace: true });
+  }, [params, setSearchParams]);
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -194,6 +202,9 @@ export default function InteractiveAtlas() {
               <Link
                 to={`${exhibit.href}?from=interactive-atlas`}
                 className="ia-enter"
+                onClick={() => {
+                  if (exhibit.id === "hollow-genius") apiRef.current?.remember();
+                }}
               >
                 Enter exhibit
               </Link>

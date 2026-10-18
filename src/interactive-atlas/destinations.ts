@@ -9,7 +9,7 @@
  */
 export type DestinationKind = "landmark" | "collection" | "exhibit" | "hidden";
 
-export type ExhibitId = "hydrogen" | "triad" | "optics" | "bell" | "xprimeray" | "photon";
+export type ExhibitId = "hydrogen" | "triad" | "optics" | "bell" | "xprimeray" | "photon" | "hollow-genius";
 
 export type DestinationId = ExhibitId | "cenotaph";
 
@@ -79,6 +79,15 @@ export const EXHIBITS: Record<ExhibitId, Destination> = {
     released: true,
     placed: true,
   },
+  "hollow-genius": {
+    id: "hollow-genius",
+    kind: "exhibit",
+    name: "Hollow Genius",
+    question: "Why does a hollow face look outward?",
+    href: "/observatory/higher-dimensional/hollow-genius",
+    released: true,
+    placed: true,
+  },
 };
 
 export const CENOTAPH: Destination = {
@@ -122,6 +131,8 @@ export type AtlasApi = {
   setCenotaphVariant: (variant: CenotaphVariant) => void;
   setMode: (mode: AtlasMode) => void;
   setMove: (x: number, y: number) => void;
+  /** Remember where the visitor is standing before they leave for an instrument. */
+  remember: () => void;
 };
 
 export function isExhibitId(value: string): value is ExhibitId {

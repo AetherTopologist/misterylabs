@@ -1,3 +1,4 @@
+import { Link, useSearchParams } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { HollowGenius } from "@/components/higher-dimensional/HollowGenius";
@@ -7,6 +8,8 @@ import { useTheme } from "@/hooks/useTheme";
 
 export default function HollowGeniusPage() {
   const { theme } = useTheme();
+  const [params] = useSearchParams();
+  const fromWorld = params.get("from") === "interactive-atlas";
   const lm = theme === "light";
   return (
     <div className="min-h-screen">
@@ -14,6 +17,16 @@ export default function HollowGeniusPage() {
       <DemoNav next={{ label: HD_RIDES[1].label, to: HD_RIDES[1].href }} />
       <section className="border-t border-border/25 bg-atlas-hero">
         <div className="container py-10 md:py-14">
+          {fromWorld ? (
+            <p className="mb-4">
+              <Link
+                to="/atlas/interactive?resume=1"
+                className={`text-[0.72rem] uppercase tracking-[0.16em] underline-offset-4 hover:underline ${lm ? "text-amber-800" : "text-amber-200/85"}`}
+              >
+                Return to Interactive Atlas
+              </Link>
+            </p>
+          ) : null}
           <div className={`mb-2 font-mono text-[8px] uppercase tracking-[0.3em] ${lm ? "text-amber-700/80" : "text-amber-400/55"}`}>
             SYS // OBS-HG · Ride 01
           </div>
