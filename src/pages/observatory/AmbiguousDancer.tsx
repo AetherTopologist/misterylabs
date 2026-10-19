@@ -22,7 +22,7 @@ export default function AmbiguousDancerPage() {
             The figure has one physical yaw. At 1× that yaw is 0.84 rad/s, the same rate as the original dancer on a 60 Hz frame. At 6× it is 5.04 rad/s, about one turn every 1.25 s. Changing speed, pausing, or reversing continues from the current angle. None of those rewrite the past, and none of them decide which way the silhouette will look.
           </p>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground/70">
-            With no shading and no perspective, clockwise and counter-clockwise rotations can share a silhouette. Shade, perspective, a floor shadow, and the physical marker are optional experiments on the Appearance tab. The figure stays above the dock on a phone. Report the direction you see. The report is yours.
+            With no shading and no perspective, clockwise and counter-clockwise rotations can share a silhouette. Shade, perspective, a floor shadow, and the physical marker are optional. The Observer log stamps your tap. It does not show the model direction unless you reveal it, and it does not subtract a reaction time. The figure stays above the dock on a phone.
           </p>
           <div className="spectral-bar my-5" aria-hidden />
           <SpinningDancer ride />

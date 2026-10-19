@@ -7,6 +7,25 @@ import {
   physicalAngle,
   type SpinDirection,
 } from "@/instruments/higher-dimensional/dancer-motion";
+import {
+  LEGACY_REPORTS_KEY,
+  appendEvent,
+  circularMean,
+  clearEvents,
+  countsBySpeed,
+  createSession,
+  formatEventDetail,
+  formatEventRow,
+  loadSession,
+  medianReversalInterval,
+  phaseBins,
+  reversalCount,
+  saveSession,
+  sessionToCsv,
+  sessionToJson,
+  type DancerSession,
+  type PerceivedReport,
+} from "@/instruments/higher-dimensional/dancer-session";
 import "./spinning-dancer.css";
 
 export type DancerRender = {
@@ -300,6 +319,27 @@ function drawDancer(
   ctx.letterSpacing = "0px";
 }
 
+function Analysis({ session }: { session: DancerSession }) {
+  const reversals = reversalCount(session.events);
+  const gap = medianReversalInterval(session.events);
+  const speeds = countsBySpeed(session.events);
+  const circle = circularMean(session.events.map((event) => event.yawMod));
+  const bins = phaseBins(session.events.map((event) => event.yawMod));
+  const meanDeg = circle.meanRad == null ? "—" : `${((circle.meanRad * 180) / Math.PI).toFixed(0)}°`;
+  return (
+    <div className="ad-full">
+      <p>Exploratory. One visitor, this session. Not a population result, and not an optimal speed.</p>
+      <p>Directional reversals: {reversals}. Median gap between reversals: {gap == null ? "— (needs two)" : `${gap.toFixed(2)} s`}.</p>
+      <p>
+        Counts by speed: {speeds.length === 0 ? "—" : speeds.map((row) => `${row.speed.toFixed(2)}× ×${row.n}`).join(", ")}.
+      </p>
+      <p>
+        Tap phase, uncorrected for reaction time. Circular mean {meanDeg}, R {circle.R == null ? "—" : circle.R.toFixed(2)}, n {circle.n}. Bins of 45°: {bins.join(" ")}.
+      </p>
+    </div>
+  );
+}
+
 // ── Component ──────────────────────────────────────────────────────────────
 export function SpinningDancer({ ride = false }: { ride?: boolean }) {
   const canvasRef   = useRef<HTMLCanvasElement>(null);
@@ -330,8 +370,11 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
   const [depthCues, setDepthCues] = useState(false);
   const [floorShadow, setFloorShadow] = useState(false);
   const [markers, setMarkers] = useState(false);
-  const [perceived, setPerceived] = useState<"clockwise" | "counterclockwise" | "unstable" | null>(null);
-  const [reversalArmed, setReversalArmed] = useState(false);
+  const [session, setSession] = useState<DancerSession>(() => loadSession(localStorage));
+  const [revealModel, setRevealModel] = useState(false);
+  const [fullLog, setFullLog] = useState(false);
+  const [analysisOpen, setAnalysisOpen] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
   const [tab, setTab] = useState<DancerTab>("motion");
   const [collapsed, setCollapsed] = useState(false);
   const [full, setFull] = useState(false);
@@ -347,6 +390,10 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
       shaded, perspective, depthCues, floorShadow, markers, direction: dir,
     };
   }, [shaded, perspective, depthCues, floorShadow, markers, dir]);
+
+  useEffect(() => {
+    try { saveSession(localStorage, session); } catch { /* storage unavailable */ }
+  }, [session]);
 
   useEffect(() => {
     if (!full) return;
@@ -481,6 +528,7 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
     );
   }
 
+  const perceived = session.events.at(-1)?.perceived ?? null;
   const focusLabel = focus < 18 ? "Head" : focus < 40 ? "Torso" : focus < 62 ? "Hips" : focus < 82 ? "Knee" : "Foot";
 
   function onTabKey(event: KeyboardEvent<HTMLDivElement>) {
@@ -498,27 +546,59 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
     document.getElementById(`ad-tab-${next}`)?.focus();
   }
 
-  function saveReport(id: "clockwise" | "counterclockwise" | "unstable") {
-    setPerceived(id);
-    setReversalArmed(false);
+  function report(next: PerceivedReport) {
+    const direction = dirRef.current;
+    const render = renderRef.current;
+    const yaw = phiRef.current;
+    setSession((current) => appendEvent(current, {
+      tWall: Date.now(),
+      tMono: performance.now(),
+      yawUnwrapped: yaw,
+      physicalDirection: direction === 1 ? "cw" : "ccw",
+      speed: speedRef.current,
+      running: autoRef.current,
+      legEmphasis: legEmRef.current,
+      armPosition: armPosRef.current,
+      gazePct: focusRef.current * 100,
+      shaded: render.shaded,
+      perspective: render.perspective,
+      depthCues: render.depthCues,
+      floorShadow: render.floorShadow,
+      markers: render.markers,
+    }, next));
     try {
-      const key = "misterylabs.ambiguous-dancer.reports";
-      const prev = JSON.parse(localStorage.getItem(key) || "[]");
+      const prev = JSON.parse(localStorage.getItem(LEGACY_REPORTS_KEY) || "[]");
+      if (!Array.isArray(prev)) return;
       prev.push({
         t: Date.now(),
-        perceived: id,
-        physical: dirRef.current === 1 ? "cw" : "ccw",
-        shaded, perspective, depthCues, floorShadow, markers,
+        perceived: next === "unsure" ? "unstable" : next,
+        physical: direction === 1 ? "cw" : "ccw",
+        shaded: render.shaded,
+        perspective: render.perspective,
+        depthCues: render.depthCues,
+        floorShadow: render.floorShadow,
+        markers: render.markers,
       });
-      localStorage.setItem(key, JSON.stringify(prev.slice(-40)));
-    } catch { /* storage unavailable */ }
+      localStorage.setItem(LEGACY_REPORTS_KEY, JSON.stringify(prev.slice(-40)));
+    } catch { /* leave the existing list alone */ }
   }
 
   function reverseYaw() {
     const next: 1 | -1 = dir === 1 ? -1 : 1;
     setDir(next);
     dirRef.current = next;
-    setReversalArmed(true);
+  }
+
+  function downloadText(name: string, body: string, mime: string) {
+    const blob = new Blob([body], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   }
 
   if (ride) {
@@ -677,30 +757,84 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
                 )}
                 {tab === "observer" && (
                   <div className="ad-report">
-                    <div>
-                      {reversalArmed
-                        ? "Physical yaw just reversed. What did the spin appear to do?"
-                        : "Perceived rotation — your report"}
+                    <p>
+                      A tap is later than the flip. This stamp is the tap. It does not subtract a reaction time.
+                    </p>
+                    <button type="button" className="ad-choice ad-block" aria-pressed={perceived === "clockwise"} onClick={() => report("clockwise")}>
+                      Now looks clockwise
+                    </button>
+                    <button type="button" className="ad-choice ad-block" aria-pressed={perceived === "counterclockwise"} onClick={() => report("counterclockwise")}>
+                      Now looks counterclockwise
+                    </button>
+                    <button type="button" className="ad-choice ad-block" aria-pressed={perceived === "unsure"} onClick={() => report("unsure")}>
+                      Unsure
+                    </button>
+                    <button
+                      type="button"
+                      className="ad-choice ad-block"
+                      aria-pressed={revealModel}
+                      onClick={() => setRevealModel((value) => !value)}
+                    >
+                      {revealModel ? "Hide model" : "Reveal model"}
+                    </button>
+                    {revealModel ? (
+                      <p>
+                        Model yaw is {dir === 1 ? "clockwise" : "counter-clockwise"}. That is the integral, not a reading of the silhouette.
+                      </p>
+                    ) : (
+                      <p>The model direction stays hidden until you reveal it. A report does not change the yaw.</p>
+                    )}
+                    <p className="ad-log-head">Time | Phase | Speed | Report</p>
+                    {session.events.length === 0 ? (
+                      <p>No taps yet.</p>
+                    ) : (
+                      <ul className="ad-log">
+                        {session.events.slice(-3).reverse().map((event) => (
+                          <li key={`${event.tWall}-${event.tMono}`}>{formatEventRow(event)}</li>
+                        ))}
+                      </ul>
+                    )}
+                    <div className="ad-row">
+                      <button type="button" className="ad-choice" aria-pressed={fullLog} onClick={() => setFullLog((value) => !value)}>
+                        {fullLog ? "Hide log" : "Full log"}
+                      </button>
+                      <button type="button" className="ad-choice" aria-pressed={analysisOpen} onClick={() => setAnalysisOpen((value) => !value)}>
+                        {analysisOpen ? "Hide analysis" : "Analysis"}
+                      </button>
                     </div>
-                    <button type="button" className="ad-choice ad-block" aria-pressed={perceived === "clockwise"} onClick={() => saveReport("clockwise")}>
-                      Looks clockwise
-                    </button>
-                    <button type="button" className="ad-choice ad-block" aria-pressed={perceived === "counterclockwise"} onClick={() => saveReport("counterclockwise")}>
-                      Looks counter-clockwise
-                    </button>
-                    <button type="button" className="ad-choice ad-block" aria-pressed={perceived === "unstable"} onClick={() => saveReport("unstable")}>
-                      Unstable / unsure
-                    </button>
-                    <p>
-                      Saved in this browser only. The figure is not scored against your answer.
-                      {perceived ? ` Last report: ${perceived}.` : ""}
-                    </p>
-                    <p>
-                      Model yaw is {dir === 1 ? "clockwise" : "counter-clockwise"}. Reversing it does not rewrite the pose, and it is not a claim about what you saw.
-                    </p>
-                    <p>
-                      In xPRIMEray, two transport rays entering the same curved boundary from opposite sides make opposite assumptions about which side is interior — and both remain consistent with the boundary's 2D cross-section.
-                    </p>
+                    {fullLog && (
+                      <div className="ad-full">
+                        {session.events.length === 0 ? "No taps yet." : session.events.map((event) => formatEventDetail(event)).join("\n\n")}
+                      </div>
+                    )}
+                    {analysisOpen && (
+                      <Analysis session={session} />
+                    )}
+                    <div className="ad-row">
+                      <button type="button" className="ad-choice" onClick={() => { setSession(createSession(Date.now())); setRevealModel(false); }}>
+                        Start new session
+                      </button>
+                      {confirmClear ? (
+                        <>
+                          <button type="button" className="ad-choice" onClick={() => { setSession((current) => clearEvents(current)); setConfirmClear(false); }}>
+                            Confirm clear
+                          </button>
+                          <button type="button" className="ad-choice" onClick={() => setConfirmClear(false)}>
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <button type="button" className="ad-choice" onClick={() => setConfirmClear(true)}>
+                          Clear session
+                        </button>
+                      )}
+                      <button type="button" className="ad-choice" onClick={() => downloadText(`ambiguous-dancer-${session.id}.csv`, sessionToCsv(session), "text/csv")}>
+                        Download CSV
+                      </button>
+                      <button type="button" className="ad-choice" onClick={() => downloadText(`ambiguous-dancer-${session.id}.json`, sessionToJson(session), "application/json")}>
+                        Download JSON
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
