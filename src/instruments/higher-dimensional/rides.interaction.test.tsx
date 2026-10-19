@@ -153,28 +153,100 @@ describe("hollow genius controls", () => {
 });
 
 describe("ambiguous dancer ride", () => {
-  it("reverses physical yaw and stores a perceived report separately", () => {
+  it("logs a reversal without moving the yaw or revealing the model", () => {
     localStorage.clear();
-    render(<SpinningDancer ride />);
+    localStorage.setItem("misterylabs.ambiguous-dancer.reports", JSON.stringify([
+      { t: 1, perceived: "clockwise", physical: "cw", shaded: false },
+    ]));
+    const { container, unmount } = render(<SpinningDancer ride />);
     expect(screen.queryByText("physical cw")).not.toBeInTheDocument();
-    expect(screen.queryByText("physical ccw")).not.toBeInTheDocument();
-    expect(screen.getByText("Silhouette", { selector: ".ad-status span" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Rotation speed")).toHaveAttribute("max", "6");
+    expect(screen.queryByText(/Model yaw/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Observer" }));
+    expect(screen.queryByText(/Model yaw/)).not.toBeInTheDocument();
+    expect(screen.getByText(/does not subtract a reaction time/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Now looks clockwise" }));
+    expect(screen.queryByText(/Model yaw/)).not.toBeInTheDocument();
+    expect(screen.getByText(/clockwise · initial/)).toBeInTheDocument();
+    expect(screen.getByText("Report clockwise", { selector: ".ad-status span" })).toBeInTheDocument();
+    expect(screen.getByText("Paused", { selector: ".ad-status span" })).toBeInTheDocument();
+
+    const stored = JSON.parse(localStorage.getItem("misterylabs.ambiguous-dancer.session.v1") || "{}");
+    const yaw = stored.events[0].yawUnwrapped;
+    expect(stored.schema).toBe(1);
+    expect(stored.events[0]).toMatchObject({
+      kind: "initial",
+      perceived: "clockwise",
+      physicalDirection: "cw",
+      running: false,
+      speed: 1,
+      shaded: false,
+      markers: false,
+      posePhase: null,
+      gazeTarget: "Knee",
+    });
+    expect(stored.events[0].angularVelocityRadS).toBeCloseTo(0.84, 8);
+    expect(stored.config.reactionTimeCorrection).toBe("none");
+
+    fireEvent.click(screen.getByRole("button", { name: "Now looks clockwise" }));
+    fireEvent.click(screen.getByRole("button", { name: "Unsure" }));
     fireEvent.click(screen.getByRole("tab", { name: "Appearance" }));
     fireEvent.click(screen.getByRole("button", { name: "Shaded" }));
     fireEvent.click(screen.getByRole("tab", { name: "Motion" }));
+    fireEvent.change(screen.getByLabelText("Rotation speed"), { target: { value: "6" } });
     fireEvent.click(screen.getByRole("button", { name: "Reverse physical direction" }));
     expect(screen.queryByText("physical ccw")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: "Appearance" }));
-    fireEvent.click(screen.getByRole("button", { name: "Physical marker off" }));
-    expect(screen.getByText("physical ccw")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: "Observer" }));
-    expect(screen.getByText(/Physical yaw just reversed/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Looks counter-clockwise" }));
-    const saved = JSON.parse(localStorage.getItem("misterylabs.ambiguous-dancer.reports") || "[]");
-    expect(saved.at(-1)).toMatchObject({ perceived: "counterclockwise", physical: "ccw", shaded: true });
-    expect(screen.getByText(/Last report: counterclockwise/)).toBeInTheDocument();
-    expect(screen.getByText("Report counterclockwise", { selector: ".ad-status span" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Now looks counterclockwise" }));
+
+    const after = JSON.parse(localStorage.getItem("misterylabs.ambiguous-dancer.session.v1") || "{}");
+    expect(after.events.map((event: { kind: string }) => event.kind)).toEqual(["initial", "repeat", "unsure", "reversal"]);
+    expect(after.events.every((event: { yawUnwrapped: number }) => event.yawUnwrapped === yaw)).toBe(true);
+    expect(after.events[3]).toMatchObject({
+      perceived: "counterclockwise",
+      physicalDirection: "ccw",
+      speed: 6,
+      shaded: true,
+      running: false,
+    });
+    expect(after.events[3].angularVelocityRadS).toBeCloseTo(-5.04, 8);
+    expect(screen.getByText("6.00×", { selector: ".ad-status span" })).toBeInTheDocument();
+    expect(screen.getByText("Paused", { selector: ".ad-status span" })).toBeInTheDocument();
+    expect(screen.queryByText(/Model yaw/)).not.toBeInTheDocument();
+
+    const legacy = JSON.parse(localStorage.getItem("misterylabs.ambiguous-dancer.reports") || "[]");
+    expect(legacy[0]).toEqual({ t: 1, perceived: "clockwise", physical: "cw", shaded: false });
+    expect(legacy.at(-1).perceived).toBe("counterclockwise");
+
+    fireEvent.click(screen.getByRole("button", { name: "Reveal model" }));
+    expect(screen.getByText(/Model yaw is counter-clockwise/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Hide model" }));
+    expect(screen.queryByText(/Model yaw/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Full log" }));
+    expect(screen.getByText(/physical ccw/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Analysis" }));
+    expect(screen.getByText(/Directional reversals: 1/)).toBeInTheDocument();
+    expect(screen.getByText(/needs two/)).toBeInTheDocument();
+    expect(screen.getByText(/Exploratory/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Motion" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Observer" }));
+    expect(screen.getByText(/counterclockwise · reversal/)).toBeInTheDocument();
+    expect(container.querySelector("canvas")).toBeTruthy();
+
+    unmount();
+    render(<SpinningDancer ride />);
+    fireEvent.click(screen.getByRole("tab", { name: "Observer" }));
+    expect(screen.getByText(/counterclockwise · reversal/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Clear session" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm clear" }));
+    expect(screen.getAllByText("No taps yet.").length).toBeGreaterThan(0);
+    const legacyAfterClear = JSON.parse(localStorage.getItem("misterylabs.ambiguous-dancer.reports") || "[]");
+    expect(legacyAfterClear[0]).toEqual({ t: 1, perceived: "clockwise", physical: "cw", shaded: false });
+    fireEvent.click(screen.getByRole("button", { name: "Start new session" }));
+    expect(JSON.parse(localStorage.getItem("misterylabs.ambiguous-dancer.reports") || "[]")[0].t).toBe(1);
+    expect(screen.getByRole("button", { name: "Download CSV" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Download JSON" })).toBeInTheDocument();
   });
 
   it("keeps the canvas and the phase controls when the dock changes", () => {
