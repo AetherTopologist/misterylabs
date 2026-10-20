@@ -171,9 +171,9 @@ describe("ambiguous dancer ride", () => {
     expect(screen.getByText("Report clockwise", { selector: ".ad-status span" })).toBeInTheDocument();
     expect(screen.getByText("Paused", { selector: ".ad-status span" })).toBeInTheDocument();
 
-    const stored = JSON.parse(localStorage.getItem("misterylabs.ambiguous-dancer.session.v1") || "{}");
+    const stored = JSON.parse(localStorage.getItem("misterylabs.ambiguous-dancer.session.v2") || "{}");
     const yaw = stored.events[0].yawUnwrapped;
-    expect(stored.schema).toBe(1);
+    expect(stored.schema).toBe(2);
     expect(stored.events[0]).toMatchObject({
       kind: "initial",
       perceived: "clockwise",
@@ -199,7 +199,7 @@ describe("ambiguous dancer ride", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Observer" }));
     fireEvent.click(screen.getByRole("button", { name: "Now looks counterclockwise" }));
 
-    const after = JSON.parse(localStorage.getItem("misterylabs.ambiguous-dancer.session.v1") || "{}");
+    const after = JSON.parse(localStorage.getItem("misterylabs.ambiguous-dancer.session.v2") || "{}");
     expect(after.events.map((event: { kind: string }) => event.kind)).toEqual(["initial", "repeat", "unsure", "reversal"]);
     expect(after.events.every((event: { yawUnwrapped: number }) => event.yawUnwrapped === yaw)).toBe(true);
     expect(after.events[3]).toMatchObject({
@@ -272,6 +272,76 @@ describe("ambiguous dancer ride", () => {
     expect(screen.getByRole("tab", { name: "Motion" })).toHaveAttribute("aria-selected", "true");
     fireEvent.click(screen.getByRole("button", { name: "Expand" }));
     expect(container.querySelector(".ad-cockpit")).toHaveClass("is-full");
+  });
+
+  it("starts audio only from a gesture and does not move the yaw", () => {
+    class Param {
+      value = 0;
+      setValueAtTime(value: number) { this.value = value; }
+      exponentialRampToValueAtTime() {}
+    }
+    class Node {
+      gain = new Param();
+      pan = new Param();
+      frequency = new Param();
+      connect() { return this; }
+      start() {}
+      stop() {}
+    }
+    const opened: { closed: boolean; suspended: boolean }[] = [];
+    class FakeContext {
+      currentTime = 1.25;
+      state = "running";
+      destination = new Node();
+      closed = false;
+      suspended = false;
+      constructor() { opened.push(this); }
+      createGain() { return new Node(); }
+      createOscillator() { return new Node(); }
+      createStereoPanner() { return new Node(); }
+      resume() { return Promise.resolve(); }
+      suspend() { this.suspended = true; this.state = "suspended"; return Promise.resolve(); }
+      close() { this.closed = true; return Promise.resolve(); }
+    }
+    const previous = window.AudioContext;
+    window.AudioContext = FakeContext as unknown as typeof AudioContext;
+    try {
+    localStorage.clear();
+    const { unmount } = render(<SpinningDancer ride />);
+    fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Observer" }));
+    fireEvent.click(screen.getByRole("button", { name: "Now looks clockwise" }));
+    const before = JSON.parse(localStorage.getItem("misterylabs.ambiguous-dancer.session.v2") || "{}");
+    const yaw = before.events[0].yawUnwrapped;
+    expect(before.events[0].audioMode).toBe("silent");
+    expect(opened).toHaveLength(0);
+    fireEvent.click(screen.getByRole("button", { name: "Audio anchor" }));
+    expect(screen.getByText(/not a demonstrated effect/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Start audio" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Coupled" }));
+    fireEvent.click(screen.getByRole("button", { name: "Headphones yes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Start audio" }));
+    expect(opened).toHaveLength(1);
+    fireEvent.click(screen.getByRole("tab", { name: "Motion" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Observer" }));
+    expect(screen.getByRole("button", { name: "Coupled" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Stop audio" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Now looks counterclockwise" }));
+    const after = JSON.parse(localStorage.getItem("misterylabs.ambiguous-dancer.session.v2") || "{}");
+    expect(after.events.map((event: { kind: string }) => event.kind)).toEqual(["initial", "reversal"]);
+    expect(after.events.every((event: { yawUnwrapped: number }) => event.yawUnwrapped === yaw)).toBe(true);
+    expect(after.events[1].physicalDirection).toBe("cw");
+    expect(after.events[1].audioMode).toBe("coupled");
+    expect(after.events[1].headphones).toBe("yes");
+    expect(after.audioCues).toHaveLength(1);
+    expect(after.audioCues[0]).toMatchObject({ audioPan: "left", cause: "report-feedback", physicalDirection: "cw" });
+    fireEvent.click(screen.getByRole("button", { name: "Stop audio" }));
+    expect(opened[0].suspended).toBe(true);
+    unmount();
+    expect(opened[0].closed).toBe(true);
+    } finally {
+      window.AudioContext = previous;
+    }
   });
 
   it("keeps the legacy silhouette when ride mode is off", () => {

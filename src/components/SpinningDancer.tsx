@@ -7,23 +7,33 @@ import {
   physicalAngle,
   type SpinDirection,
 } from "@/instruments/higher-dimensional/dancer-motion";
+import { createDancerAudio, type DancerAudio } from "@/instruments/higher-dimensional/dancer-audio";
 import {
+  AUDIO_TRIAL_S,
+  AUDIO_VOLUME_MAX,
   LEGACY_REPORTS_KEY,
+  appendAudioCue,
   appendEvent,
   circularMean,
+  classifyReport,
   clearEvents,
+  conditionOrder,
   countsBySpeed,
   createSession,
   formatEventDetail,
   formatEventRow,
+  lastDirectional,
   loadSession,
   medianReversalInterval,
+  panForReport,
   phaseBins,
   reversalCount,
   saveSession,
   sessionToCsv,
   sessionToJson,
+  type AudioMode,
   type DancerSession,
+  type HeadphonesReport,
   type PerceivedReport,
 } from "@/instruments/higher-dimensional/dancer-session";
 import "./spinning-dancer.css";
@@ -375,6 +385,11 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
   const [fullLog, setFullLog] = useState(false);
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [audioOpen, setAudioOpen] = useState(false);
+  const [audioOn, setAudioOn] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const audioRef = useRef<DancerAudio | null>(null);
+  const audioOnRef = useRef(false);
   const [tab, setTab] = useState<DancerTab>("motion");
   const [collapsed, setCollapsed] = useState(false);
   const [full, setFull] = useState(false);
@@ -394,6 +409,43 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
   useEffect(() => {
     try { saveSession(localStorage, session); } catch { /* storage unavailable */ }
   }, [session]);
+
+  useEffect(() => { audioOnRef.current = audioOn; }, [audioOn]);
+
+  useEffect(() => {
+    const engine = createDancerAudio();
+    audioRef.current = engine;
+    engine.onCue((cue) => {
+      const yaw = phiRef.current;
+      const direction = dirRef.current;
+      setSession((current) => appendAudioCue(current, {
+        tWall: Date.now(),
+        tMono: performance.now(),
+        yawUnwrapped: yaw,
+        physicalDirection: direction === 1 ? "cw" : "ccw",
+        audioTimeS: cue.audioTimeS,
+        scheduledAtS: cue.scheduledAtS,
+        audioPan: cue.pan,
+        cueIndex: cue.index,
+        seed: cue.seed,
+        cause: "independent-schedule",
+      }));
+    });
+    let query: MediaQueryList | null = null;
+    const syncMotion = () => setReducedMotion(Boolean(query?.matches));
+    try {
+      if (typeof window.matchMedia === "function") {
+        query = window.matchMedia("(prefers-reduced-motion: reduce)");
+        syncMotion();
+        query.addEventListener?.("change", syncMotion);
+      }
+    } catch { /* media queries unavailable */ }
+    return () => {
+      query?.removeEventListener?.("change", syncMotion);
+      engine.dispose();
+      audioRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (!full) return;
@@ -550,27 +602,60 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
     const direction = dirRef.current;
     const render = renderRef.current;
     const yaw = phiRef.current;
-    setSession((current) => appendEvent(current, {
-      tWall: Date.now(),
-      tMono: performance.now(),
-      yawUnwrapped: yaw,
-      physicalDirection: direction === 1 ? "cw" : "ccw",
-      speed: speedRef.current,
-      running: autoRef.current,
-      legEmphasis: legEmRef.current,
-      armPosition: armPosRef.current,
-      gazePct: focusRef.current * 100,
-      shaded: render.shaded,
-      perspective: render.perspective,
-      depthCues: render.depthCues,
-      floorShadow: render.floorShadow,
-      markers: render.markers,
-    }, next));
+    const engine = audioRef.current;
+    const kind = classifyReport(lastDirectional(session.events), next);
+    const feedbackPan = kind === "reversal"
+      && session.audio.mode === "coupled"
+      && audioOnRef.current
+      && (next === "clockwise" || next === "counterclockwise")
+      ? panForReport(next)
+      : null;
+    if (feedbackPan) engine?.setPan(feedbackPan);
+    const stamp = Date.now();
+    const mono = performance.now();
+    setSession((current) => {
+      const withReport = appendEvent(current, {
+        tWall: stamp,
+        tMono: mono,
+        yawUnwrapped: yaw,
+        physicalDirection: direction === 1 ? "cw" : "ccw",
+        speed: speedRef.current,
+        running: autoRef.current,
+        legEmphasis: legEmRef.current,
+        armPosition: armPosRef.current,
+        gazePct: focusRef.current * 100,
+        shaded: render.shaded,
+        perspective: render.perspective,
+        depthCues: render.depthCues,
+        floorShadow: render.floorShadow,
+        markers: render.markers,
+      }, next, {
+        audioMode: current.audio.mode,
+        audioPan: feedbackPan ?? engine?.getPan() ?? "off",
+        audioVolume: current.audio.volume,
+        headphones: current.audio.headphones,
+        audioTimeS: engine?.currentTime() ?? null,
+      });
+      if (!feedbackPan) return withReport;
+      return appendAudioCue(withReport, {
+        tWall: stamp,
+        tMono: mono,
+        yawUnwrapped: yaw,
+        physicalDirection: direction === 1 ? "cw" : "ccw",
+        audioTimeS: engine?.currentTime() ?? 0,
+        scheduledAtS: engine?.currentTime() ?? 0,
+        audioPan: feedbackPan,
+        cueIndex: withReport.audioCues.length,
+        seed: current.audio.seed,
+        cause: "report-feedback",
+        audioMode: "coupled",
+      });
+    });
     try {
       const prev = JSON.parse(localStorage.getItem(LEGACY_REPORTS_KEY) || "[]");
       if (!Array.isArray(prev)) return;
       prev.push({
-        t: Date.now(),
+        t: stamp,
         perceived: next === "unsure" ? "unstable" : next,
         physical: direction === 1 ? "cw" : "ccw",
         shaded: render.shaded,
@@ -581,6 +666,33 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
       });
       localStorage.setItem(LEGACY_REPORTS_KEY, JSON.stringify(prev.slice(-40)));
     } catch { /* leave the existing list alone */ }
+  }
+
+  function stopAudio() {
+    audioRef.current?.stop();
+    setAudioOn(false);
+  }
+
+  function startAudio() {
+    const engine = audioRef.current;
+    if (!engine) return;
+    const ok = engine.start({
+      mode: session.audio.mode,
+      volume: session.audio.volume,
+      seed: session.audio.seed,
+      trialS: AUDIO_TRIAL_S,
+      reducedMotion,
+    });
+    setAudioOn(ok);
+  }
+
+  function chooseMode(mode: AudioMode) {
+    stopAudio();
+    setSession((current) => ({ ...current, audio: { ...current.audio, mode } }));
+  }
+
+  function chooseHeadphones(headphones: HeadphonesReport) {
+    setSession((current) => ({ ...current, audio: { ...current.audio, headphones } }));
   }
 
   function reverseYaw() {
@@ -805,13 +917,124 @@ export function SpinningDancer({ ride = false }: { ride?: boolean }) {
                     {fullLog && (
                       <div className="ad-full">
                         {session.events.length === 0 ? "No taps yet." : session.events.map((event) => formatEventDetail(event)).join("\n\n")}
+                        {session.audioCues.length > 0 && (
+                          `\n\n${session.audioCues.map((cue) => `audio cue ${cue.cueIndex} · ${cue.cause} · pan ${cue.audioPan} · audio clock ${cue.audioTimeS.toFixed(3)} s · scheduled ${cue.scheduledAtS.toFixed(3)} s · physical yaw ${cue.physicalDirection} · not a visual report`).join("\n")}`
+                        )}
                       </div>
                     )}
                     {analysisOpen && (
                       <Analysis session={session} />
                     )}
+                    <button
+                      type="button"
+                      className="ad-choice ad-block"
+                      aria-pressed={audioOpen}
+                      onClick={() => setAudioOpen((value) => !value)}
+                    >
+                      {audioOpen ? "Hide audio anchor" : "Audio anchor"}
+                    </button>
+                    {audioOpen && (
+                      <div className="ad-audio" role="group" aria-label="Audio anchor">
+                        <p>
+                          Optional. Multisensory influence is a hypothesis being explored, not a demonstrated effect. The tone is not the model direction, and it does not turn the figure.
+                        </p>
+                        <div className="ad-row">
+                          {(["silent", "coupled", "independent"] as const).map((mode) => (
+                            <button key={mode} type="button" className="ad-choice" aria-pressed={session.audio.mode === mode} onClick={() => chooseMode(mode)}>
+                              {mode === "silent" ? "Silent" : mode === "coupled" ? "Coupled" : "Independent"}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="ad-hint">
+                          Silent is the control. Coupled moves the tone only after a reported reversal. That is feedback on your tap, not evidence that sound caused it. Independent follows seed {session.audio.seed} and ignores taps.
+                        </p>
+                        <div className="ad-row">
+                          {([
+                            ["unspecified", "Headphones ?"],
+                            ["yes", "Headphones yes"],
+                            ["no", "Headphones no"],
+                          ] as const).map(([id, label]) => (
+                            <button key={id} type="button" className="ad-choice" aria-pressed={session.audio.headphones === id} onClick={() => chooseHeadphones(id)}>
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                        {reducedMotion && (
+                          <p className="ad-hint">Reduced motion is on. Nothing plays until you start, and the gain stays at or below 0.05.</p>
+                        )}
+                        <label className="ad-slider">
+                          <span>
+                            <span>Volume</span>
+                            <span>{session.audio.volume.toFixed(2)}</span>
+                          </span>
+                          <input
+                            type="range"
+                            min={0}
+                            max={AUDIO_VOLUME_MAX}
+                            step={0.01}
+                            value={session.audio.volume}
+                            aria-label="Audio volume"
+                            onChange={(event) => {
+                              const volume = parseFloat(event.target.value);
+                              audioRef.current?.setVolume(reducedMotion ? Math.min(volume, 0.05) : volume);
+                              setSession((current) => ({ ...current, audio: { ...current.audio, volume } }));
+                            }}
+                          />
+                        </label>
+                        <label className="ad-slider">
+                          <span>
+                            <span>Seed</span>
+                            <span>{session.audio.seed}</span>
+                          </span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={999999}
+                            step={1}
+                            value={session.audio.seed}
+                            aria-label="Cue seed"
+                            onChange={(event) => {
+                              const seed = Math.max(0, Math.trunc(Number(event.target.value) || 0));
+                              stopAudio();
+                              const order = conditionOrder(seed);
+                              setSession((current) => ({
+                                ...current,
+                                audio: { ...current.audio, seed, order, trialIndex: 0, mode: order[0] },
+                              }));
+                            }}
+                          />
+                        </label>
+                        <p className="ad-hint">
+                          Suggested trial {session.audio.trialIndex + 1} of {session.audio.order.length}: {session.audio.order[session.audio.trialIndex]}. Active: {session.audio.mode}. {AUDIO_TRIAL_S} s. Order {session.audio.order.join(" → ")}.
+                        </p>
+                        <div className="ad-row">
+                          <button type="button" className="ad-choice" disabled={audioOn || session.audio.mode === "silent"} onClick={startAudio}>
+                            Start audio
+                          </button>
+                          <button type="button" className="ad-choice" disabled={!audioOn} onClick={stopAudio}>
+                            Stop audio
+                          </button>
+                          <button
+                            type="button"
+                            className="ad-choice"
+                            onClick={() => {
+                              stopAudio();
+                              setSession((current) => {
+                                const trialIndex = (current.audio.trialIndex + 1) % current.audio.order.length;
+                                return {
+                                  ...current,
+                                  audio: { ...current.audio, trialIndex, mode: current.audio.order[trialIndex] },
+                                };
+                              });
+                            }}
+                          >
+                            Next condition
+                          </button>
+                        </div>
+                      </div>
+                    )}
                     <div className="ad-row">
-                      <button type="button" className="ad-choice" onClick={() => { setSession(createSession(Date.now())); setRevealModel(false); }}>
+                      <button type="button" className="ad-choice" onClick={() => { stopAudio(); setSession(createSession(Date.now())); setRevealModel(false); }}>
                         Start new session
                       </button>
                       {confirmClear ? (
