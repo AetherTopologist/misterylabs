@@ -1,9 +1,20 @@
 import { DANCER_OMEGA, DANCER_SPEED_MAX, DANCER_SPEED_MIN } from "./dancer-motion";
 
-/** Separate from the legacy report list. Do not delete that key. */
-export const SESSION_KEY = "misterylabs.ambiguous-dancer.session.v1";
+/** v1 bytes stay on this key. New sessions are written to SESSION_KEY. */
+export const SESSION_KEY_V1 = "misterylabs.ambiguous-dancer.session.v1";
+export const SESSION_KEY = "misterylabs.ambiguous-dancer.session.v2";
 export const LEGACY_REPORTS_KEY = "misterylabs.ambiguous-dancer.reports";
-export const SESSION_SCHEMA = 1;
+export const SESSION_SCHEMA = 2;
+
+export const AUDIO_TRIAL_S = 16;
+export const AUDIO_CUE_STEP_S = 2.5;
+export const AUDIO_VOLUME_DEFAULT = 0.08;
+export const AUDIO_VOLUME_MAX = 0.25;
+
+export type AudioMode = "silent" | "coupled" | "independent";
+export type AudioPan = "off" | "center" | "left" | "right";
+export type HeadphonesReport = "unspecified" | "yes" | "no";
+export type CueCause = "independent-schedule" | "report-feedback";
 
 export type PerceivedReport = "clockwise" | "counterclockwise" | "unsure";
 export type DirectionalReport = "clockwise" | "counterclockwise";
@@ -36,6 +47,42 @@ export type DancerEvent = {
   perceived: PerceivedReport;
   sincePrevS: number | null;
   kind: EventKind;
+  /** Observer tap. Not an audio cue. */
+  action: "report";
+  audioMode: AudioMode;
+  audioPan: AudioPan;
+  /** Master gain, 0–1. Not a sound-pressure level. */
+  audioVolume: number;
+  headphones: HeadphonesReport;
+  /** AudioContext.currentTime in seconds, or null if the tone is not running. */
+  audioTimeS: number | null;
+};
+
+export type AudioCue = {
+  tWall: number;
+  tMono: number;
+  elapsedS: number;
+  yawUnwrapped: number;
+  yawMod: number;
+  physicalDirection: PhysicalDirection;
+  audioTimeS: number;
+  scheduledAtS: number;
+  audioPan: Exclude<AudioPan, "off">;
+  audioMode: AudioMode;
+  audioVolume: number;
+  cueIndex: number;
+  seed: number;
+  cause: CueCause;
+  headphones: HeadphonesReport;
+};
+
+export type AudioConfig = {
+  mode: AudioMode;
+  volume: number;
+  headphones: HeadphonesReport;
+  seed: number;
+  order: AudioMode[];
+  trialIndex: number;
 };
 
 export type DancerSession = {
@@ -50,7 +97,10 @@ export type DancerSession = {
     posePhase: "none";
     gazeMeaning: "selected target, not measured fixation";
   };
+  migratedFrom: 1 | null;
+  audio: AudioConfig;
   events: DancerEvent[];
+  audioCues: AudioCue[];
 };
 
 export type EventInput = {
@@ -68,6 +118,22 @@ export type EventInput = {
   depthCues: boolean;
   floorShadow: boolean;
   markers: boolean;
+};
+
+export type AudioSnapshot = {
+  audioMode: AudioMode;
+  audioPan: AudioPan;
+  audioVolume: number;
+  headphones: HeadphonesReport;
+  audioTimeS: number | null;
+};
+
+const SILENT_AUDIO: AudioSnapshot = {
+  audioMode: "silent",
+  audioPan: "off",
+  audioVolume: 0,
+  headphones: "unspecified",
+  audioTimeS: null,
 };
 
 const TAU = Math.PI * 2;
@@ -102,13 +168,59 @@ export function classifyReport(previous: DirectionalReport | null, next: Perceiv
   return "reversal";
 }
 
+const CONDITION_ORDERS: AudioMode[][] = [
+  ["silent", "coupled", "independent"],
+  ["silent", "independent", "coupled"],
+  ["coupled", "silent", "independent"],
+  ["coupled", "independent", "silent"],
+  ["independent", "silent", "coupled"],
+  ["independent", "coupled", "silent"],
+];
+
+/** Six counterbalanced orders. The same seed always picks the same order. */
+export function conditionOrder(seed: number): AudioMode[] {
+  const index = Math.abs(Math.trunc(seed)) % CONDITION_ORDERS.length;
+  return [...CONDITION_ORDERS[index]];
+}
+
+function mulberry32(seed: number) {
+  let a = Math.trunc(seed) >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * Stereo steps for an independent trial.
+ * The sequence depends on the seed and the clock, not on reports or yaw.
+ */
+export function independentCues(seed: number, trialS = AUDIO_TRIAL_S, stepS = AUDIO_CUE_STEP_S) {
+  const rand = mulberry32(seed);
+  const cues: { atS: number; pan: "left" | "right"; index: number }[] = [];
+  let index = 0;
+  for (let atS = stepS; atS < trialS - 0.05; atS += stepS) {
+    cues.push({ atS, pan: rand() < 0.5 ? "left" : "right", index });
+    index += 1;
+  }
+  return cues;
+}
+
+/** Maps the visitor's report onto a speaker. This is not the model yaw. */
+export function panForReport(perceived: DirectionalReport): "left" | "right" {
+  return perceived === "clockwise" ? "right" : "left";
+}
+
 function newId(): string {
   const cryptoRef = globalThis.crypto;
   if (cryptoRef && typeof cryptoRef.randomUUID === "function") return cryptoRef.randomUUID();
   return `s-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export function createSession(now: number, id = newId()): DancerSession {
+export function createSession(now: number, id = newId(), seed = 1): DancerSession {
+  const order = conditionOrder(seed);
   return {
     schema: SESSION_SCHEMA,
     id,
@@ -121,15 +233,31 @@ export function createSession(now: number, id = newId()): DancerSession {
       posePhase: "none",
       gazeMeaning: "selected target, not measured fixation",
     },
+    migratedFrom: null,
+    audio: {
+      mode: order[0],
+      volume: AUDIO_VOLUME_DEFAULT,
+      headphones: "unspecified",
+      seed,
+      order,
+      trialIndex: 0,
+    },
     events: [],
+    audioCues: [],
   };
 }
 
-export function appendEvent(session: DancerSession, input: EventInput, perceived: PerceivedReport): DancerSession {
+export function appendEvent(
+  session: DancerSession,
+  input: EventInput,
+  perceived: PerceivedReport,
+  audio: Partial<AudioSnapshot> = {},
+): DancerSession {
   const yaw = input.yawUnwrapped;
   const prev = session.events[session.events.length - 1];
   const kind = classifyReport(lastDirectional(session.events), perceived);
   const sign = input.physicalDirection === "cw" ? 1 : -1;
+  const sound = { ...SILENT_AUDIO, ...audio };
   const event: DancerEvent = {
     tWall: input.tWall,
     tMono: input.tMono,
@@ -153,12 +281,51 @@ export function appendEvent(session: DancerSession, input: EventInput, perceived
     perceived,
     sincePrevS: prev ? (input.tWall - prev.tWall) / 1000 : null,
     kind,
+    action: "report",
+    audioMode: sound.audioMode,
+    audioPan: sound.audioPan,
+    audioVolume: sound.audioVolume,
+    headphones: sound.headphones,
+    audioTimeS: sound.audioTimeS,
   };
   return { ...session, events: [...session.events, event] };
 }
 
+export function appendAudioCue(session: DancerSession, input: {
+  tWall: number;
+  tMono: number;
+  yawUnwrapped: number;
+  physicalDirection: PhysicalDirection;
+  audioTimeS: number;
+  scheduledAtS: number;
+  audioPan: Exclude<AudioPan, "off">;
+  cueIndex: number;
+  seed: number;
+  cause: CueCause;
+  audioMode?: AudioMode;
+}): DancerSession {
+  const cue: AudioCue = {
+    tWall: input.tWall,
+    tMono: input.tMono,
+    elapsedS: (input.tWall - session.startedWall) / 1000,
+    yawUnwrapped: input.yawUnwrapped,
+    yawMod: wrapYaw(input.yawUnwrapped),
+    physicalDirection: input.physicalDirection,
+    audioTimeS: input.audioTimeS,
+    scheduledAtS: input.scheduledAtS,
+    audioPan: input.audioPan,
+    audioMode: input.audioMode ?? session.audio.mode,
+    audioVolume: session.audio.volume,
+    cueIndex: input.cueIndex,
+    seed: input.seed,
+    cause: input.cause,
+    headphones: session.audio.headphones,
+  };
+  return { ...session, audioCues: [...session.audioCues, cue] };
+}
+
 export function clearEvents(session: DancerSession): DancerSession {
-  return { ...session, events: [] };
+  return { ...session, events: [], audioCues: [] };
 }
 
 export function median(values: number[]): number | null {
@@ -246,6 +413,8 @@ export function formatEventDetail(event: DancerEvent): string {
     `gaze target ${event.gazeTarget} (selected, not fixation)`,
     `shaded ${event.shaded} · perspective ${event.perspective} · depth cues ${event.depthCues}`,
     `floor shadow ${event.floorShadow} · marker ${event.markers}`,
+    `audio ${event.audioMode} · pan ${event.audioPan} · gain ${event.audioVolume.toFixed(2)}`,
+    `headphones ${event.headphones}`,
   ].join("\n");
 }
 
@@ -273,6 +442,17 @@ export const CSV_COLUMNS = [
   "kind",
   "t_wall_ms",
   "t_mono_ms",
+  "row_kind",
+  "observer_action",
+  "audio_mode",
+  "audio_pan",
+  "audio_volume_gain",
+  "audio_time_s",
+  "scheduled_audio_s",
+  "cue_index",
+  "cue_seed",
+  "headphones",
+  "cue_cause",
 ] as const;
 
 function csvCell(value: string | number | boolean | null): string {
@@ -309,6 +489,56 @@ export function sessionToCsv(session: DancerSession): string {
       event.kind,
       event.tWall,
       event.tMono,
+      "report",
+      event.action,
+      event.audioMode,
+      event.audioPan,
+      event.audioVolume,
+      event.audioTimeS,
+      null,
+      null,
+      null,
+      event.headphones,
+      null,
+    ];
+    lines.push(row.map(csvCell).join(","));
+  }
+  for (const cue of session.audioCues) {
+    const row = [
+      session.schema,
+      session.id,
+      cue.elapsedS,
+      cue.yawUnwrapped,
+      cue.yawMod,
+      cue.physicalDirection,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      cue.tWall,
+      cue.tMono,
+      "audio-cue",
+      null,
+      cue.audioMode,
+      cue.audioPan,
+      cue.audioVolume,
+      cue.audioTimeS,
+      cue.scheduledAtS,
+      cue.cueIndex,
+      cue.seed,
+      cue.headphones,
+      cue.cause,
     ];
     lines.push(row.map(csvCell).join(","));
   }
@@ -321,8 +551,11 @@ export function sessionToJson(session: DancerSession): string {
     sessionId: session.id,
     startedWallMs: session.startedWall,
     config: session.config,
-    note: "Tap time is not the perceptual transition. No reaction-time correction is applied. The gaze target is the selected slider, not measured fixation. Pose phase is empty because leg and arm are independent sliders.",
+    note: "Tap time is not the perceptual transition. No reaction-time correction is applied. The gaze target is the selected slider, not measured fixation. Pose phase is empty because leg and arm are independent sliders. Audio pan is not the model yaw. A tone is a hypothesis about multisensory influence, not a demonstrated effect.",
+    migratedFrom: session.migratedFrom,
+    audio: session.audio,
     events: session.events,
+    audioCues: session.audioCues,
   }, null, 2);
 }
 
@@ -335,22 +568,80 @@ function isEvent(value: unknown): value is DancerEvent {
     && (event.perceived === "clockwise" || event.perceived === "counterclockwise" || event.perceived === "unsure");
 }
 
+function fillReportAudio(event: DancerEvent): DancerEvent {
+  return {
+    ...event,
+    action: "report",
+    audioMode: event.audioMode ?? "silent",
+    audioPan: event.audioPan ?? "off",
+    audioVolume: event.audioVolume ?? 0,
+    headphones: event.headphones ?? "unspecified",
+    audioTimeS: event.audioTimeS ?? null,
+  };
+}
+
+export function migrateV1(value: unknown): DancerSession | null {
+  if (!value || typeof value !== "object") return null;
+  const raw = value as {
+    schema?: number;
+    id?: string;
+    startedWall?: number;
+    config?: DancerSession["config"];
+    events?: unknown[];
+  };
+  if (raw.schema !== 1 || typeof raw.id !== "string" || typeof raw.startedWall !== "number") return null;
+  if (!Array.isArray(raw.events) || !raw.config) return null;
+  const events = raw.events.filter(isEvent).map(fillReportAudio);
+  const seed = 1;
+  return {
+    schema: SESSION_SCHEMA,
+    id: raw.id,
+    startedWall: raw.startedWall,
+    config: raw.config,
+    migratedFrom: 1,
+    audio: {
+      mode: "silent",
+      volume: AUDIO_VOLUME_DEFAULT,
+      headphones: "unspecified",
+      seed,
+      order: conditionOrder(seed),
+      trialIndex: 0,
+    },
+    events,
+    audioCues: [],
+  };
+}
+
 export function normalizeSession(value: unknown): DancerSession | null {
   if (!value || typeof value !== "object") return null;
   const session = value as DancerSession;
+  if (session.schema === 1) return migrateV1(value);
   if (session.schema !== SESSION_SCHEMA || typeof session.id !== "string" || typeof session.startedWall !== "number") return null;
-  if (!Array.isArray(session.events)) return null;
-  return { ...session, events: session.events.filter(isEvent) };
+  if (!Array.isArray(session.events) || !session.audio || !Array.isArray(session.audio.order)) return null;
+  return {
+    ...session,
+    migratedFrom: session.migratedFrom ?? null,
+    audioCues: Array.isArray(session.audioCues) ? session.audioCues : [],
+    events: session.events.filter(isEvent).map(fillReportAudio),
+  };
 }
 
 export function loadSession(storage: Pick<Storage, "getItem">, now = Date.now()): DancerSession {
   try {
-    const raw = storage.getItem(SESSION_KEY);
-    if (!raw) return createSession(now);
-    return normalizeSession(JSON.parse(raw)) ?? createSession(now);
-  } catch {
-    return createSession(now);
-  }
+    const current = storage.getItem(SESSION_KEY);
+    if (current) {
+      const parsed = normalizeSession(JSON.parse(current));
+      if (parsed) return parsed;
+    }
+  } catch { /* fall through to v1 */ }
+  try {
+    const previous = storage.getItem(SESSION_KEY_V1);
+    if (previous) {
+      const migrated = migrateV1(JSON.parse(previous));
+      if (migrated) return migrated;
+    }
+  } catch { /* fresh session */ }
+  return createSession(now);
 }
 
 export function saveSession(storage: Pick<Storage, "setItem">, session: DancerSession) {

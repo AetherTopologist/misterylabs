@@ -1,18 +1,25 @@
 import { describe, expect, it } from "vitest";
 import { DANCER_OMEGA } from "./dancer-motion";
 import {
+  AUDIO_TRIAL_S,
   CSV_COLUMNS,
   LEGACY_REPORTS_KEY,
   SESSION_KEY,
+  SESSION_KEY_V1,
+  appendAudioCue,
   appendEvent,
   circularMean,
   classifyReport,
+  conditionOrder,
   countsBySpeed,
   createSession,
   formatEventRow,
+  independentCues,
   loadSession,
   median,
   medianReversalInterval,
+  migrateV1,
+  panForReport,
   phaseBins,
   reversalCount,
   saveSession,
@@ -134,7 +141,7 @@ describe("dancer reversal session", () => {
     expect(csv).toContain("Foot");
     expect(csv).toContain(",,"); // empty pose phase between arm position and gaze
     const parsed = JSON.parse(sessionToJson(session));
-    expect(parsed.schema).toBe(1);
+    expect(parsed.schema).toBe(2);
     expect(parsed.sessionId).toBe("sess-3");
     expect(parsed.config.reactionTimeCorrection).toBe("none");
     expect(parsed.config.omegaRadS).toBeCloseTo(DANCER_OMEGA, 8);
@@ -155,5 +162,109 @@ describe("dancer reversal session", () => {
     expect(loaded.events).toHaveLength(1);
     expect(JSON.parse(storage.getItem(LEGACY_REPORTS_KEY) || "[]")).toEqual([{ t: 1, perceived: "clockwise" }]);
     expect(storage.getItem(SESSION_KEY)).toContain("sess-3");
+  });
+
+  it("migrates a v1 session without rewriting it, and exports schema 2", () => {
+    const v1 = {
+      schema: 1,
+      id: "from-v1",
+      startedWall: 50,
+      config: {
+        omegaRadS: 0.84,
+        speedMin: 0.25,
+        speedMax: 6,
+        reactionTimeCorrection: "none",
+        posePhase: "none",
+        gazeMeaning: "selected target, not measured fixation",
+      },
+      events: [{
+        tWall: 80,
+        tMono: 3,
+        elapsedS: 0.03,
+        yawUnwrapped: 1.7,
+        yawMod: 1.7,
+        physicalDirection: "ccw",
+        speed: 2,
+        angularVelocityRadS: -1.68,
+        running: true,
+        legEmphasis: 0.4,
+        armPosition: 0.2,
+        posePhase: null,
+        gazeTarget: "Head",
+        gazePct: 10,
+        shaded: false,
+        perspective: false,
+        depthCues: false,
+        floorShadow: false,
+        markers: false,
+        perceived: "clockwise",
+        sincePrevS: null,
+        kind: "initial",
+      }],
+    };
+    const raw = JSON.stringify(v1);
+    const memory = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => memory.get(key) ?? null,
+      setItem: (key: string, value: string) => { memory.set(key, value); },
+    };
+    storage.setItem(SESSION_KEY_V1, raw);
+    const loaded = loadSession(storage, 10);
+    expect(loaded.schema).toBe(2);
+    expect(loaded.migratedFrom).toBe(1);
+    expect(loaded.id).toBe("from-v1");
+    expect(loaded.events[0].yawUnwrapped).toBe(1.7);
+    expect(loaded.events[0].audioMode).toBe("silent");
+    expect(loaded.events[0].action).toBe("report");
+    expect(loaded.audio.mode).toBe("silent");
+    expect(loaded.audioCues).toEqual([]);
+    expect(migrateV1(v1)?.events[0].physicalDirection).toBe("ccw");
+    saveSession(storage, loaded);
+    expect(storage.getItem(SESSION_KEY_V1)).toBe(raw);
+    const csv = sessionToCsv(loaded);
+    const header = csv.split("\n")[0].split(",");
+    const body = csv.split("\n")[1].split(",");
+    expect(header).toEqual([...CSV_COLUMNS]);
+    expect(body).toHaveLength(header.length);
+    expect(csv).toContain("audio_mode");
+    expect(csv).toContain("audio_volume_gain");
+    expect(body[header.indexOf("audio_mode")]).toBe("silent");
+    expect(body[header.indexOf("row_kind")]).toBe("report");
+    const parsed = JSON.parse(sessionToJson(loaded));
+    expect(parsed.schema).toBe(2);
+    expect(parsed.migratedFrom).toBe(1);
+    expect(parsed.note).toMatch(/not a demonstrated effect/i);
+
+    const seeded = independentCues(42, AUDIO_TRIAL_S);
+    expect(seeded).toEqual(independentCues(42, AUDIO_TRIAL_S));
+    expect(seeded.length).toBeGreaterThan(3);
+    expect(seeded.every((cue) => cue.pan === "left" || cue.pan === "right")).toBe(true);
+    const orders = [0, 1, 2, 3, 4, 5].map((seed) => conditionOrder(seed).join(","));
+    expect(new Set(orders).size).toBe(6);
+    expect(conditionOrder(8)).toEqual(conditionOrder(2));
+    expect(panForReport("clockwise")).toBe("right");
+    expect(panForReport("counterclockwise")).toBe("left");
+
+    const cued = appendAudioCue(loaded, {
+      tWall: 90,
+      tMono: 4,
+      yawUnwrapped: 1.7,
+      physicalDirection: "ccw",
+      audioTimeS: 2.5,
+      scheduledAtS: 2.5,
+      audioPan: "left",
+      cueIndex: 0,
+      seed: 42,
+      cause: "independent-schedule",
+    });
+    expect(cued.events).toHaveLength(1);
+    expect(cued.events[0].yawUnwrapped).toBe(1.7);
+    expect(cued.audioCues[0].audioPan).toBe("left");
+    expect(cued.audioCues[0].physicalDirection).toBe("ccw");
+    const cueCsv = sessionToCsv(cued).split("\n")[2].split(",");
+    expect(cueCsv).toHaveLength(CSV_COLUMNS.length);
+    expect(cueCsv[CSV_COLUMNS.indexOf("row_kind")]).toBe("audio-cue");
+    expect(cueCsv[CSV_COLUMNS.indexOf("audio_time_s")]).toBe("2.5");
+    expect(cueCsv[CSV_COLUMNS.indexOf("observer_action")]).toBe("");
   });
 });
