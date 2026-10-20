@@ -27,6 +27,8 @@ These rides are instruments for looking. They do not measure a visitor's percept
 - Nested cubes in the drawing are a perspective effect. A far cell can appear inside a near cell. That is not a topological eversion, not a sphere turned inside out, and not evidence that space has inverted.
 - The cube fold uses the existing 11 nets and the existing chirality spanning tree. Progress `0` is the flat net. Progress `1` hinges each tree edge by a right angle. Nine of the nets are trees and close into a cube of side 2. Nets “Row Adjacent 1-2” and “Row Adjacent 0-1” already contain six grid joins instead of five, so a right-angle hinge fold is not claimed to close. The on-canvas note says so. This is a rigid paper fold, not a claim about higher-dimensional matter.
 - The worm tube is a separate mode. Its radius and centerline are a hand-authored function of arc length and time. It does not read the 4D angles or the fold. The on-screen warning is the string `WORM_TUBE_WARNING`.
+- The cockpit does not add a 4D unfolding parameter. Fold progress only hinges the selected cube net. The six plane controls are offsets on the existing tesseract integral, not a hypercross.
+- On a narrow screen one pane can be hidden. That canvas stays mounted and is not redrawn until it is shown again. The angle integral and the worm-tube clock keep running either way. Desktop keeps both panes side by side.
 
 ## What this page does not do
 
