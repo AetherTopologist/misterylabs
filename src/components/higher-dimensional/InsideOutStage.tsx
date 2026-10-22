@@ -1,5 +1,11 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { FACE_COLORS, NET_LABELS, type Chirality } from "@/components/CubeNetExplorer";
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import {
+  CubeNetDiagram,
+  FACE_COLORS,
+  NET_LABELS,
+  computeUnfoldPath,
+  type Chirality,
+} from "@/components/CubeNetExplorer";
 import { foldCube, netFoldCloses, type V3 } from "@/instruments/higher-dimensional/fold-cube";
 import {
   LEGACY_PLANE_RATES,
@@ -17,17 +23,20 @@ import { WORM_TUBE_WARNING, wormTubeQuads } from "@/instruments/higher-dimension
 import "./inside-out.css";
 
 type Mode = "wire" | "hybrid" | "surface" | "worm";
-type ViewId = "projection" | "fold" | "compare";
-type TabId = "structure" | "projection" | "motion" | "inspect";
+type LabId = "cube" | "four" | "compare";
+type FocusId = "both" | "net" | "fold";
+type TabId = "projection" | "motion" | "inspect";
+type Pt = [number, number, number];
 
-const VIEWS: { id: ViewId; label: string }[] = [
-  { id: "projection", label: "Projection" },
-  { id: "fold", label: "Cube fold" },
+const LAB_KEY = "misterylabs.inside-out.lab";
+
+const LABS: { id: LabId; label: string }[] = [
+  { id: "cube", label: "Cube" },
+  { id: "four", label: "4D" },
   { id: "compare", label: "Compare" },
 ];
 
 const TABS: { id: TabId; label: string }[] = [
-  { id: "structure", label: "Structure" },
   { id: "projection", label: "Projection" },
   { id: "motion", label: "Motion" },
   { id: "inspect", label: "Inspect" },
@@ -49,27 +58,63 @@ const MODE_BUTTONS: { id: Mode; label: string }[] = [
   { id: "worm", label: "Worm tube" },
 ];
 
-function useWideScreen() {
-  const [wide, setWide] = useState(() =>
-    typeof window !== "undefined" && window.matchMedia("(min-width: 900px)").matches,
-  );
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 900px)");
-    const apply = () => setWide(mq.matches);
-    apply();
-    mq.addEventListener?.("change", apply);
-    return () => mq.removeEventListener?.("change", apply);
-  }, []);
-  return wide;
+const FACE_NAMES = ["Front", "Back", "Top", "Bottom", "Right", "Left"] as const;
+
+type ScreenPoly = { fi: number; pts: [number, number][] };
+
+function storedLab(): LabId {
+  if (typeof window === "undefined") return "cube";
+  try {
+    const value = window.localStorage.getItem(LAB_KEY);
+    if (value === "cube" || value === "four" || value === "compare") return value;
+  } catch { /* private mode */ }
+  return "cube";
 }
 
 function resize(canvas: HTMLCanvasElement) {
   const dpr = window.devicePixelRatio || 1;
-  const r = canvas.getBoundingClientRect();
-  if (r.width < 2 || r.height < 2) return 0;
-  canvas.width = r.width * dpr;
-  canvas.height = r.height * dpr;
+  const rect = canvas.getBoundingClientRect();
+  if (rect.width < 2 || rect.height < 2) return 0;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
   return dpr;
+}
+
+/** Uniform scale of an already-projected drawing. Does not change the projection. */
+function fitTransform(points: Pt[], width: number, height: number, margin = 0.12) {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const point of points) {
+    if (point[0] < minX) minX = point[0];
+    if (point[1] < minY) minY = point[1];
+    if (point[0] > maxX) maxX = point[0];
+    if (point[1] > maxY) maxY = point[1];
+  }
+  const spanX = Math.max(1e-4, maxX - minX);
+  const spanY = Math.max(1e-4, maxY - minY);
+  const scale = Math.min((width * (1 - 2 * margin)) / spanX, (height * (1 - 2 * margin)) / spanY);
+  return {
+    scale,
+    ox: (width - (minX + maxX) * scale) / 2,
+    oy: (height - (minY + maxY) * scale) / 2,
+  };
+}
+
+function applyFit(point: Pt, fit: { scale: number; ox: number; oy: number }): Pt {
+  return [fit.ox + point[0] * fit.scale, fit.oy + point[1] * fit.scale, point[2]];
+}
+
+function projectFold(point: V3, origin: V3): Pt {
+  const x = point[0] - origin[0];
+  const y = point[1] - origin[1];
+  const z = point[2] - origin[2];
+  const yaw = 0.7;
+  const pitch = 0.45;
+  const x1 = x * Math.cos(yaw) + z * Math.sin(yaw);
+  const z1 = -x * Math.sin(yaw) + z * Math.cos(yaw);
+  const y2 = y * Math.cos(pitch) - z1 * Math.sin(pitch);
+  const z2 = y * Math.sin(pitch) + z1 * Math.cos(pitch);
+  const perspective = 1 / (3.2 - z2 * 0.15);
+  return [x1 * perspective, -y2 * perspective, z2];
 }
 
 function paintFold(
@@ -77,71 +122,72 @@ function paintFold(
   progress: number,
   netIdx: number,
   chirality: Chirality,
-  mode: Mode,
-  alpha: number,
+  selected: number | null,
+  polys: ScreenPoly[],
 ) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
   const dpr = resize(canvas);
   if (!dpr) return;
-  const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
+  const width = canvas.width;
+  const height = canvas.height;
+  ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = "#05060c";
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, 0, width, height);
+
   const faces = foldCube(netIdx, progress, chirality);
-  let cx3 = 0, cy3 = 0, cz3 = 0, n = 0;
-  for (const face of faces) for (const p of face) { cx3 += p[0]; cy3 += p[1]; cz3 += p[2]; n++; }
-  cx3 /= n; cy3 /= n; cz3 /= n;
-  const cx = W / 2, cy = H / 2;
-  const sc = Math.min(W, H) * 0.16;
-  const yaw = 0.7, pitch = 0.45;
-  const project = (p: V3): [number, number, number] => {
-    const x = p[0] - cx3, y = p[1] - cy3, z = p[2] - cz3;
-    const cyaw = Math.cos(yaw), syaw = Math.sin(yaw);
-    const x1 = x * cyaw + z * syaw;
-    const z1 = -x * syaw + z * cyaw;
-    const cp = Math.cos(pitch), sp = Math.sin(pitch);
-    const y2 = y * cp - z1 * sp;
-    const z2 = y * sp + z1 * cp;
-    const s = sc / (3.2 - z2 * 0.15);
-    return [cx + x1 * s, cy - y2 * s, z2];
-  };
-  const drawn = faces.map((face, fi) => {
-    const pts = face.map(project);
-    const depth = pts.reduce((s, p) => s + p[2], 0) / pts.length;
+  const origin: V3 = [0, 0, 0];
+  let count = 0;
+  for (const face of faces) for (const point of face) {
+    origin[0] += point[0]; origin[1] += point[1]; origin[2] += point[2]; count++;
+  }
+  origin[0] /= count; origin[1] /= count; origin[2] /= count;
+
+  const raw = faces.map((face) => face.map((point) => projectFold(point, origin)));
+  const fit = fitTransform(raw.flat(), width, height, 0.08);
+  const order = computeUnfoldPath(netIdx, chirality).order;
+  const drawn = raw.map((face, fi) => {
+    const pts = face.map((point) => applyFit(point, fit));
+    const depth = pts.reduce((sum, point) => sum + point[2], 0) / pts.length;
     return { fi, pts, depth };
   }).sort((a, b) => a.depth - b.depth);
-  const showSurface = mode === "surface" || mode === "hybrid";
-  const showWire = mode === "wire" || mode === "hybrid";
+
+  polys.length = 0;
   for (const { fi, pts } of drawn) {
-    const col = FACE_COLORS[fi];
-    if (showSurface) {
+    const color = FACE_COLORS[fi];
+    const on = selected === fi;
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (const point of pts.slice(1)) ctx.lineTo(point[0], point[1]);
+    ctx.closePath();
+    ctx.fillStyle = color.fill.replace("0.82", on ? "0.94" : "0.62");
+    ctx.fill();
+    ctx.strokeStyle = on ? "#f8fafc" : color.stroke;
+    ctx.lineWidth = (on ? 2.6 : 1.25) * dpr;
+    ctx.stroke();
+    polys.push({ fi, pts: pts.map((point) => [point[0] / dpr, point[1] / dpr]) });
+  }
+
+  if (selected != null) {
+    const hit = drawn.find((face) => face.fi === selected);
+    if (hit) {
+      const sx = hit.pts.reduce((sum, point) => sum + point[0], 0) / hit.pts.length;
+      const sy = hit.pts.reduce((sum, point) => sum + point[1], 0) / hit.pts.length;
+      const step = order.indexOf(selected) + 1;
       ctx.beginPath();
-      ctx.moveTo(pts[0][0], pts[0][1]);
-      for (const p of pts.slice(1)) ctx.lineTo(p[0], p[1]);
-      ctx.closePath();
-      ctx.fillStyle = col.fill.replace("0.82", String(Math.max(0.05, alpha)));
+      ctx.arc(sx, sy, 12 * dpr, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(5,6,12,0.88)";
       ctx.fill();
-    }
-    if (showWire) {
-      ctx.beginPath();
-      ctx.moveTo(pts[0][0], pts[0][1]);
-      for (const p of pts.slice(1)) ctx.lineTo(p[0], p[1]);
-      ctx.closePath();
-      ctx.strokeStyle = col.stroke;
-      ctx.lineWidth = 1.1 * dpr;
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.strokeStyle = "#f8fafc";
       ctx.stroke();
+      ctx.fillStyle = "#f8fafc";
+      ctx.font = `700 ${12 * dpr}px "JetBrains Mono",ui-monospace,monospace`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(String(step), sx, sy);
     }
   }
-  ctx.fillStyle = "rgba(255,255,255,0.45)";
-  ctx.font = `${11 * dpr}px "JetBrains Mono",ui-monospace,monospace`;
-  ctx.fillText(`FOLD ${progress.toFixed(2)}  ·  ${NET_LABELS[netIdx]}  ·  ${chirality.toUpperCase()}`, 16 * dpr, 24 * dpr);
-  ctx.fillStyle = "rgba(255,255,255,0.35)";
-  ctx.font = `${10 * dpr}px "JetBrains Mono",ui-monospace,monospace`;
-  const note = netFoldCloses(netIdx, chirality)
-    ? "Rigid hinge fold of the net. Not an eversion."
-    : "This grid has an extra join, so a right-angle fold does not close. Not an eversion.";
-  ctx.fillText(note, 16 * dpr, H - 16 * dpr);
 }
 
 function paintTesseract(
@@ -157,57 +203,55 @@ function paintTesseract(
   if (!ctx) return;
   const dpr = resize(canvas);
   if (!dpr) return;
-  const W = canvas.width, H = canvas.height;
-  const cx = W / 2, cy = H / 2;
-  ctx.clearRect(0, 0, W, H);
+  const width = canvas.width;
+  const height = canvas.height;
+  ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = "#05060c";
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, 0, width, height);
 
   if (mode === "worm") {
-    const sc = Math.min(W, H) * 0.28;
     const quads = wormTubeQuads(artTime);
-    for (const quad of quads) {
-      const pts = quad.pts.map((p) => {
-        const z = 3.2 - p[2];
-        const s = sc / z;
-        return [cx + p[0] * s, cy - p[1] * s] as const;
-      });
+    const raw = quads.map((quad) => quad.pts.map((point): Pt => {
+      const z = 3.2 - point[2];
+      const scale = 1 / z;
+      return [point[0] * scale, -point[1] * scale, point[2]];
+    }));
+    const fit = fitTransform(raw.flat(), width, height, 0.08);
+    raw.forEach((quad) => {
+      const pts = quad.map((point) => applyFit(point, fit));
       ctx.beginPath();
       ctx.moveTo(pts[0][0], pts[0][1]);
-      for (const p of pts.slice(1)) ctx.lineTo(p[0], p[1]);
+      for (const point of pts.slice(1)) ctx.lineTo(point[0], point[1]);
       ctx.closePath();
       ctx.fillStyle = `rgba(125, 211, 252, ${Math.max(0.04, alpha * 0.45)})`;
       ctx.fill();
       ctx.strokeStyle = `rgba(226, 232, 240, ${Math.max(0.08, alpha * 0.35)})`;
       ctx.lineWidth = 0.6 * dpr;
       ctx.stroke();
-    }
-    ctx.fillStyle = "rgba(251,191,36,0.9)";
-    ctx.font = `${11 * dpr}px "JetBrains Mono",ui-monospace,monospace`;
-    const words = wrap(WORM_TUBE_WARNING, 46);
-    words.forEach((line, i) => ctx.fillText(line, 16 * dpr, 28 * dpr + i * 16 * dpr));
+    });
     return;
   }
 
-  const sc = Math.min(W, H) * 0.26;
   const d4 = projectionDistance(perspective, distance);
-  const verts = T_VERTS.map((v) => {
-    const r = applyPlanes(v, angles);
-    return proj3to2(proj4to3(r, d4), 3.5, sc, cx, cy);
+  const raw = T_VERTS.map((vertex) => {
+    const rotated = applyPlanes(vertex, angles);
+    return proj3to2(proj4to3(rotated, d4), 3.5, 1, 0, 0);
   });
+  const fit = fitTransform(raw, width, height, 0.08);
+  const verts = raw.map((point) => applyFit(point, fit));
   const showSurface = mode === "surface" || mode === "hybrid";
   const showWire = mode === "wire" || mode === "hybrid";
   if (showSurface) {
     const faces = T_FACES.map((ids) => {
-      const pts = ids.map((i) => verts[i]);
-      const depth = pts.reduce((s, p) => s + p[2], 0) / pts.length;
-      const w = ids.reduce((s, i) => s + T_VERTS[i][3], 0) / ids.length;
-      return { ids, pts, depth, w };
+      const pts = ids.map((index) => verts[index]);
+      const depth = pts.reduce((sum, point) => sum + point[2], 0) / pts.length;
+      const w = ids.reduce((sum, index) => sum + T_VERTS[index][3], 0) / ids.length;
+      return { pts, depth, w };
     }).sort((a, b) => a.depth - b.depth);
     for (const face of faces) {
       ctx.beginPath();
       ctx.moveTo(face.pts[0][0], face.pts[0][1]);
-      for (const p of face.pts.slice(1)) ctx.lineTo(p[0], p[1]);
+      for (const point of face.pts.slice(1)) ctx.lineTo(point[0], point[1]);
       ctx.closePath();
       const color = face.w > 0.5 ? "34,211,238" : face.w < -0.5 ? "251,191,36" : "167,139,250";
       ctx.fillStyle = `rgba(${color},${Math.max(0.04, alpha)})`;
@@ -217,43 +261,40 @@ function paintTesseract(
   if (showWire) {
     const edges = T_EDGES.map(([a, b, kind]) => ({
       a, b, kind, depth: (verts[a][2] + verts[b][2]) / 2,
-    })).sort((x, y) => x.depth - y.depth);
+    })).sort((left, right) => left.depth - right.depth);
     for (const edge of edges) {
-      const t = Math.max(0, Math.min(1, (edge.depth + sc) / (2 * sc)));
-      const o = 0.25 + t * 0.7;
+      const t = Math.max(0, Math.min(1, (edge.depth + width) / (2 * width)));
+      const opacity = 0.25 + t * 0.7;
       ctx.strokeStyle = edge.kind === "outer"
-        ? `rgba(34,211,238,${o})`
+        ? `rgba(34,211,238,${opacity})`
         : edge.kind === "inner"
-          ? `rgba(251,191,36,${o})`
-          : `rgba(167,139,250,${o})`;
-      ctx.lineWidth = (0.8 + t * 0.8) * dpr;
+          ? `rgba(251,191,36,${opacity})`
+          : `rgba(167,139,250,${opacity})`;
+      ctx.lineWidth = (0.9 + t * 1.1) * dpr;
       ctx.beginPath();
       ctx.moveTo(verts[edge.a][0], verts[edge.a][1]);
       ctx.lineTo(verts[edge.b][0], verts[edge.b][1]);
       ctx.stroke();
     }
   }
-  ctx.fillStyle = "rgba(255,255,255,0.4)";
-  ctx.font = `${11 * dpr}px "JetBrains Mono",ui-monospace,monospace`;
-  ctx.fillText("4D PROJECTION  ·  NESTING IS NOT EVERSION", 16 * dpr, 24 * dpr);
 }
 
-function wrap(text: string, width: number): string[] {
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let line = "";
-  for (const word of words) {
-    const next = line ? `${line} ${word}` : word;
-    if (next.length > width) { lines.push(line); line = word; }
-    else line = next;
+function pointInPoly(x: number, y: number, pts: [number, number][]) {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const [xi, yi] = pts[i];
+    const [xj, yj] = pts[j];
+    const crosses = (yi > y) !== (yj > y)
+      && x < ((xj - xi) * (y - yi)) / ((yj - yi) || 1e-9) + xi;
+    if (crosses) inside = !inside;
   }
-  if (line) lines.push(line);
-  return lines;
+  return inside;
 }
 
 export function InsideOutStage() {
   const tessRef = useRef<HTMLCanvasElement>(null);
   const foldRef = useRef<HTMLCanvasElement>(null);
+  const foldPolys = useRef<ScreenPoly[]>([]);
   const anglesRef = useRef<PlaneAngles>({ ...ZERO_PLANES, yz: 0.3 });
   const artRef = useRef(0);
   const [running, setRunning] = useState(true);
@@ -267,13 +308,15 @@ export function InsideOutStage() {
   const [progress, setProgress] = useState(0.65);
   const [netIdx, setNetIdx] = useState(0);
   const [chirality, setChirality] = useState<Chirality>("cw");
+  const [selected, setSelected] = useState<number | null>(null);
   const [offsets, setOffsets] = useState<PlaneAngles>({ ...ZERO_PLANES });
   const [integral, setIntegral] = useState<PlaneAngles>({ ...ZERO_PLANES, yz: 0.3 });
-  const [view, setView] = useState<ViewId>("projection");
+  const [lab, setLab] = useState<LabId>(storedLab);
+  const [focus, setFocus] = useState<FocusId>("both");
+  const [controls, setControls] = useState<"cube" | "four">("cube");
   const [tab, setTab] = useState<TabId>("projection");
   const [collapsed, setCollapsed] = useState(false);
   const [full, setFull] = useState(false);
-  const wide = useWideScreen();
 
   const runRef = useRef(running);
   const revRef = useRef(reverse);
@@ -286,9 +329,11 @@ export function InsideOutStage() {
   const progRef = useRef(progress);
   const netRef = useRef(netIdx);
   const chiRef = useRef(chirality);
+  const selectedRef = useRef(selected);
   const offRef = useRef(offsets);
-  const wideRef = useRef(wide);
-  const viewRef = useRef(view);
+  const labRef = useRef(lab);
+  const focusRef = useRef(focus);
+  const controlsRef = useRef(controls);
   const tabRef = useRef(tab);
   runRef.current = running;
   revRef.current = reverse;
@@ -301,10 +346,16 @@ export function InsideOutStage() {
   progRef.current = progress;
   netRef.current = netIdx;
   chiRef.current = chirality;
+  selectedRef.current = selected;
   offRef.current = offsets;
-  wideRef.current = wide;
-  viewRef.current = view;
+  labRef.current = lab;
+  focusRef.current = focus;
+  controlsRef.current = controls;
   tabRef.current = tab;
+
+  useEffect(() => {
+    try { window.localStorage.setItem(LAB_KEY, lab); } catch { /* private mode */ }
+  }, [lab]);
 
   useEffect(() => {
     const tess = tessRef.current;
@@ -328,38 +379,45 @@ export function InsideOutStage() {
       (Object.keys(totals) as (keyof PlaneAngles)[]).forEach((key) => {
         totals[key] += offRef.current[key];
       });
-      const drawMode = modeRef.current;
-      const showTess = wideRef.current || viewRef.current === "projection" || viewRef.current === "compare";
-      const showFold = wideRef.current || viewRef.current === "fold" || viewRef.current === "compare";
-      tess.dataset.xw = anglesRef.current.xw.toFixed(6);
+      const currentLab = labRef.current;
+      const cubeOn = currentLab === "cube" || currentLab === "compare";
+      const fourOn = currentLab === "four" || currentLab === "compare";
+      const foldOn = cubeOn && focusRef.current !== "net";
+      const tessOn = fourOn;
       fold.dataset.progress = progRef.current.toFixed(4);
-      if (showTess) {
-        paintTesseract(tess, totals, distRef.current, perspRef.current, drawMode, alphaRef.current, artRef.current);
-      }
-      if (showFold) {
-        paintFold(
-          fold,
-          progRef.current,
-          netRef.current,
-          chiRef.current,
-          drawMode === "worm" ? "hybrid" : drawMode,
+      fold.dataset.face = selectedRef.current == null ? "" : String(selectedRef.current);
+      tess.dataset.xw = anglesRef.current.xw.toFixed(6);
+      if (tessOn) {
+        paintTesseract(
+          tess,
+          totals,
+          distRef.current,
+          perspRef.current,
+          modeRef.current,
           alphaRef.current,
+          artRef.current,
         );
       }
-      if (tabRef.current === "inspect" && now - lastPublish > 200) {
+      if (foldOn) {
+        paintFold(fold, progRef.current, netRef.current, chiRef.current, selectedRef.current, foldPolys.current);
+      }
+      const inspectOn = tabRef.current === "inspect" && (
+        currentLab === "four" || (currentLab === "compare" && controlsRef.current === "four")
+      );
+      if (inspectOn && now - lastPublish > 200) {
         lastPublish = now;
         setIntegral({ ...anglesRef.current });
       }
       raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
-    const ro = new ResizeObserver(() => { /* the next frame reads the new rect */ });
-    ro.observe(tess);
-    ro.observe(fold);
+    const observer = new ResizeObserver(() => { /* the next frame reads the new rect */ });
+    observer.observe(tess);
+    observer.observe(fold);
     return () => {
       dead = true;
       cancelAnimationFrame(raf);
-      ro.disconnect();
+      observer.disconnect();
     };
   }, []);
 
@@ -367,10 +425,23 @@ export function InsideOutStage() {
     if (!full) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
+    return () => { document.body.style.overflow = previous; };
   }, [full]);
+
+  function onFoldPointer(event: PointerEvent<HTMLCanvasElement>) {
+    const canvas = foldRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const hits = foldPolys.current;
+    for (let i = hits.length - 1; i >= 0; i--) {
+      if (pointInPoly(x, y, hits[i].pts)) {
+        setSelected(hits[i].fi);
+        return;
+      }
+    }
+  }
 
   function onTabKey(event: KeyboardEvent<HTMLDivElement>) {
     const key = event.key;
@@ -387,78 +458,191 @@ export function InsideOutStage() {
     document.getElementById(`io-tab-${next}`)?.focus();
   }
 
-  const projectionLive = wide || view === "projection" || view === "compare";
-  const foldLive = wide || view === "fold" || view === "compare";
+  const cubeOn = lab === "cube" || lab === "compare";
+  const fourOn = lab === "four" || lab === "compare";
+  const netLive = cubeOn && focus !== "fold";
+  const foldLive = cubeOn && focus !== "net";
+  const tessLive = fourOn;
+  const showCubeDock = !collapsed && (lab === "cube" || (lab === "compare" && controls === "cube"));
+  const showFourDock = !collapsed && (lab === "four" || (lab === "compare" && controls === "four"));
   const closes = netFoldCloses(netIdx, chirality);
+  const unfold = computeUnfoldPath(netIdx, chirality);
+  const step = selected == null ? null : unfold.order.indexOf(selected) + 1;
   const modeLabel = mode === "worm" ? "Artistic tube" : mode;
+  const selectedName = selected == null ? null : FACE_NAMES[selected];
 
   return (
-    <div className={`io-cockpit${full ? " is-full" : ""}`} data-view={view}>
+    <div
+      className={`io-cockpit${full ? " is-full" : ""}`}
+      data-lab={lab}
+      data-focus={focus}
+      data-net={netIdx}
+      data-chirality={chirality}
+      data-progress={progress.toFixed(2)}
+      data-face={selected ?? ""}
+    >
       <div className="io-stage">
-        <figure
-          className="io-pane"
-          data-pane="projection"
-          data-live={projectionLive ? "true" : "false"}
-          aria-hidden={projectionLive ? undefined : true}
-        >
-          <figcaption className="io-cap">
-            <span>4D projection</span>
-            <span>{modeLabel}</span>
-          </figcaption>
-          <p className="io-pane-note">
-            {mode === "worm"
-              ? "Artistic tube. Not a 4D projection and not the cube fold."
-              : "Perspective drawing of the hypercube. A nested cell is not an eversion."}
-          </p>
-          <div className="io-view">
-            <canvas ref={tessRef} aria-label="Tesseract projection or artistic worm tube" />
+        <section className="io-lab" data-lab-pane="cube" data-live={cubeOn ? "true" : "false"} aria-hidden={cubeOn ? undefined : true}>
+          <div className="io-cube-pair">
+            <figure className="io-pane" data-pane="net" data-live={netLive ? "true" : "false"} aria-hidden={netLive ? undefined : true}>
+              <figcaption className="io-cap">
+                <span>Flat net</span>
+                <span>{NET_LABELS[netIdx]}</span>
+              </figcaption>
+              <p className="io-pane-note">Five spanning-tree hinges. Not every shared side.</p>
+              <div className="io-view">
+                <CubeNetDiagram
+                  netIdx={netIdx}
+                  chirality={chirality}
+                  activeFace={selected}
+                  hinges
+                  fit="contain"
+                  onFaceSelect={setSelected}
+                  label={`Cube net ${netIdx + 1}: ${NET_LABELS[netIdx]}`}
+                />
+              </div>
+            </figure>
+            <figure className="io-pane" data-pane="fold" data-live={foldLive ? "true" : "false"} aria-hidden={foldLive ? undefined : true}>
+              <figcaption className="io-cap">
+                <span>Hinged fold</span>
+                <span>{chirality === "cw" ? "Clockwise" : "Counterclockwise"}</span>
+              </figcaption>
+              <p className="io-pane-note">Progress 0 is the flat net. Progress 1 is fully folded. Not a hypercube.</p>
+              <div className="io-view">
+                <canvas
+                  ref={foldRef}
+                  aria-label="Cube net hinge fold"
+                  onPointerDown={onFoldPointer}
+                />
+              </div>
+            </figure>
           </div>
-        </figure>
-        <figure
-          className="io-pane"
-          data-pane="fold"
-          data-live={foldLive ? "true" : "false"}
-          aria-hidden={foldLive ? undefined : true}
-        >
-          <figcaption className="io-cap">
-            <span>Cube-net fold</span>
-            <span>3D paper</span>
-          </figcaption>
-          <p className="io-pane-note">Six squares hinge into a cube. This is not a hypercube unfolding.</p>
-          <div className="io-view">
-            <canvas ref={foldRef} aria-label="Cube net hinge fold" />
+          <div className="io-cube-bar">
+            <Slider
+              label="Fold progress"
+              min={0}
+              max={1}
+              step={0.01}
+              value={progress}
+              onChange={setProgress}
+              display={`${progress.toFixed(2)} · 0 flat, 1 folded`}
+            />
           </div>
-        </figure>
+        </section>
+
+        <section className="io-lab" data-lab-pane="four" data-live={tessLive ? "true" : "false"} aria-hidden={tessLive ? undefined : true}>
+          <figure className="io-pane" data-pane="projection" data-live={tessLive ? "true" : "false"}>
+            <figcaption className="io-cap">
+              <span>4D projection</span>
+              <span>{modeLabel}</span>
+            </figcaption>
+            <p className="io-pane-note">
+              {mode === "worm"
+                ? "Artistic tube. Not a 4D projection and not the cube fold."
+                : "Perspective drawing of the hypercube. A nested cell is not an inside-out cube."}
+            </p>
+            <div className="io-view">
+              <canvas ref={tessRef} aria-label="Tesseract projection or artistic worm tube" />
+            </div>
+          </figure>
+        </section>
       </div>
 
       <section className="io-dock" aria-label="Inside-Out controls">
         <div className="io-dock-top">
           <p className="io-status" aria-live="polite">
-            <span>{speed.toFixed(2)}×</span>
-            <span>{running ? (reverse ? "Reversed" : "Running") : "Paused"}</span>
-            <span>{slow ? "Slow motion" : "Full rate"}</span>
-            <span>{modeLabel}</span>
-            <span>{NET_LABELS[netIdx]}</span>
+            {lab !== "four" && (
+              <>
+                <span>{NET_LABELS[netIdx]}</span>
+                <span>{chirality}</span>
+                <span>{progress.toFixed(2)}</span>
+              </>
+            )}
+            {lab !== "cube" && (
+              <>
+                <span>{speed.toFixed(2)}×</span>
+                <span>{running ? (reverse ? "Reversed" : "Running") : "Paused"}</span>
+                <span>{modeLabel}</span>
+              </>
+            )}
           </p>
           <div className="io-tools">
-            <button type="button" className="io-tool" aria-pressed={collapsed} onClick={() => setCollapsed((v) => !v)}>
+            <button type="button" className="io-tool" aria-pressed={collapsed} onClick={() => setCollapsed((value) => !value)}>
               {collapsed ? "Show controls" : "Hide controls"}
             </button>
-            <button type="button" className="io-tool" aria-pressed={full} onClick={() => setFull((v) => !v)}>
+            <button type="button" className="io-tool" aria-pressed={full} onClick={() => setFull((value) => !value)}>
               {full ? "Exit stage" : "Expand stage"}
             </button>
           </div>
         </div>
-        <p className="io-hint">Nesting is not eversion. The paper fold is not a hypercube unfolding.</p>
-        <div className="io-views" role="group" aria-label="Which viewport">
-          {VIEWS.map((item) => (
-            <button key={item.id} type="button" aria-pressed={view === item.id} onClick={() => setView(item.id)}>
+        <div className="io-views" role="group" aria-label="Laboratory">
+          {LABS.map((item) => (
+            <button key={item.id} type="button" aria-pressed={lab === item.id} onClick={() => setLab(item.id)}>
               {item.label}
             </button>
           ))}
         </div>
+        <p className="io-hint">Nesting is not eversion. The amber dashes are the five spanning-tree hinges.</p>
+        {lab === "compare" && !collapsed && (
+          <div className="io-views" role="group" aria-label="Compare controls">
+            <button type="button" aria-pressed={controls === "cube"} onClick={() => setControls("cube")}>Cube controls</button>
+            <button type="button" aria-pressed={controls === "four"} onClick={() => setControls("four")}>4D controls</button>
+          </div>
+        )}
 
-        {collapsed ? null : (
+        {showCubeDock && (
+          <div className="io-panel">
+            <div className="io-row" role="group" aria-label="Cube panel focus">
+              <button type="button" className="io-choice" aria-pressed={focus === "both"} onClick={() => setFocus("both")}>Both views</button>
+              <button type="button" className="io-choice" aria-pressed={focus === "net"} onClick={() => setFocus("net")}>Net only</button>
+              <button type="button" className="io-choice" aria-pressed={focus === "fold"} onClick={() => setFocus("fold")}>Fold only</button>
+            </div>
+            <p className="io-face-readout" data-testid="cube-selection">
+              <span>{selectedName == null ? "No face selected" : `${selectedName} · step ${step}`}</span>
+              <button type="button" className="io-choice" onClick={() => setSelected(null)}>Clear face</button>
+            </p>
+            <label className="io-field">
+              <span>
+                <span>Cube net</span>
+                <span>{netIdx + 1} / {NET_LABELS.length}</span>
+              </span>
+              <select aria-label="Cube net" value={netIdx} onChange={(event) => setNetIdx(parseInt(event.target.value, 10))}>
+                {NET_LABELS.map((label, index) => <option key={label} value={index}>{label}</option>)}
+              </select>
+            </label>
+            <div className="io-row" aria-label="Net index">
+              {NET_LABELS.map((label, index) => (
+                <button
+                  key={label}
+                  type="button"
+                  className="io-choice"
+                  aria-pressed={netIdx === index}
+                  aria-label={`Select ${label}`}
+                  onClick={() => setNetIdx(index)}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
+            <div className="io-row">
+              <button type="button" className="io-choice" aria-pressed={chirality === "cw"} onClick={() => setChirality("cw")}>
+                Clockwise fold
+              </button>
+              <button type="button" className="io-choice" aria-pressed={chirality === "ccw"} onClick={() => setChirality("ccw")}>
+                Counterclockwise fold
+              </button>
+            </div>
+            <p className="io-hint">
+              {NET_LABELS[netIdx]} {closes ? "closes" : "does not close"}.{" "}
+              {closes
+                ? "At progress 1 its spanning tree hinges into a cube of side 2."
+                : "This grid has an extra join, so a right-angle fold is not a cube."}
+              {" "}The fold is paper in 3D. It is not a 4D unfolding, and it does not turn the tesseract.
+            </p>
+          </div>
+        )}
+
+        {showFourDock && (
           <>
             <div className="io-tabs" role="tablist" aria-label="Control groups" onKeyDown={onTabKey}>
               {TABS.map((item) => (
@@ -477,47 +661,6 @@ export function InsideOutStage() {
               ))}
             </div>
             <div className="io-panel" role="tabpanel" id={`io-panel-${tab}`} aria-labelledby={`io-tab-${tab}`}>
-              {tab === "structure" && (
-                <>
-                  <label className="io-field">
-                    <span>
-                      <span>Cube net</span>
-                      <span>{netIdx + 1} / {NET_LABELS.length}</span>
-                    </span>
-                    <select
-                      aria-label="Cube net"
-                      value={netIdx}
-                      onChange={(event) => setNetIdx(parseInt(event.target.value, 10))}
-                    >
-                      {NET_LABELS.map((label, i) => <option key={label} value={i}>{label}</option>)}
-                    </select>
-                  </label>
-                  <div className="io-row">
-                    <button type="button" className="io-choice" aria-pressed={chirality === "cw"} onClick={() => setChirality("cw")}>
-                      Clockwise fold
-                    </button>
-                    <button type="button" className="io-choice" aria-pressed={chirality === "ccw"} onClick={() => setChirality("ccw")}>
-                      Counterclockwise fold
-                    </button>
-                  </div>
-                  <Slider
-                    label="Fold progress"
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    value={progress}
-                    onChange={setProgress}
-                    display={`${progress.toFixed(2)} of 1`}
-                  />
-                  <p className="io-hint">
-                    {NET_LABELS[netIdx]} {closes ? "closes" : "does not close"}.{" "}
-                    {closes
-                      ? "At progress 1 its spanning tree hinges into a cube of side 2."
-                      : "This grid has an extra join, so a right-angle fold is not a cube."}
-                    {" "}The fold is paper in 3D. It is not a 4D unfolding, and it does not turn the tesseract.
-                  </p>
-                </>
-              )}
               {tab === "projection" && (
                 <>
                   <div className="io-row">
@@ -532,7 +675,7 @@ export function InsideOutStage() {
                         {item.label}
                       </button>
                     ))}
-                    <button type="button" className="io-choice" aria-pressed={perspective} onClick={() => setPerspective((v) => !v)}>
+                    <button type="button" className="io-choice" aria-pressed={perspective} onClick={() => setPerspective((value) => !value)}>
                       {perspective ? "Perspective" : "Orthographic"}
                     </button>
                   </div>
@@ -555,7 +698,7 @@ export function InsideOutStage() {
                     display={alpha.toFixed(2)}
                   />
                   <p className="io-hint">
-                    Wire, hybrid, and surfaces draw the same 4D projection. Orthographic projection ignores the distance slider and keeps the value for when perspective returns.
+                    Wire, hybrid, and surfaces draw the same 4D projection. Orthographic projection ignores the distance slider and keeps the value for when perspective returns. Transparency belongs to this drawing, not to the paper fold.
                   </p>
                   {mode === "worm" && <p className="io-warn">{WORM_TUBE_WARNING}</p>}
                 </>
@@ -563,13 +706,13 @@ export function InsideOutStage() {
               {tab === "motion" && (
                 <>
                   <div className="io-row">
-                    <button type="button" className="io-choice" aria-pressed={running} onClick={() => setRunning((v) => !v)}>
+                    <button type="button" className="io-choice" aria-pressed={running} onClick={() => setRunning((value) => !value)}>
                       {running ? "Pause" : "Play"}
                     </button>
-                    <button type="button" className="io-choice" aria-pressed={reverse} onClick={() => setReverse((v) => !v)}>
+                    <button type="button" className="io-choice" aria-pressed={reverse} onClick={() => setReverse((value) => !value)}>
                       {reverse ? "Reversed" : "Reverse"}
                     </button>
-                    <button type="button" className="io-choice" aria-pressed={slow} onClick={() => setSlow((v) => !v)}>
+                    <button type="button" className="io-choice" aria-pressed={slow} onClick={() => setSlow((value) => !value)}>
                       Slow motion
                     </button>
                   </div>
@@ -583,7 +726,7 @@ export function InsideOutStage() {
                     display={`${speed.toFixed(2)}×`}
                   />
                   <p className="io-hint">
-                    Play, pause, reverse, and slow motion continue the same integral. Slow motion multiplies the rate by 0.25. Switching viewports does not restart it. XW, YZ, and XY also spin on their own. XZ, YW, and ZW move only from these offsets.
+                    Play, pause, reverse, and slow motion continue the same integral. Slow motion multiplies the rate by 0.25. Switching laboratories does not restart it. XW, YZ, and XY also spin on their own. XZ, YW, and ZW move only from these offsets.
                   </p>
                   {PLANE_LABELS.map(({ key, label }) => (
                     <Slider
@@ -610,7 +753,7 @@ export function InsideOutStage() {
                     <li>{running ? "Integral running" : "Integral held"} · {reverse ? "reversed" : "forward"} · {slow ? "×0.25" : "full rate"} · speed {speed.toFixed(2)}×</li>
                   </ul>
                   <p className="io-hint">
-                    Totals are the running integral plus the offset. YZ starts at 0.30 rad. The other planes start at 0. A hidden pane is not redrawn, but the integral keeps going.
+                    Totals are the running integral plus the offset. YZ starts at 0.30 rad. The other planes start at 0. A hidden laboratory is not redrawn, but the integral keeps going.
                   </p>
                   <ul className="io-readout" aria-label="Total plane angles">
                     {PLANE_LABELS.map(({ key, label }) => (
