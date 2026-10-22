@@ -17,8 +17,9 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { SpinningDancer } from "@/components/SpinningDancer";
+import { CubeNetExplorer } from "@/components/CubeNetExplorer";
 import { InsideOutStage } from "@/components/higher-dimensional/InsideOutStage";
 import { HollowGenius } from "@/components/higher-dimensional/HollowGenius";
 import HigherDimensionalPage from "@/pages/observatory/HigherDimensional";
@@ -353,14 +354,104 @@ describe("ambiguous dancer ride", () => {
   });
 });
 
-describe("inside-out rendering modes", () => {
-  it("switches wire, surface, and the labeled worm tube", () => {
-    render(<InsideOutStage />);
-    expect(screen.getByLabelText("Tesseract projection or artistic worm tube")).toBeInTheDocument();
+describe("inside-out laboratories", () => {
+  beforeEach(() => localStorage.clear());
+
+  function faceLabels() {
+    return ["Front", "Back", "Top", "Bottom", "Right", "Left"].map((name) =>
+      screen.getByRole("button", { name: new RegExp(`^${name}, step \\d+$`) }).getAttribute("aria-label"),
+    );
+  }
+
+  it("shares the net, chirality, face, and fold progress across the cube laboratory", () => {
+    const { container } = render(<InsideOutStage />);
+    expect(container.querySelector(".io-cockpit")).toHaveAttribute("data-lab", "cube");
+    expect(container.querySelector('[data-pane="net"]')).toHaveAttribute("data-live", "true");
+    expect(container.querySelector('[data-pane="fold"]')).toHaveAttribute("data-live", "true");
+    expect(container.querySelector('[data-pane="projection"]')).toHaveAttribute("data-live", "false");
+    expect(screen.getByRole("button", { name: "Cube" })).toHaveAttribute("aria-pressed", "true");
+    expect(container.querySelector("svg")).toHaveAttribute("data-hinges", "5");
+    expect(screen.getAllByText(/spanning-tree hinges/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Progress 0 is the flat net/)).toBeInTheDocument();
+    expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([...NET_LABELS]);
+    expect(screen.getByText(/Classic Cross closes/)).toBeInTheDocument();
+    expect(screen.getByText(/Nesting is not eversion/)).toBeInTheDocument();
+    expect(screen.queryByText(WORM_TUBE_WARNING)).not.toBeInTheDocument();
+
+    const fold = container.querySelector('canvas[aria-label="Cube net hinge fold"]');
+    const projection = container.querySelector('canvas[aria-label="Tesseract projection or artistic worm tube"]');
+    expect(container.querySelectorAll("canvas")).toHaveLength(2);
+
+    fireEvent.click(screen.getByRole("button", { name: /^Front, step/ }));
+    expect(screen.getByTestId("cube-selection")).toHaveTextContent(/Front · step \d+/);
+    expect(screen.getByRole("button", { name: /^Front, step/ })).toHaveAttribute("aria-pressed", "true");
+    const clockwise = faceLabels();
+    fireEvent.click(screen.getByRole("button", { name: "Counterclockwise fold" }));
+    expect(screen.getByTestId("cube-selection")).toHaveTextContent(/Front · step \d+/);
+    expect(faceLabels()).not.toEqual(clockwise);
+    expect(screen.getByText(/Classic Cross closes/)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Fold progress"), { target: { value: "0.2" } });
+    fireEvent.change(screen.getByLabelText("Cube net"), { target: { value: "3" } });
+    expect(screen.getByLabelText("Fold progress")).toHaveValue("0.2");
+    expect(screen.getByTestId("cube-selection")).toHaveTextContent(/Front · step \d+/);
+    expect(container.querySelector(".io-cockpit")).toHaveAttribute("data-chirality", "ccw");
+    for (const index of [7, 8]) {
+      fireEvent.change(screen.getByLabelText("Cube net"), { target: { value: String(index) } });
+      expect(screen.getByText(new RegExp(`${NET_LABELS[index]} does not close`))).toBeInTheDocument();
+      expect(container.querySelector("svg")).toHaveAttribute("data-hinges", "5");
+    }
+    fireEvent.change(screen.getByLabelText("Cube net"), { target: { value: "0" } });
+    expect(screen.getByLabelText("Fold progress")).toHaveValue("0.2");
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear face" }));
+    expect(screen.getByTestId("cube-selection")).toHaveTextContent("No face selected");
+    fireEvent.click(screen.getByRole("button", { name: "Select Z-Staircase" }));
+    expect(screen.getByLabelText("Cube net")).toHaveValue("10");
+
+    fireEvent.click(screen.getByRole("button", { name: "4D" }));
+    expect(container.querySelector('[data-pane="projection"]')).toHaveAttribute("data-live", "true");
+    expect(container.querySelector('[data-pane="fold"]')).toHaveAttribute("data-live", "false");
+    expect(container.querySelector('[data-pane="net"]')).toHaveAttribute("data-live", "false");
+    expect(container.querySelector('canvas[aria-label="Cube net hinge fold"]')).toBe(fold);
+    expect(container.querySelector('canvas[aria-label="Tesseract projection or artistic worm tube"]')).toBe(projection);
+
+    fireEvent.click(screen.getByRole("button", { name: "Cube" }));
+    expect(screen.getByLabelText("Fold progress")).toHaveValue("0.2");
+    expect(screen.getByLabelText("Cube net")).toHaveValue("10");
+    expect(container.querySelector(".io-cockpit")).toHaveAttribute("data-chirality", "ccw");
+    expect(localStorage.getItem("misterylabs.inside-out.lab")).toBe("cube");
+  });
+
+  it("focuses one cube panel without dropping the shared state", () => {
+    const { container } = render(<InsideOutStage />);
+    fireEvent.click(screen.getByRole("button", { name: /^Front, step/ }));
+    fireEvent.change(screen.getByLabelText("Fold progress"), { target: { value: "0.15" } });
+    fireEvent.click(screen.getByRole("button", { name: "Net only" }));
+    expect(container.querySelector('[data-pane="net"]')).toHaveAttribute("data-live", "true");
+    expect(container.querySelector('[data-pane="fold"]')).toHaveAttribute("data-live", "false");
+    expect(screen.getByLabelText("Fold progress")).toHaveValue("0.15");
+    expect(screen.getByTestId("cube-selection")).toHaveTextContent(/Front · step \d+/);
+    fireEvent.click(screen.getByRole("button", { name: "Fold only" }));
+    expect(container.querySelector('[data-pane="fold"]')).toHaveAttribute("data-live", "true");
+    expect(container.querySelector('[data-pane="net"]')).toHaveAttribute("data-live", "false");
+    expect(screen.getByLabelText("Fold progress")).toHaveValue("0.15");
+    fireEvent.click(screen.getByRole("button", { name: "Both views" }));
+    expect(container.querySelector('[data-pane="net"]')).toHaveAttribute("data-live", "true");
+    expect(container.querySelector('[data-pane="fold"]')).toHaveAttribute("data-live", "true");
+    expect(screen.getByRole("button", { name: /^Front, step/ })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("keeps the 4D laboratory separate from the cube fold", () => {
+    const { container, unmount } = render(<InsideOutStage />);
+    const fold = container.querySelector('canvas[aria-label="Cube net hinge fold"]');
+    const projection = container.querySelector('canvas[aria-label="Tesseract projection or artistic worm tube"]');
+    fireEvent.change(screen.getByLabelText("Fold progress"), { target: { value: "0.2" } });
+    fireEvent.click(screen.getByRole("button", { name: "4D" }));
+    expect(screen.queryByText(WORM_TUBE_WARNING)).not.toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Projection" })).toHaveAttribute("aria-selected", "true");
     fireEvent.click(screen.getByRole("button", { name: "Wireframe" }));
     fireEvent.click(screen.getByRole("button", { name: "Surfaces" }));
-    expect(screen.queryByText(WORM_TUBE_WARNING)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Worm tube" }));
     expect(screen.getByText(WORM_TUBE_WARNING)).toBeInTheDocument();
     expect(screen.getAllByText(/Artistic tube/i).length).toBeGreaterThan(0);
@@ -369,66 +460,51 @@ describe("inside-out rendering modes", () => {
     expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Reverse" }));
     expect(screen.getByRole("button", { name: "Reversed" })).toBeInTheDocument();
-    expect(screen.getByText(/NESTING IS NOT EVERSION|projected, not turned inside out|Nesting is not eversion/i)).toBeInTheDocument();
-  });
-
-  it("keeps both canvases and the parameters when the viewport or dock changes", () => {
-    const { container, unmount } = render(<InsideOutStage />);
-    const canvases = () => [...container.querySelectorAll("canvas")];
-    const [projection, fold] = canvases();
-    expect(container.querySelector(".io-cockpit")).toHaveAttribute("data-view", "projection");
-    expect(container.querySelector('[data-pane="projection"]')).toHaveAttribute("data-live", "true");
-    expect(container.querySelector('[data-pane="fold"]')).toHaveAttribute("data-live", "false");
-
-    fireEvent.click(screen.getByRole("tab", { name: "Structure" }));
-    const net = screen.getByLabelText("Cube net");
-    expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([...NET_LABELS]);
-    expect(screen.getByText(/Classic Cross closes/)).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Fold progress"), { target: { value: "0.2" } });
-    fireEvent.click(screen.getByRole("button", { name: "Counterclockwise fold" }));
-    expect(screen.getByText(/Classic Cross closes/)).toBeInTheDocument();
-    for (const index of [7, 8]) {
-      fireEvent.change(net, { target: { value: String(index) } });
-      expect(screen.getByText(new RegExp(`${NET_LABELS[index].replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} does not close`))).toBeInTheDocument();
-    }
-    fireEvent.change(net, { target: { value: "0" } });
-    expect(screen.getByLabelText("Fold progress")).toHaveValue("0.2");
-
-    fireEvent.click(screen.getByRole("tab", { name: "Motion" }));
     fireEvent.change(screen.getByLabelText("XY rotation offset"), { target: { value: "1.2" } });
     fireEvent.click(screen.getByRole("button", { name: "Slow motion" }));
     expect(screen.getByLabelText("Speed multiplier")).toHaveAttribute("max", "3");
     expect(screen.getByLabelText("Speed multiplier")).toHaveAttribute("min", "0.25");
-
-    fireEvent.click(screen.getByRole("button", { name: "Cube fold" }));
-    expect(container.querySelector(".io-cockpit")).toHaveAttribute("data-view", "fold");
-    expect(container.querySelector('[data-pane="fold"]')).toHaveAttribute("data-live", "true");
-    expect(container.querySelector('[data-pane="projection"]')).toHaveAttribute("data-live", "false");
-    fireEvent.click(screen.getByRole("button", { name: "Compare" }));
-    expect(container.querySelector('[data-pane="projection"]')).toHaveAttribute("data-live", "true");
-    expect(container.querySelector('[data-pane="fold"]')).toHaveAttribute("data-live", "true");
     fireEvent.click(screen.getByRole("tab", { name: "Inspect" }));
     expect(screen.getByText(/not an unfolding of this hypercube/i)).toBeInTheDocument();
     expect(screen.getByText(/offset 1\.20 rad/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: "Structure" }));
+    expect(screen.getByText(/Nesting is not eversion/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Compare" }));
+    expect(container.querySelector('[data-pane="net"]')).toHaveAttribute("data-live", "true");
+    expect(container.querySelector('[data-pane="fold"]')).toHaveAttribute("data-live", "true");
+    expect(container.querySelector('[data-pane="projection"]')).toHaveAttribute("data-live", "true");
     expect(screen.getByLabelText("Fold progress")).toHaveValue("0.2");
+    fireEvent.click(screen.getByRole("button", { name: "4D controls" }));
+    expect(screen.queryByText(WORM_TUBE_WARNING)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Projection" }));
+    expect(screen.getByText(WORM_TUBE_WARNING)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: "Motion" }));
     expect(screen.getByLabelText("XY rotation offset")).toHaveValue("1.2");
     expect(screen.getByRole("button", { name: "Slow motion" })).toHaveAttribute("aria-pressed", "true");
 
-    const after = canvases();
-    expect(after).toHaveLength(2);
-    expect(after[0]).toBe(projection);
-    expect(after[1]).toBe(fold);
-
     fireEvent.click(screen.getByRole("button", { name: "Hide controls" }));
     expect(screen.queryByRole("tab", { name: "Motion" })).not.toBeInTheDocument();
-    expect(canvases()[0]).toBe(projection);
     fireEvent.click(screen.getByRole("button", { name: "Show controls" }));
     fireEvent.click(screen.getByRole("button", { name: "Expand stage" }));
     expect(container.querySelector(".io-cockpit")).toHaveClass("is-full");
     fireEvent.click(screen.getByRole("button", { name: "Exit stage" }));
     expect(container.querySelector(".io-cockpit")).not.toHaveClass("is-full");
+    expect(container.querySelector('canvas[aria-label="Cube net hinge fold"]')).toBe(fold);
+    expect(container.querySelector('canvas[aria-label="Tesseract projection or artistic worm tube"]')).toBe(projection);
+    expect(localStorage.getItem("misterylabs.inside-out.lab")).toBe("compare");
     unmount();
+
+    const remembered = render(<InsideOutStage />);
+    expect(remembered.container.querySelector(".io-cockpit")).toHaveAttribute("data-lab", "compare");
+    remembered.unmount();
+  });
+
+  it("keeps the standalone net explorer on its own state", () => {
+    render(<CubeNetExplorer />);
+    expect(screen.getByRole("heading", { name: "2D Net Explorer" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "⟳ Clockwise" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /, step \d+$/ })).toHaveLength(6);
+    expect(document.querySelector("[data-hinges]")).toBeNull();
   });
 });
+

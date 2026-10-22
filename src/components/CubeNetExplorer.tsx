@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 // ── Face palette ───────────────────────────────────────────
 
@@ -170,6 +170,183 @@ export function computeUnfoldPath(
 
   dfs(root, -1);
   return { edges, order };
+}
+
+export type CubeNetDiagramProps = {
+  netIdx: number;
+  chirality: Chirality;
+  /** Face index 0–5 to highlight. The parent owns this in the cube laboratory. */
+  activeFace?: number | null;
+  /** Draw the five spanning-tree hinges. Not every shared grid edge. */
+  hinges?: boolean;
+  /** Intrinsic keeps the collection explorer's pixel size. Contain scales to the parent. */
+  fit?: "intrinsic" | "contain";
+  onFaceEnter?: (face: number) => void;
+  onFaceLeave?: () => void;
+  onFaceSelect?: (face: number) => void;
+  /** Extra pointer action for the standalone explorer (pause the spin). */
+  onFacePointer?: (face: number) => void;
+  overlay?: ReactNode;
+  label?: string;
+};
+
+function netLayout(netIdx: number) {
+  const net = NETS[netIdx];
+  const minCol = Math.min(...net.map((cell) => cell[0]));
+  const minRow = Math.min(...net.map((cell) => cell[1]));
+  const maxCol = Math.max(...net.map((cell) => cell[0]));
+  const maxRow = Math.max(...net.map((cell) => cell[1]));
+  return {
+    net,
+    minCol,
+    minRow,
+    gridW: (maxCol - minCol + 1) * CELL,
+    gridH: (maxRow - minRow + 1) * CELL,
+  };
+}
+
+/** Controlled 2D net. NETS and the unfolding order live in this module only. */
+export function CubeNetDiagram({
+  netIdx,
+  chirality,
+  activeFace = null,
+  hinges = false,
+  fit = "intrinsic",
+  onFaceEnter,
+  onFaceLeave,
+  onFaceSelect,
+  onFacePointer,
+  overlay,
+  label = "Cube net grid",
+}: CubeNetDiagramProps) {
+  const { edges, order } = computeUnfoldPath(netIdx, chirality);
+  const stepByFace = new Array(6).fill(0);
+  order.forEach((face, step) => { stepByFace[face] = step + 1; });
+  const { net, minCol, minRow, gridW, gridH } = netLayout(netIdx);
+  const contain = fit === "contain";
+
+  function center(face: number): [number, number] {
+    const [col, row] = net[face];
+    return [(col - minCol + 0.5) * CELL, (row - minRow + 0.5) * CELL];
+  }
+
+  function onKey(event: ReactKeyboardEvent<SVGGElement>, face: number) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    onFaceSelect?.(face);
+    onFacePointer?.(face);
+  }
+
+  return (
+    <div className={contain ? "io-net-fit" : "relative inline-block"}>
+      <svg
+        width={contain ? "100%" : gridW}
+        height={contain ? "100%" : gridH}
+        viewBox={`0 0 ${gridW} ${gridH}`}
+        preserveAspectRatio="xMidYMid meet"
+        role="group"
+        aria-label={label}
+        data-hinges={hinges ? edges.length : undefined}
+      >
+        {net.map(([col, row], face) => {
+          const color = FACE_COLORS[face];
+          const x = (col - minCol) * CELL;
+          const y = (row - minRow) * CELL;
+          const active = activeFace === face;
+          return (
+            <g
+              key={face}
+              role="button"
+              tabIndex={0}
+              aria-label={`${color.name}, step ${stepByFace[face]}`}
+              aria-pressed={active}
+              data-face={face}
+              data-selected={active ? "true" : "false"}
+              className="cursor-pointer"
+              onMouseEnter={() => onFaceEnter?.(face)}
+              onMouseLeave={() => onFaceLeave?.()}
+              onClick={() => {
+                onFaceSelect?.(face);
+                onFacePointer?.(face);
+              }}
+              onKeyDown={(event) => onKey(event, face)}
+            >
+              <rect
+                x={x + 1}
+                y={y + 1}
+                width={CELL - 3}
+                height={CELL - 3}
+                rx={4}
+                fill={color.fill}
+                stroke={active ? "#f8fafc" : color.stroke}
+                strokeWidth={active ? 2.6 : 0.9}
+                opacity={active ? 1 : 0.78}
+              />
+              {active && (
+                <rect
+                  x={x + 1}
+                  y={y + 1}
+                  width={CELL - 3}
+                  height={CELL - 3}
+                  rx={4}
+                  fill="none"
+                  stroke={color.stroke}
+                  strokeWidth={6}
+                  opacity={0.35}
+                />
+              )}
+              <text
+                x={x + CELL / 2}
+                y={y + CELL / 2 + 2}
+                textAnchor="middle"
+                fontSize={9}
+                fontFamily="JetBrains Mono, ui-monospace, monospace"
+                fontWeight={700}
+                fill="rgba(0,0,0,0.72)"
+                pointerEvents="none"
+              >
+                {color.name.slice(0, 2).toUpperCase()}
+              </text>
+              <text
+                x={x + CELL - 5}
+                y={y + CELL - 5}
+                textAnchor="end"
+                fontSize={8}
+                fontFamily="JetBrains Mono, ui-monospace, monospace"
+                fontWeight={600}
+                fill="rgba(0,0,0,0.60)"
+                pointerEvents="none"
+              >
+                {stepByFace[face]}
+              </text>
+            </g>
+          );
+        })}
+        {hinges && (
+          <g pointerEvents="none" aria-hidden>
+            {edges.map(([from, to], index) => {
+              const [x1, y1] = center(from);
+              const [x2, y2] = center(to);
+              return (
+                <line
+                  key={`${from}-${to}-${index}`}
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                  stroke="rgba(251,191,36,0.95)"
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                  strokeDasharray="7 5"
+                />
+              );
+            })}
+          </g>
+        )}
+      </svg>
+      {overlay}
+    </div>
+  );
 }
 
 // ── Path color helper ──────────────────────────────────────
@@ -622,20 +799,6 @@ export function CubeNetExplorer() {
     return () => { cancelAnimationFrame(rafRef.current); ro.disconnect(); };
   }, []);
 
-  // ── Derived display data (React render) ───────────────
-  // Compute current step labels for SVG faces
-  const { order: unfoldOrder } = computeUnfoldPath(netIdx, chirality);
-  const stepByFace = new Array(6).fill(0);
-  unfoldOrder.forEach((fi, step) => { stepByFace[fi] = step + 1; });
-
-  const net = NETS[netIdx];
-  const minCol = Math.min(...net.map(c => c[0]));
-  const minRow = Math.min(...net.map(c => c[1]));
-  const maxCol = Math.max(...net.map(c => c[0])) - minCol;
-  const maxRow = Math.max(...net.map(c => c[1])) - minRow;
-  const gridW  = (maxCol + 1) * CELL;
-  const gridH  = (maxRow + 1) * CELL;
-
   return (
     <div className="flex flex-col overflow-hidden border border-border/35 bg-card/20 lg:flex-row">
 
@@ -652,92 +815,25 @@ export function CubeNetExplorer() {
           </p>
         </div>
 
-        {/* Net display — SVG + canvas overlay */}
         <div
           className="flex items-center justify-center rounded-sm border border-border/25 bg-secondary/10 p-4"
           aria-label={`Cube net ${netIdx + 1}: ${NET_LABELS[netIdx]}`}
         >
-          {/* Wrapper gives relative context for the overlay canvas */}
-          <div className="relative">
-            <svg
-              width={gridW}
-              height={gridH}
-              viewBox={`0 0 ${gridW} ${gridH}`}
-              role="img"
-              aria-label="Cube net grid"
-            >
-              {net.map(([col, row], fi) => {
-                const nc  = FACE_COLORS[fi];
-                const x   = (col - minCol) * CELL;
-                const y   = (row - minRow) * CELL;
-                const isActive = hovered === fi;
-                return (
-                  <g
-                    key={fi}
-                    onMouseEnter={() => handleCellHover(fi)}
-                    onMouseLeave={() => handleCellHover(null)}
-                    onClick={() => setAutoSpin(false)}
-                    className="cursor-pointer"
-                    aria-label={nc.name}
-                  >
-                    <rect
-                      x={x + 1} y={y + 1}
-                      width={CELL - 3} height={CELL - 3}
-                      rx={4}
-                      fill={nc.fill}
-                      stroke={nc.stroke}
-                      strokeWidth={isActive ? 2 : 0.9}
-                      opacity={isActive ? 1 : 0.72}
-                    />
-                    {isActive && (
-                      <rect
-                        x={x + 1} y={y + 1}
-                        width={CELL - 3} height={CELL - 3}
-                        rx={4}
-                        fill="none"
-                        stroke={nc.stroke}
-                        strokeWidth={6}
-                        opacity={0.25}
-                      />
-                    )}
-                    {/* Face abbreviation */}
-                    <text
-                      x={x + CELL / 2} y={y + CELL / 2 + 2}
-                      textAnchor="middle"
-                      fontSize={9}
-                      fontFamily="JetBrains Mono, ui-monospace, monospace"
-                      fontWeight={700}
-                      fill="rgba(0,0,0,0.72)"
-                      pointerEvents="none"
-                    >
-                      {nc.name.slice(0, 2).toUpperCase()}
-                    </text>
-                    {/* Unfolding step label — updates with chirality */}
-                    <text
-                      x={x + CELL - 5} y={y + CELL - 5}
-                      textAnchor="end"
-                      fontSize={8}
-                      fontFamily="JetBrains Mono, ui-monospace, monospace"
-                      fontWeight={600}
-                      fill="rgba(0,0,0,0.60)"
-                      pointerEvents="none"
-                    >
-                      {stepByFace[fi]}
-                    </text>
-                  </g>
-                );
-              })}
-            </svg>
-
-            {/* Transparent canvas overlay for animated path arrows */}
-            <canvas
-              ref={el => {
-                netCanvasRef.current = el;
-              }}
-              className="pointer-events-none absolute inset-0"
-              aria-hidden
-            />
-          </div>
+          <CubeNetDiagram
+            netIdx={netIdx}
+            chirality={chirality}
+            activeFace={hovered}
+            onFaceEnter={handleCellHover}
+            onFaceLeave={() => handleCellHover(null)}
+            onFacePointer={() => setAutoSpin(false)}
+            overlay={
+              <canvas
+                ref={netCanvasRef}
+                className="pointer-events-none absolute inset-0"
+                aria-hidden
+              />
+            }
+          />
         </div>
 
         {/* Net label */}
