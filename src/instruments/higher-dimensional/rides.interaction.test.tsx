@@ -21,6 +21,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { SpinningDancer } from "@/components/SpinningDancer";
 import { CubeNetExplorer } from "@/components/CubeNetExplorer";
 import { InsideOutStage } from "@/components/higher-dimensional/InsideOutStage";
+import { HypercrossStage } from "@/components/higher-dimensional/HypercrossStage";
 import { HollowGenius } from "@/components/higher-dimensional/HollowGenius";
 import HigherDimensionalPage from "@/pages/observatory/HigherDimensional";
 import { NET_LABELS } from "@/components/CubeNetExplorer";
@@ -505,6 +506,56 @@ describe("inside-out laboratories", () => {
     expect(screen.getByRole("button", { name: "⟳ Clockwise" })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /, step \d+$/ })).toHaveLength(6);
     expect(document.querySelector("[data-hinges]")).toBeNull();
+  });
+});
+
+describe("hypercross instrument", () => {
+  it("keeps fold progress while the dock changes and does not claim a physical transit", () => {
+    const { container } = render(<HypercrossStage />);
+    const slider = screen.getByLabelText("Fold progress");
+    const canvas = container.querySelector("canvas");
+    expect(slider).toHaveValue("0");
+    expect(canvas).toBeTruthy();
+    fireEvent.change(slider, { target: { value: "0.5" } });
+    expect(slider).toHaveValue("0.5");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Hinges" }));
+    expect(screen.getAllByText(/W−/).length).toBeGreaterThan(0);
+    expect(screen.getByLabelText("Hinge sequence").textContent).toMatch(/° open/);
+    expect(slider).toHaveValue("0.5");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Reading" }));
+    expect(screen.getByRole("heading", { name: "Observation" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Model" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Interpretation" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Speculation" })).toBeInTheDocument();
+    expect(screen.getByText(/not a physical object/i)).toBeInTheDocument();
+    expect(screen.getByText(/not a reproduction of a painting/i)).toBeInTheDocument();
+    expect(slider).toHaveValue("0.5");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Projection" }));
+    fireEvent.click(screen.getByRole("button", { name: "Reset camera" }));
+    fireEvent.click(screen.getByRole("button", { name: "Parallel 4D" }));
+    expect(screen.getByRole("button", { name: "Parallel 4D" })).toHaveAttribute("aria-pressed", "true");
+    expect(slider).toHaveValue("0.5");
+    expect(container.querySelector("canvas")).toBe(canvas);
+
+    fireEvent.click(screen.getByRole("button", { name: "Play" }));
+    fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+    expect(container.querySelector('canvas[aria-label="Hypercross tesseract net"]')).toBe(canvas);
+    expect(Math.abs(parseFloat((slider as HTMLInputElement).value) - 0.5)).toBeLessThan(0.05);
+  });
+
+  it("is a collection instrument and not an atlas ride", () => {
+    const app = readFileSync(path.resolve("src/App.tsx"), "utf8");
+    const atlas = readFileSync(path.resolve("src/pages/Atlas.tsx"), "utf8");
+    const collection = readFileSync(path.resolve("src/pages/observatory/HigherDimensional.tsx"), "utf8");
+    const rides = readFileSync(path.resolve("src/instruments/higher-dimensional/rides.ts"), "utf8");
+    expect(app).toContain('path="/observatory/higher-dimensional/hypercross"');
+    expect(collection).toContain('to="/observatory/higher-dimensional/hypercross"');
+    expect(atlas).not.toContain("hypercross");
+    expect(rides).not.toContain("hypercross");
+    expect(HD_RIDES).toHaveLength(3);
   });
 });
 

@@ -27,6 +27,7 @@ const HigherDimensionalPage = lazy(() => import("./pages/observatory/HigherDimen
 const HollowGeniusPage = lazy(() => import("./pages/observatory/HollowGenius.tsx"));
 const AmbiguousDancerPage = lazy(() => import("./pages/observatory/AmbiguousDancer.tsx"));
 const InsideOutUniversePage = lazy(() => import("./pages/observatory/InsideOutUniverse.tsx"));
+const HypercrossPage = lazy(() => import("./pages/observatory/Hypercross.tsx"));
 const CavendishPaisPage     = lazy(() => import("./pages/observatory/CavendishPais.tsx"));
 const PolarGrinPage         = lazy(() => import("./pages/observatory/PolarGrin.tsx"));
 const SaturnPolygonPage     = lazy(() => import("./pages/observatory/SaturnPolygon.tsx"));
@@ -98,6 +99,7 @@ const App = () => (
           <Route path="/observatory/higher-dimensional/hollow-genius" element={<DemoWrapper><HollowGeniusPage /></DemoWrapper>} />
           <Route path="/observatory/higher-dimensional/ambiguous-dancer" element={<DemoWrapper><AmbiguousDancerPage /></DemoWrapper>} />
           <Route path="/observatory/higher-dimensional/inside-out" element={<DemoWrapper><InsideOutUniversePage /></DemoWrapper>} />
+          <Route path="/observatory/higher-dimensional/hypercross" element={<DemoWrapper><HypercrossPage /></DemoWrapper>} />
           <Route path="/observatory/cavendish-pais"      element={<DemoWrapper><CavendishPaisPage /></DemoWrapper>} />
           <Route path="/observatory/polar-grin"          element={<DemoWrapper><PolarGrinPage /></DemoWrapper>} />
           <Route path="/observatory/saturn-polygon"      element={<DemoWrapper><SaturnPolygonPage /></DemoWrapper>} />

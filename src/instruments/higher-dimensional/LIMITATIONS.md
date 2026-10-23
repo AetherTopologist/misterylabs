@@ -30,6 +30,14 @@ These rides are instruments for looking. They do not measure a visitor's percept
 - The cube laboratory shares one net, one chirality, one fold progress, and one selected face between the flat net and the hinge fold. The step number is the existing spanning-tree order. The tesseract is a separate laboratory. Compare can show both; a phone scrolls them at a readable height instead of shrinking them into one row. There is no new 4D unfolding parameter and no eight-cell hypercross. Fold progress only hinges the selected cube net. The six plane controls are offsets on the existing tesseract integral.
 - A laboratory that is not selected stays mounted and is not redrawn until it is shown again. The angle integral and the worm-tube clock keep running either way. Switching laboratories does not reset the cube state or the integral. The standalone net explorer and the standalone tesseract instrument remain on the collection route.
 
+## Hypercross — eight-cell net
+
+- This is a separate instrument. It does not call the Inside-Out fold, the Inside-Out tesseract projector, or the worm tube.
+- Folded vertices are the canonical set {"−1, +1"}⁴. Edge length is 2. The eight cells are the cubes that fix one coordinate. The spanning tree is W− — Z− — W+ — Z+, plus X−, X+, Y−, and Y+ on the four side faces of Z−.
+- Progress 0 is that net in the hyperplane w = −1, with no interior overlap. Progress 1 is the tesseract. Intermediate states are rigid 4D rotations about the seven hinge squares. Corners are not slid independently.
+- The picture is a 4D→3D projection followed by a 3D camera. Dragging orbits the camera and does not fold the model. Nested cubes at the folded end are that projection, not eight solids in one 3D volume, and not a body moving through the room. If the centered model would cross the 4D camera, the distance is raised above the slider and the used value is shown.
+- The cruciform layout is a net: a spine of four cubes with four arms on the second cube, not a single flat layer and not a reproduction of a painting. The instrument is not on the Interactive Atlas. A short phone hides the one-line stage note and the page sentence so the drawing keeps its height. The Reading tab still separates observation, model, interpretation, and speculation.
+
 ## What this page does not do
 
 - It does not compute perception.
