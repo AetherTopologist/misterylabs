@@ -38,6 +38,14 @@ These rides are instruments for looking. They do not measure a visitor's percept
 - The picture is a 4D→3D projection followed by a 3D camera. Dragging orbits the camera and does not fold the model. Nested cubes at the folded end are that projection, not eight solids in one 3D volume, and not a body moving through the room. If the centered model would cross the 4D camera, the distance is raised above the slider and the used value is shown.
 - The cruciform layout is a net: a spine of four cubes with four arms on the second cube, not a single flat layer and not a reproduction of a painting. The instrument is not on the Interactive Atlas. A short phone hides the one-line stage note and the page sentence so the drawing keeps its height. The Reading tab still separates observation, model, interpretation, and speculation.
 
+## Cubic Worm — projected opposite cells
+
+- This is a separate instrument. It does not call the Hypercross fold, the Inside-Out tesseract projector, or the worm tube.
+- Vertices are the canonical set {"−1, +1"}⁴. Opposite cells fix one axis at opposite signs and do not share a face. There is no unique throat in the boundary.
+- The projection axis is the selected pair. The camera sits on the negative side of that axis, so at face-on alignment the negative cell is nearer and larger. The view axis picks which way the 3D camera looks. The four cells on the other axes are drawn as walls. The two cells on the view axis are end caps, hidden unless requested. That selection is a picture, not a tunnel in the model.
+- Rotations are plane rotations, spatial planes first, then XW, YW, and ZW. They are not the Inside-Out angle order. Dragging the picture changes only the 3D camera. Parallel projection stacks the opposite cells and the passage disappears.
+- No spacetime metric is computed. Nothing here is a physical passage. No artistic bridge surface is substituted for a cell face. The instrument is not on the Interactive Atlas. A short phone hides the page sentence. The Read tab still separates observation, model, interpretation, and speculation.
+
 ## What this page does not do
 
 - It does not compute perception.
