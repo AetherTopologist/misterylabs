@@ -55,7 +55,7 @@ export default function HigherDimensionalPage() {
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground/60">
               Curved transport operates in a field that connects to higher-dimensional geometry
               and to the limits of observer perception. The original four instruments remain on
-              this route. Three rides open the same questions one at a time.
+              this route. Hypercross is a separate eight-cell net, not one of the three rides.
             </p>
           </div>
           <div className="mb-10 grid gap-3 sm:grid-cols-3">
@@ -70,6 +70,16 @@ export default function HigherDimensionalPage() {
                 <p className="mt-2 text-xs leading-relaxed text-muted-foreground/60">{ride.desc}</p>
               </Link>
             ))}
+            <Link
+              to="/observatory/higher-dimensional/hypercross"
+              className="rounded-sm border border-amber-500/25 bg-card/20 p-4 hover:border-amber-500/45"
+            >
+              <div className="font-mono text-[8px] uppercase tracking-[0.28em] text-amber-400/70">Net · Eight cubic cells</div>
+              <div className="mt-2 text-sm font-semibold">Hypercross</div>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground/60">
+                A tesseract net folds about square faces. Its own 4D hinges, separate from the Inside-Out laboratories.
+              </p>
+            </Link>
           </div>
           <div className="spectral-bar mb-10" aria-hidden />
 
