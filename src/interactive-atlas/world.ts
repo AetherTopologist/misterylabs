@@ -35,6 +35,10 @@ export const PLACES: Record<ExhibitId, Place> = {
   // The western spur already ended on this court. Hollow Genius occupies it
   // instead of cutting a new avenue past the Cenotaph or the other halls.
   "hollow-genius": { x: -36 * LAYOUT, y: 2.35, z: 4 * LAYOUT, block: 5.2, reach: 18 },
+  // South of the Hall of Faces spur. The hall's +z entrance stays open.
+  // Room remains further west and south for House of Unfolding, Square Throat,
+  // and Eightfold Cross.
+  "ambiguous-dancer": { x: -50 * LAYOUT, y: 2.2, z: -8 * LAYOUT, block: 4.6, reach: 16 },
 };
 
 const at = (x: number, z: number): [number, number, number] => [x * LAYOUT, 0, z * LAYOUT];
@@ -48,6 +52,8 @@ export const PATHS: Array<{ pts: Array<[number, number, number]>; samples: numbe
   // Approach to the Hollow Genius court. Same control points; the walk is
   // lit like the other exhibit spurs so the hall can be found on foot.
   { pts: [at(-26, 26), at(-34, 16), at(-36, 4)], samples: 14, walk: 1.05, glow: 0.22 },
+  // Leaves the same spur vertex and turns south-west, clear of the hall plinth.
+  { pts: [at(-34, 16), at(-44, 4), at(-50, -8)], samples: 16, walk: 1.05, glow: 0.22 },
   { pts: [at(3.2, 36.4), at(22, 30), at(34, 12), at(34, -8)], samples: 24, walk: 1.15, glow: 0.26 },
   { pts: [at(34, -8), at(38, -16), at(38, -28)], samples: 16, walk: 1.05, glow: 0.22 },
   { pts: [at(34, -8), at(22, -28), at(8, -42)], samples: 18, walk: 1.0, glow: 0.22 },

@@ -8,6 +8,7 @@ import { COLLECTIONS, HIDDEN_DESTINATIONS } from "./destinations";
 import { buildCenotaph } from "./cenotaph";
 import { FOREST_LINKS } from "./forest";
 import { buildHallOfFaces } from "./hall-of-faces";
+import { buildPavilionOfTurningShadows } from "./pavilion-of-turning-shadows";
 import { createWalker } from "./mister-why";
 import { captureAtlasResume, takeAtlasResume } from "./resume";
 import { GROUND_R, LAYOUT, PATHS, PLACES } from "./world";
@@ -716,6 +717,16 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     markSite("hollow-genius", 4.6);
     hall.group.position.set(p.x, 0, p.z);
     scene.add(hall.group);
+  }
+
+  // Ambiguous Dancer — a colonnade and a silhouette. Not the observatory ride.
+  const shadows = buildPavilionOfTurningShadows();
+  {
+    const p = SITES["ambiguous-dancer"];
+    addPad(p.x, p.z, 4.55);
+    markSite("ambiguous-dancer", 4.2);
+    shadows.group.position.set(p.x, 0, p.z);
+    scene.add(shadows.group);
   }
 
   for (const id of Object.keys(SITES) as ExhibitId[]) {
@@ -1555,6 +1566,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       for (const light of bellLights) light.intensity = 5 + flash * 22;
     }
     hall.tick(time, camera.position, reduced);
+    shadows.tick(time, camera.position, reduced);
 
     for (const h of highlights) {
       const target = h.id === selected ? 0.9 : 0.16;
@@ -1596,6 +1608,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       renderer.setAnimationLoop(null);
       ro.disconnect();
       hall.dispose();
+      shadows.dispose();
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("contextmenu", onContext);
       window.removeEventListener("pointermove", onPointerMove);

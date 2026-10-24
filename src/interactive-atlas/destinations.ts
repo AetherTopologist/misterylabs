@@ -9,7 +9,15 @@
  */
 export type DestinationKind = "landmark" | "collection" | "exhibit" | "hidden";
 
-export type ExhibitId = "hydrogen" | "triad" | "optics" | "bell" | "xprimeray" | "photon" | "hollow-genius";
+export type ExhibitId =
+  | "hydrogen"
+  | "triad"
+  | "optics"
+  | "bell"
+  | "xprimeray"
+  | "photon"
+  | "hollow-genius"
+  | "ambiguous-dancer";
 
 export type DestinationId = ExhibitId | "cenotaph";
 
@@ -18,6 +26,8 @@ export type Destination = {
   kind: DestinationKind;
   name: string;
   question?: string;
+  /** Fairground hall name, when the plate should say more than the instrument. */
+  hall?: string;
   /** Site route, relative to the router basename. Only when the instrument is released. */
   href?: string;
   /** True only when a real instrument page already exists. */
@@ -85,6 +95,16 @@ export const EXHIBITS: Record<ExhibitId, Destination> = {
     name: "Hollow Genius",
     question: "Why does a hollow face look outward?",
     href: "/observatory/higher-dimensional/hollow-genius",
+    released: true,
+    placed: true,
+  },
+  "ambiguous-dancer": {
+    id: "ambiguous-dancer",
+    kind: "exhibit",
+    name: "Ambiguous Dancer",
+    hall: "Pavilion of Turning Shadows",
+    question: "Did she change direction, or did you?",
+    href: "/observatory/higher-dimensional/ambiguous-dancer",
     released: true,
     placed: true,
   },
