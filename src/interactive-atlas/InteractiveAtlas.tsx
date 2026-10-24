@@ -204,7 +204,12 @@ export default function InteractiveAtlas() {
                 to={`${exhibit.href}?from=interactive-atlas`}
                 className="ia-enter"
                 onClick={() => {
-                  if (exhibit.id === "hollow-genius" || exhibit.id === "ambiguous-dancer") apiRef.current?.remember();
+                  if (
+                    exhibit.id === "hollow-genius" ||
+                    exhibit.id === "ambiguous-dancer" ||
+                    exhibit.id === "inside-out"
+                  )
+                    apiRef.current?.remember();
                 }}
               >
                 Enter exhibit

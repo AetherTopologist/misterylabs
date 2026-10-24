@@ -8,6 +8,7 @@ import { COLLECTIONS, HIDDEN_DESTINATIONS } from "./destinations";
 import { buildCenotaph } from "./cenotaph";
 import { FOREST_LINKS } from "./forest";
 import { buildHallOfFaces } from "./hall-of-faces";
+import { buildHouseOfUnfolding } from "./house-of-unfolding";
 import { buildPavilionOfTurningShadows } from "./pavilion-of-turning-shadows";
 import { createWalker } from "./mister-why";
 import { captureAtlasResume, takeAtlasResume } from "./resume";
@@ -727,6 +728,16 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     markSite("ambiguous-dancer", 4.2);
     shadows.group.position.set(p.x, 0, p.z);
     scene.add(shadows.group);
+  }
+
+  // Inside-Out — a flat net beside its fold. Not the observatory ride.
+  const house = buildHouseOfUnfolding();
+  {
+    const p = SITES["inside-out"];
+    addPad(p.x, p.z, 5.15);
+    markSite("inside-out", 4.7);
+    house.group.position.set(p.x, 0, p.z);
+    scene.add(house.group);
   }
 
   for (const id of Object.keys(SITES) as ExhibitId[]) {
@@ -1567,6 +1578,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     }
     hall.tick(time, camera.position, reduced);
     shadows.tick(time, camera.position, reduced);
+    house.tick(time, camera.position, reduced);
 
     for (const h of highlights) {
       const target = h.id === selected ? 0.9 : 0.16;
@@ -1609,6 +1621,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       ro.disconnect();
       hall.dispose();
       shadows.dispose();
+      house.dispose();
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("contextmenu", onContext);
       window.removeEventListener("pointermove", onPointerMove);
