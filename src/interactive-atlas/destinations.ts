@@ -17,7 +17,8 @@ export type ExhibitId =
   | "xprimeray"
   | "photon"
   | "hollow-genius"
-  | "ambiguous-dancer";
+  | "ambiguous-dancer"
+  | "inside-out";
 
 export type DestinationId = ExhibitId | "cenotaph";
 
@@ -105,6 +106,16 @@ export const EXHIBITS: Record<ExhibitId, Destination> = {
     hall: "Pavilion of Turning Shadows",
     question: "Did she change direction, or did you?",
     href: "/observatory/higher-dimensional/ambiguous-dancer",
+    released: true,
+    placed: true,
+  },
+  "inside-out": {
+    id: "inside-out",
+    kind: "exhibit",
+    name: "Inside-Out Universe",
+    hall: "House of Unfolding",
+    question: "How does a flat net become a solid?",
+    href: "/observatory/higher-dimensional/inside-out",
     released: true,
     placed: true,
   },
