@@ -197,13 +197,14 @@ export default function InteractiveAtlas() {
         ) : showFull && exhibit ? (
           <div className="ia-plate">
             <p className="ia-kicker">{exhibit.name}</p>
+            {exhibit.hall ? <p className="ia-hall">{exhibit.hall}</p> : null}
             <p className="ia-question">{exhibit.question}</p>
             {exhibit.released && exhibit.href ? (
               <Link
                 to={`${exhibit.href}?from=interactive-atlas`}
                 className="ia-enter"
                 onClick={() => {
-                  if (exhibit.id === "hollow-genius") apiRef.current?.remember();
+                  if (exhibit.id === "hollow-genius" || exhibit.id === "ambiguous-dancer") apiRef.current?.remember();
                 }}
               >
                 Enter exhibit

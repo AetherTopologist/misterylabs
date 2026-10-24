@@ -179,6 +179,14 @@
   text-transform: uppercase;
 }
 
+.ia-hall {
+  margin: 0.4rem 0 0;
+  color: var(--ia-mist);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
 .ia-question {
   margin: 0.35rem 0 0;
   font-family: "Cormorant Garamond", Palatino, "Times New Roman", serif;

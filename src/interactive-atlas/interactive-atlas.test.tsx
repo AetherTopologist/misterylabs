@@ -107,11 +107,59 @@ describe("hollow genius exhibit plate", () => {
     expect(remember).not.toHaveBeenCalled();
   });
 
+  it("names the pavilion, asks the question, and remembers only that visit", async () => {
+    await mount();
+    await act(async () => {
+      pushUi!({
+        scale: 0.42,
+        selected: "ambiguous-dancer",
+        proximity: 0.8,
+        atHome: false,
+        inside: false,
+        mode: "walk",
+        walker: {
+          x: PLACES["ambiguous-dancer"].x,
+          z: PLACES["ambiguous-dancer"].z + 8,
+          heading: Math.PI,
+        },
+      });
+    });
+    expect(screen.getByText("Ambiguous Dancer")).toBeInTheDocument();
+    expect(screen.getByText("Pavilion of Turning Shadows")).toBeInTheDocument();
+    expect(screen.getByText(EXHIBITS["ambiguous-dancer"].question!)).toBeInTheDocument();
+    const enter = screen.getByRole("link", { name: "Enter exhibit" });
+    expect(enter.getAttribute("href")).toContain("/observatory/higher-dimensional/ambiguous-dancer");
+    expect(enter.getAttribute("href")).toContain("from=interactive-atlas");
+    fireEvent.click(enter);
+    expect(remember).toHaveBeenCalledTimes(1);
+
+    remember.mockClear();
+    await act(async () => {
+      pushUi!({
+        scale: 0.42,
+        selected: "ambiguous-dancer",
+        proximity: 0.4,
+        atHome: false,
+        inside: false,
+        mode: "walk",
+        walker: {
+          x: PLACES["ambiguous-dancer"].x,
+          z: PLACES["ambiguous-dancer"].z + 12,
+          heading: Math.PI,
+        },
+      });
+    });
+    expect(screen.getByText("Ambiguous Dancer")).toBeInTheDocument();
+    expect(screen.queryByText("Pavilion of Turning Shadows")).not.toBeInTheDocument();
+    expect(screen.queryByText(EXHIBITS["ambiguous-dancer"].question!)).not.toBeInTheDocument();
+  });
+
   it("draws the new hall on the walking map with the older halls", () => {
     const { container } = render(
       <FairMap walker={{ x: 0, z: 160, heading: 0 }} open onToggle={() => {}} />,
     );
     expect(container).toHaveTextContent("Hollow Genius");
+    expect(container).toHaveTextContent("Ambiguous Dancer");
     expect(container).toHaveTextContent("Hydrogen");
     expect(container).toHaveTextContent("Photon Journey");
     expect(container.querySelectorAll("circle").length).toBeGreaterThan(6);
