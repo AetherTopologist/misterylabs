@@ -7,6 +7,7 @@ import type { AtlasApi, AtlasUi, CenotaphVariant, DestinationId, ExhibitId } fro
 import { COLLECTIONS, HIDDEN_DESTINATIONS } from "./destinations";
 import { buildCenotaph } from "./cenotaph";
 import { FOREST_LINKS } from "./forest";
+import { buildEightfoldCross } from "./eightfold-cross";
 import { buildHallOfFaces } from "./hall-of-faces";
 import { buildHouseOfUnfolding } from "./house-of-unfolding";
 import { buildPavilionOfTurningShadows } from "./pavilion-of-turning-shadows";
@@ -749,6 +750,16 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     markSite("cubic-worm", 4.35);
     throat.group.position.set(p.x, 0, p.z);
     scene.add(throat.group);
+  }
+
+  // Hypercross — the unfolded eight-cell net. Not the observatory ride.
+  const cross = buildEightfoldCross();
+  {
+    const p = SITES["hypercross"];
+    addPad(p.x, p.z, 4.7);
+    markSite("hypercross", 4.35);
+    cross.group.position.set(p.x, 0, p.z);
+    scene.add(cross.group);
   }
 
   for (const id of Object.keys(SITES) as ExhibitId[]) {
@@ -1591,6 +1602,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     shadows.tick(time, camera.position, reduced);
     house.tick(time, camera.position, reduced);
     throat.tick(time, camera.position, reduced);
+    cross.tick(time, camera.position, reduced);
 
     for (const h of highlights) {
       const target = h.id === selected ? 0.9 : 0.16;
@@ -1635,6 +1647,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       shadows.dispose();
       house.dispose();
       throat.dispose();
+      cross.dispose();
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("contextmenu", onContext);
       window.removeEventListener("pointermove", onPointerMove);

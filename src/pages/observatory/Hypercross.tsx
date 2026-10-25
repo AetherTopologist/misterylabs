@@ -1,3 +1,4 @@
+import { Link, useSearchParams } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
 import { HypercrossStage } from "@/components/higher-dimensional/HypercrossStage";
 import { DemoNav } from "@/components/observatory/DemoNav";
@@ -6,12 +7,22 @@ import { useTheme } from "@/hooks/useTheme";
 
 export default function HypercrossPage() {
   const { theme } = useTheme();
+  const [params] = useSearchParams();
+  const fromWorld = params.get("from") === "interactive-atlas";
   const lm = theme === "light";
   return (
     <div className="flex h-dvh max-h-dvh flex-col overflow-x-clip overflow-y-hidden">
       <AppHeader />
       <DemoNav next={{ label: "Collection index", to: HD_INDEX }} />
       <div className="container flex min-h-0 w-full max-w-full flex-1 flex-col pb-2 pt-2">
+        {fromWorld ? (
+          <Link
+            to="/atlas/interactive?resume=1"
+            className={`mb-1 inline-flex min-h-[44px] items-center text-[0.68rem] uppercase tracking-[0.16em] underline-offset-4 hover:underline ${lm ? "text-amber-900" : "text-amber-200/85"}`}
+          >
+            Return to Interactive Atlas
+          </Link>
+        ) : null}
         <div className="mb-1 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <h1 className="text-lg font-bold tracking-tight md:text-2xl">Hypercross</h1>
           <span className={`shrink-0 font-mono text-[8px] uppercase tracking-[0.22em] ${lm ? "text-amber-800/80" : "text-amber-300/70"}`}>
