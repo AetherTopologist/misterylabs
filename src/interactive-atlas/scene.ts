@@ -10,6 +10,7 @@ import { FOREST_LINKS } from "./forest";
 import { buildHallOfFaces } from "./hall-of-faces";
 import { buildHouseOfUnfolding } from "./house-of-unfolding";
 import { buildPavilionOfTurningShadows } from "./pavilion-of-turning-shadows";
+import { buildSquareThroat } from "./square-throat-pavilion";
 import { createWalker } from "./mister-why";
 import { captureAtlasResume, takeAtlasResume } from "./resume";
 import { GROUND_R, LAYOUT, PATHS, PLACES } from "./world";
@@ -738,6 +739,16 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     markSite("inside-out", 4.7);
     house.group.position.set(p.x, 0, p.z);
     scene.add(house.group);
+  }
+
+  // Cubic Worm — a doorway of one frozen projection. Not the observatory ride.
+  const throat = buildSquareThroat();
+  {
+    const p = SITES["cubic-worm"];
+    addPad(p.x, p.z, 4.7);
+    markSite("cubic-worm", 4.35);
+    throat.group.position.set(p.x, 0, p.z);
+    scene.add(throat.group);
   }
 
   for (const id of Object.keys(SITES) as ExhibitId[]) {
@@ -1579,6 +1590,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     hall.tick(time, camera.position, reduced);
     shadows.tick(time, camera.position, reduced);
     house.tick(time, camera.position, reduced);
+    throat.tick(time, camera.position, reduced);
 
     for (const h of highlights) {
       const target = h.id === selected ? 0.9 : 0.16;
@@ -1622,6 +1634,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       hall.dispose();
       shadows.dispose();
       house.dispose();
+      throat.dispose();
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("contextmenu", onContext);
       window.removeEventListener("pointermove", onPointerMove);

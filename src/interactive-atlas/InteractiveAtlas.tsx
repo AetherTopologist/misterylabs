@@ -207,7 +207,8 @@ export default function InteractiveAtlas() {
                   if (
                     exhibit.id === "hollow-genius" ||
                     exhibit.id === "ambiguous-dancer" ||
-                    exhibit.id === "inside-out"
+                    exhibit.id === "inside-out" ||
+                    exhibit.id === "cubic-worm"
                   )
                     apiRef.current?.remember();
                 }}
