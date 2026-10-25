@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import type { ExhibitId } from "./destinations";
+import { FOLLOW_GRACE, angDelta, stepHeadingFollow, type FollowState } from "./follow-camera";
 import { CEN_BLOCK, FOOT, PLACES, projectOut } from "./world";
 
 const SPEED = 24;
@@ -7,13 +8,10 @@ const BACK = 14;
 const EYE = 3.8;
 const AHEAD = 46;
 const LOOK_Y = 9;
-
-function angDelta(from: number, to: number) {
-  let d = (to - from) % (Math.PI * 2);
-  if (d > Math.PI) d -= Math.PI * 2;
-  if (d < -Math.PI) d += Math.PI * 2;
-  return d;
-}
+/** Stick angle change that counts as a new command, not noise. */
+const STICK_RELATCH = 0.55;
+const MOVE_DEADZONE = 0.12;
+const FOLLOW_SPEED = 0.8;
 
 function clamp(v: number, a: number, b: number) {
   return Math.min(b, Math.max(a, v));
@@ -36,7 +34,7 @@ export type Walker = {
   applyCamera: (camera: THREE.PerspectiveCamera, dt: number, reduced: boolean) => void;
   orbit: (dx: number, dy: number) => void;
   zoom: (factor: number) => void;
-  pose: () => { x: number; z: number; heading: number };
+  pose: () => { x: number; z: number; heading: number; camYaw: number };
   aim: () => THREE.Vector3;
   nearest: () => { id: ExhibitId | null; proximity: number };
   snapshot: () => WalkerSnapshot;
@@ -139,6 +137,9 @@ export function createWalker(scene: THREE.Scene): Walker {
   let back = BACK;
   let backT = BACK;
   let moveBasis = 0;
+  let basisHeld = false;
+  let heldStick = 0;
+  let followState: FollowState = { yaw: 0, grace: 0, sustained: 0 };
   const look = new THREE.Vector3();
   const lookT = new THREE.Vector3();
   const desired = new THREE.Vector3();
@@ -191,6 +192,8 @@ export function createWalker(scene: THREE.Scene): Walker {
       lookT.set(x, LOOK_Y, z);
       camYaw = Math.atan2(camera.position.x - x, camera.position.z - z);
       moveBasis = camYaw;
+      basisHeld = false;
+      followState = { yaw: camYaw, grace: 0, sustained: 0 };
       lookLift = LOOK_Y;
       lookLiftT = LOOK_Y;
       back = Math.max(BACK, Math.min(80, Math.hypot(camera.position.x - x, camera.position.z - z)));
@@ -200,6 +203,8 @@ export function createWalker(scene: THREE.Scene): Walker {
       active = false;
       vx = 0;
       vz = 0;
+      basisHeld = false;
+      followState = { yaw: camYaw, grace: 0, sustained: 0 };
       hipL.rotation.x = 0;
       hipR.rotation.x = 0;
       armL.rotation.x = 0;
@@ -209,7 +214,20 @@ export function createWalker(scene: THREE.Scene): Walker {
     update(dt, _time, input, reduced) {
       if (!active) return;
       const step = Math.min(0.05, Math.max(0, dt));
-      if (!input.orbiting) moveBasis = camYaw;
+      const commanded = Math.hypot(input.x, input.y) > MOVE_DEADZONE;
+      const stick = Math.atan2(input.x, input.y);
+      // Latch at the start of a command, including one that begins mid-orbit.
+      // A held stick keeps that basis so follow cannot steer the walk.
+      if (!commanded) {
+        basisHeld = false;
+      } else if (!basisHeld) {
+        moveBasis = camYaw;
+        basisHeld = true;
+        heldStick = stick;
+      } else if (!input.orbiting && Math.abs(angDelta(heldStick, stick)) > STICK_RELATCH) {
+        moveBasis = camYaw;
+        heldStick = stick;
+      }
       const lookx = -Math.sin(moveBasis);
       const lookz = -Math.cos(moveBasis);
       const rightx = Math.cos(moveBasis);
@@ -254,6 +272,13 @@ export function createWalker(scene: THREE.Scene): Walker {
       coat.position.y = 1.05 + bob;
       placeBody();
       lookT.set(x, 1.4, z);
+      followState = stepHeadingFollow(followState, step, {
+        reduced,
+        orbiting: input.orbiting,
+        moving: sp > FOLLOW_SPEED,
+        heading,
+      });
+      camYaw = followState.yaw;
     },
     applyCamera(camera, dt, reduced) {
       if (!active) return;
@@ -281,11 +306,12 @@ export function createWalker(scene: THREE.Scene): Walker {
     orbit(dx, dy) {
       camYaw -= dx * 0.005;
       lookLiftT = clamp(lookLiftT - dy * 0.045, 3.5, 32);
+      followState = { yaw: camYaw, grace: FOLLOW_GRACE, sustained: 0 };
     },
     zoom(factor) {
       backT = clamp(backT * factor, 9, 28);
     },
-    pose: () => ({ x, z, heading }),
+    pose: () => ({ x, z, heading, camYaw }),
     aim: () => look.clone(),
     nearest,
     snapshot: () => ({ x, z, heading, camYaw, back: backT, lookLift: lookLiftT }),
@@ -300,6 +326,8 @@ export function createWalker(scene: THREE.Scene): Walker {
       phase = 0;
       camYaw = pose.camYaw;
       moveBasis = pose.camYaw;
+      basisHeld = false;
+      followState = { yaw: pose.camYaw, grace: 0, sustained: 0 };
       back = pose.back;
       backT = pose.back;
       lookLift = pose.lookLift;
