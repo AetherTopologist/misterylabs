@@ -19,7 +19,8 @@ export type ExhibitId =
   | "hollow-genius"
   | "ambiguous-dancer"
   | "inside-out"
-  | "cubic-worm";
+  | "cubic-worm"
+  | "hypercross";
 
 export type DestinationId = ExhibitId | "cenotaph";
 
@@ -127,6 +128,16 @@ export const EXHIBITS: Record<ExhibitId, Destination> = {
     hall: "The Square Throat",
     question: "Is that a passage, or a projection?",
     href: "/observatory/higher-dimensional/cubic-worm",
+    released: true,
+    placed: true,
+  },
+  hypercross: {
+    id: "hypercross",
+    kind: "exhibit",
+    name: "Hypercross",
+    hall: "The Eightfold Cross",
+    question: "What does a cube become when space gains another direction?",
+    href: "/observatory/higher-dimensional/hypercross",
     released: true,
     placed: true,
   },

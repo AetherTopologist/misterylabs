@@ -248,6 +248,53 @@ describe("hollow genius exhibit plate", () => {
     expect(screen.queryByRole("link", { name: "Enter exhibit" })).not.toBeInTheDocument();
   });
 
+  it("names the eightfold cross and remembers that visit", async () => {
+    await mount();
+    await act(async () => {
+      pushUi!({
+        scale: 0.42,
+        selected: "hypercross",
+        proximity: 0.8,
+        atHome: false,
+        inside: false,
+        mode: "walk",
+        walker: {
+          x: PLACES.hypercross.x,
+          z: PLACES.hypercross.z + 8,
+          heading: Math.PI,
+        },
+      });
+    });
+    expect(screen.getByText("Hypercross")).toBeInTheDocument();
+    expect(screen.getByText("The Eightfold Cross")).toBeInTheDocument();
+    expect(screen.getByText(EXHIBITS.hypercross.question!)).toBeInTheDocument();
+    const enter = screen.getByRole("link", { name: "Enter exhibit" });
+    expect(enter.getAttribute("href")).toContain("/observatory/higher-dimensional/hypercross");
+    expect(enter.getAttribute("href")).toContain("from=interactive-atlas");
+    fireEvent.click(enter);
+    expect(remember).toHaveBeenCalledTimes(1);
+
+    remember.mockClear();
+    await act(async () => {
+      pushUi!({
+        scale: 0.42,
+        selected: "hypercross",
+        proximity: 0.4,
+        atHome: false,
+        inside: false,
+        mode: "walk",
+        walker: {
+          x: PLACES.hypercross.x,
+          z: PLACES.hypercross.z + 14,
+          heading: Math.PI,
+        },
+      });
+    });
+    expect(screen.getByText("Hypercross")).toBeInTheDocument();
+    expect(screen.queryByText("The Eightfold Cross")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Enter exhibit" })).not.toBeInTheDocument();
+  });
+
   it("draws the new hall on the walking map with the older halls", () => {
     const { container } = render(
       <FairMap walker={{ x: 0, z: 160, heading: 0 }} open onToggle={() => {}} />,
@@ -256,6 +303,7 @@ describe("hollow genius exhibit plate", () => {
     expect(container).toHaveTextContent("Ambiguous Dancer");
     expect(container).toHaveTextContent("Inside-Out Universe");
     expect(container).toHaveTextContent("Cubic Worm");
+    expect(container).toHaveTextContent("Hypercross");
     expect(container).toHaveTextContent("Hydrogen");
     expect(container).toHaveTextContent("Photon Journey");
     expect(container.querySelectorAll("circle").length).toBeGreaterThan(6);
