@@ -38,8 +38,11 @@ export const PLACES: Record<ExhibitId, Place> = {
   // South of the Hall of Faces spur. The hall's +z entrance stays open.
   "ambiguous-dancer": { x: -50 * LAYOUT, y: 2.2, z: -8 * LAYOUT, block: 4.6, reach: 16 },
   // Further south-west along the same trail. The last leg arrives from +z.
-  // Square Throat and Eightfold Cross stay unplaced, west and south of this court.
+  // Eightfold Cross stays unplaced, south of this court.
   "inside-out": { x: -62 * LAYOUT, y: 2.2, z: -20 * LAYOUT, block: 5.2, reach: 16 },
+  // Due west of the house. The path runs west, then the last leg arrives from +z
+  // so the doorway faces the walk, the same way the other pavilions do.
+  "cubic-worm": { x: -74 * LAYOUT, y: 2.2, z: -20 * LAYOUT, block: 4.8, reach: 16 },
 };
 
 const at = (x: number, z: number): [number, number, number] => [x * LAYOUT, 0, z * LAYOUT];
@@ -57,6 +60,8 @@ export const PATHS: Array<{ pts: Array<[number, number, number]>; samples: numbe
   { pts: [at(-34, 16), at(-44, 4), at(-50, -8)], samples: 16, walk: 1.05, glow: 0.22 },
   // Continues west, then south, so the house is approached from +z.
   { pts: [at(-50, -8), at(-56, -8), at(-62, -14), at(-62, -20)], samples: 18, walk: 1.05, glow: 0.22 },
+  // West from the house, then a short leg from +z into the doorway.
+  { pts: [at(-62, -20), at(-68, -20), at(-74, -14), at(-74, -20)], samples: 16, walk: 1.05, glow: 0.22 },
   { pts: [at(3.2, 36.4), at(22, 30), at(34, 12), at(34, -8)], samples: 24, walk: 1.15, glow: 0.26 },
   { pts: [at(34, -8), at(38, -16), at(38, -28)], samples: 16, walk: 1.05, glow: 0.22 },
   { pts: [at(34, -8), at(22, -28), at(8, -42)], samples: 18, walk: 1.0, glow: 0.22 },

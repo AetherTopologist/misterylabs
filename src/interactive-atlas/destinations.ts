@@ -18,7 +18,8 @@ export type ExhibitId =
   | "photon"
   | "hollow-genius"
   | "ambiguous-dancer"
-  | "inside-out";
+  | "inside-out"
+  | "cubic-worm";
 
 export type DestinationId = ExhibitId | "cenotaph";
 
@@ -116,6 +117,16 @@ export const EXHIBITS: Record<ExhibitId, Destination> = {
     hall: "House of Unfolding",
     question: "How does a flat net become a solid?",
     href: "/observatory/higher-dimensional/inside-out",
+    released: true,
+    placed: true,
+  },
+  "cubic-worm": {
+    id: "cubic-worm",
+    kind: "exhibit",
+    name: "Cubic Worm",
+    hall: "The Square Throat",
+    question: "Is that a passage, or a projection?",
+    href: "/observatory/higher-dimensional/cubic-worm",
     released: true,
     placed: true,
   },
