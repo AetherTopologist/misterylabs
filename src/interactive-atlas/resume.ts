@@ -1,4 +1,5 @@
 import { isDestinationId, type AtlasMode, type DestinationId } from "./destinations";
+import { WALK_BACK_MAX, WALK_BACK_MIN, WALK_LOOK_MAX, WALK_LOOK_MIN } from "./framing";
 import type { WalkerSnapshot } from "./mister-why";
 import { GROUND_R, GROUND_WALK } from "./world";
 
@@ -50,8 +51,8 @@ export function validateAtlasResume(raw: unknown, now = Date.now()): AtlasResume
     if (!pose || typeof pose !== "object") return null;
     if (![pose.x, pose.z, pose.heading, pose.camYaw, pose.back, pose.lookLift].every(finite)) return null;
     if (Math.hypot(pose.x, pose.z) > GROUND_WALK + 1) return null;
-    if (pose.back < 8 || pose.back > 30) return null;
-    if (pose.lookLift < 3 || pose.lookLift > 34) return null;
+    if (pose.back < WALK_BACK_MIN - 0.05 || pose.back > 30) return null;
+    if (pose.lookLift < WALK_LOOK_MIN - 0.05 || pose.lookLift > WALK_LOOK_MAX + 4) return null;
     walker = {
       x: pose.x,
       z: pose.z,
@@ -122,8 +123,8 @@ export function captureAtlasResume(input: AtlasResume) {
             z: walker.z,
             heading: walker.heading,
             camYaw: walker.camYaw,
-            back: clamp(walker.back, 9, 28),
-            lookLift: clamp(walker.lookLift, 3.5, 32),
+            back: clamp(walker.back, WALK_BACK_MIN, WALK_BACK_MAX),
+            lookLift: clamp(walker.lookLift, WALK_LOOK_MIN, WALK_LOOK_MAX),
           }
         : null,
   };

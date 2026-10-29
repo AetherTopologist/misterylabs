@@ -1,13 +1,24 @@
 import * as THREE from "three";
 import type { ExhibitId } from "./destinations";
 import { FOLLOW_GRACE, angDelta, stepHeadingFollow, type FollowState } from "./follow-camera";
+import {
+  ORBIT_PITCH_DOWN,
+  ORBIT_PITCH_UP,
+  ORBIT_YAW,
+  WALK_BACK,
+  WALK_BACK_INHERIT,
+  WALK_BACK_MAX,
+  WALK_BACK_MIN,
+  WALK_LOOK,
+  WALK_LOOK_MAX,
+  WALK_LOOK_MIN,
+  aheadForLook,
+  eyeForLook,
+} from "./framing";
+import { clearBoom, keepGarden, sampleGround } from "./terrain";
 import { CEN_BLOCK, FOOT, PLACES, projectOut } from "./world";
 
 const SPEED = 24;
-const BACK = 14;
-const EYE = 3.8;
-const AHEAD = 46;
-const LOOK_Y = 9;
 /** Stick angle change that counts as a new command, not noise. */
 const STICK_RELATCH = 0.55;
 const MOVE_DEADZONE = 0.12;
@@ -132,10 +143,10 @@ export function createWalker(scene: THREE.Scene): Walker {
   let vz = 0;
   let phase = 0;
   let camYaw = 0;
-  let lookLift = LOOK_Y;
-  let lookLiftT = LOOK_Y;
-  let back = BACK;
-  let backT = BACK;
+  let lookLift = WALK_LOOK;
+  let lookLiftT = WALK_LOOK;
+  let back = WALK_BACK;
+  let backT = WALK_BACK;
   let moveBasis = 0;
   let basisHeld = false;
   let heldStick = 0;
@@ -145,7 +156,7 @@ export function createWalker(scene: THREE.Scene): Walker {
   const desired = new THREE.Vector3();
 
   function placeBody() {
-    group.position.set(x, 0, z);
+    group.position.set(x, sampleGround(x, z), z);
     group.rotation.y = heading;
   }
 
@@ -189,15 +200,16 @@ export function createWalker(scene: THREE.Scene): Walker {
       phase = 0;
       placeBody();
       look.copy(focus);
-      lookT.set(x, LOOK_Y, z);
+      lookT.set(x, sampleGround(x, z) + WALK_LOOK, z);
       camYaw = Math.atan2(camera.position.x - x, camera.position.z - z);
       moveBasis = camYaw;
       basisHeld = false;
       followState = { yaw: camYaw, grace: 0, sustained: 0 };
-      lookLift = LOOK_Y;
-      lookLiftT = LOOK_Y;
-      back = Math.max(BACK, Math.min(80, Math.hypot(camera.position.x - x, camera.position.z - z)));
-      backT = BACK;
+      lookLift = WALK_LOOK;
+      lookLiftT = WALK_LOOK;
+      const inherited = Math.hypot(camera.position.x - x, camera.position.z - z);
+      back = Math.max(WALK_BACK, Math.min(WALK_BACK_INHERIT, inherited));
+      backT = WALK_BACK;
     },
     stop() {
       active = false;
@@ -251,10 +263,11 @@ export function createWalker(scene: THREE.Scene): Walker {
       x += vx * step;
       z += vz * step;
       const solved = projectOut(x, z, vx, vz);
-      x = solved.x;
-      z = solved.z;
-      vx = solved.vx;
-      vz = solved.vz;
+      const kept = keepGarden(solved.x, solved.z, solved.vx, solved.vz);
+      x = kept.x;
+      z = kept.z;
+      vx = kept.vx;
+      vz = kept.vz;
       const sp = Math.hypot(vx, vz);
       if (sp > 0.35) {
         const face = Math.atan2(vx, vz);
@@ -271,7 +284,6 @@ export function createWalker(scene: THREE.Scene): Walker {
       torso.position.y = 1.18 + bob;
       coat.position.y = 1.05 + bob;
       placeBody();
-      lookT.set(x, 1.4, z);
       followState = stepHeadingFollow(followState, step, {
         reduced,
         orbiting: input.orbiting,
@@ -288,28 +300,33 @@ export function createWalker(scene: THREE.Scene): Walker {
       const oz = Math.cos(camYaw);
       back += (backT - back) * damp;
       lookLift += (lookLiftT - lookLift) * damp;
-      lookT.set(x - ox * AHEAD, lookLift, z - oz * AHEAD);
+      const feet = sampleGround(x, z);
+      const ahead = aheadForLook(lookLift);
+      lookT.set(x - ox * ahead, feet + lookLift, z - oz * ahead);
       look.lerp(lookT, damp);
-      desired.set(x + ox * back, EYE + Math.max(0, lookLift - LOOK_Y) * 0.15, z + oz * back);
+      const eye = feet + eyeForLook(lookLift);
+      desired.set(x + ox * back, eye, z + oz * back);
       const cr = Math.hypot(desired.x, desired.z);
       if (cr < CEN_BLOCK + 3 && cr > 0.01) {
         const s = (CEN_BLOCK + 3) / cr;
         desired.x *= s;
         desired.z *= s;
       }
-      if (desired.y < 1.6) desired.y = 1.6;
+      const cleared = clearBoom(x, z, { x: desired.x, y: desired.y, z: desired.z });
+      desired.set(cleared.x, cleared.y, cleared.z);
       if (reduced) camera.position.copy(desired);
       else camera.position.lerp(desired, damp);
       camera.lookAt(look);
       camera.updateMatrixWorld();
     },
     orbit(dx, dy) {
-      camYaw -= dx * 0.005;
-      lookLiftT = clamp(lookLiftT - dy * 0.045, 3.5, 32);
+      camYaw -= dx * ORBIT_YAW;
+      const gain = dy > 0 ? ORBIT_PITCH_DOWN : ORBIT_PITCH_UP;
+      lookLiftT = clamp(lookLiftT - dy * gain, WALK_LOOK_MIN, WALK_LOOK_MAX);
       followState = { yaw: camYaw, grace: FOLLOW_GRACE, sustained: 0 };
     },
     zoom(factor) {
-      backT = clamp(backT * factor, 9, 28);
+      backT = clamp(backT * factor, WALK_BACK_MIN, WALK_BACK_MAX);
     },
     pose: () => ({ x, z, heading, camYaw }),
     aim: () => look.clone(),
@@ -335,7 +352,9 @@ export function createWalker(scene: THREE.Scene): Walker {
       placeBody();
       const ox = Math.sin(camYaw);
       const oz = Math.cos(camYaw);
-      look.set(x - ox * AHEAD, lookLift, z - oz * AHEAD);
+      const feet = sampleGround(x, z);
+      const ahead = aheadForLook(lookLift);
+      look.set(x - ox * ahead, feet + lookLift, z - oz * ahead);
       lookT.copy(look);
     },
   };

@@ -12,6 +12,8 @@ import { buildHallOfFaces } from "./hall-of-faces";
 import { buildHouseOfUnfolding } from "./house-of-unfolding";
 import { buildPavilionOfTurningShadows } from "./pavilion-of-turning-shadows";
 import { buildSquareThroat } from "./square-throat-pavilion";
+import { buildFairGarden } from "./garden";
+import { WALK_BACK, WALK_LOOK } from "./framing";
 import { createWalker } from "./mister-why";
 import { captureAtlasResume, takeAtlasResume } from "./resume";
 import { GROUND_R, LAYOUT, PATHS, PLACES } from "./world";
@@ -762,6 +764,9 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     scene.add(cross.group);
   }
 
+  const garden = buildFairGarden();
+  scene.add(garden.group);
+
   for (const id of Object.keys(SITES) as ExhibitId[]) {
     const p = SITES[id];
     const pool = new THREE.Mesh(new THREE.CircleGeometry(id === "triad" || id === "bell" ? 10 : 8, 28), basicGlow(0xc4a574, 0.28));
@@ -1482,8 +1487,26 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
           z,
           heading: Math.atan2(place.x - x, place.z - z),
           camYaw: Math.atan2(x - place.x, z - place.z),
-          back: 11,
-          lookLift: 3.4,
+          back: WALK_BACK,
+          lookLift: WALK_LOOK,
+        });
+        const near = walker.nearest();
+        selected = near.id;
+        walkProx = near.proximity;
+        snapAnchor = null;
+        walker.applyCamera(camera, 1, true);
+        emit(true);
+      },
+      stand: (x: number, z: number, heading: number, lookLift?: number) => {
+        inside = false;
+        walking = true;
+        walker.restore({
+          x,
+          z,
+          heading,
+          camYaw: heading + Math.PI,
+          back: WALK_BACK,
+          lookLift: lookLift ?? WALK_LOOK,
         });
         const near = walker.nearest();
         selected = near.id;
@@ -1603,6 +1626,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     house.tick(time, camera.position, reduced);
     throat.tick(time, camera.position, reduced);
     cross.tick(time, camera.position, reduced);
+    garden.cull(camera.position);
 
     for (const h of highlights) {
       const target = h.id === selected ? 0.9 : 0.16;
