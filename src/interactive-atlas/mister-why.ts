@@ -16,7 +16,8 @@ import {
   eyeForLook,
 } from "./framing";
 import { clearBoom, keepGarden, sampleGround } from "./terrain";
-import { CEN_BLOCK, FOOT, PLACES, projectOut } from "./world";
+import { inStairMouth, placeCenotaphCamera } from "./ascent";
+import { FOOT, PLACES, projectOut } from "./world";
 
 const SPEED = 24;
 /** Stick angle change that counts as a new command, not noise. */
@@ -185,7 +186,8 @@ export function createWalker(scene: THREE.Scene): Walker {
       active = true;
       group.visible = true;
       const r = Math.hypot(focus.x, focus.z);
-      if (r < 70) {
+      const mouth = inStairMouth(focus.x, focus.z);
+      if (r < 70 && !mouth) {
         x = FOOT.x;
         z = FOOT.z;
         heading = Math.PI;
@@ -306,14 +308,10 @@ export function createWalker(scene: THREE.Scene): Walker {
       look.lerp(lookT, damp);
       const eye = feet + eyeForLook(lookLift);
       desired.set(x + ox * back, eye, z + oz * back);
-      const cr = Math.hypot(desired.x, desired.z);
-      if (cr < CEN_BLOCK + 3 && cr > 0.01) {
-        const s = (CEN_BLOCK + 3) / cr;
-        desired.x *= s;
-        desired.z *= s;
-      }
-      const cleared = clearBoom(x, z, { x: desired.x, y: desired.y, z: desired.z });
-      desired.set(cleared.x, cleared.y, cleared.z);
+      let boom = clearBoom(x, z, { x: desired.x, y: desired.y, z: desired.z });
+      boom = placeCenotaphCamera(x, z, boom);
+      boom = clearBoom(x, z, boom);
+      desired.set(boom.x, boom.y, boom.z);
       if (reduced) camera.position.copy(desired);
       else camera.position.lerp(desired, damp);
       camera.lookAt(look);

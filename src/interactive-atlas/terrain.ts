@@ -1,5 +1,6 @@
 import { GROUND_R } from "./world";
 import { WALK_CLEARANCE } from "./framing";
+import { stairHeight } from "./ascent";
 
 /**
  * One garden court on the avenue north of the House of Unfolding.
@@ -57,8 +58,8 @@ function railHeight(x: number, z: number) {
 }
 
 /**
- * Height of the surface under a point. Flat fair, then the rim falls into the
- * abyss, and the garden court rises in slopes and a balustrade.
+ * Height of the surface under a point. Flat fair, the cenotaph stair,
+ * the rim falling into the abyss, and the garden court.
  */
 export function sampleGround(x: number, z: number) {
   const radial = Math.hypot(x, z);
@@ -71,6 +72,8 @@ export function sampleGround(x: number, z: number) {
   if (court <= GARDEN_COURT.rings[0].r) height = Math.max(height, ringHeight(court));
   const rail = railHeight(x, z);
   if (rail > 0) height = Math.max(height, rail);
+  const stair = stairHeight(x, z);
+  if (stair > 0) height = Math.max(height, stair);
   return height;
 }
 

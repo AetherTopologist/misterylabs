@@ -309,3 +309,28 @@ describe("hollow genius exhibit plate", () => {
     expect(container.querySelectorAll("circle").length).toBeGreaterThan(6);
   });
 });
+
+describe("cenotaph door plate", () => {
+  beforeEach(() => {
+    pushUi = null;
+  });
+
+  it("names the threshold without opening a chamber", async () => {
+    await mount();
+    await act(async () => {
+      pushUi!({
+        scale: 0.5,
+        selected: null,
+        proximity: 0,
+        atHome: false,
+        inside: false,
+        mode: "walk",
+        walker: { x: 0, z: 86, heading: Math.PI },
+      });
+    });
+    expect(screen.getByText("Enter the Cenotaph")).toBeInTheDocument();
+    expect(screen.getByText("The chamber is beyond this door.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cross the boundary" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Enter exhibit" })).not.toBeInTheDocument();
+  });
+});
