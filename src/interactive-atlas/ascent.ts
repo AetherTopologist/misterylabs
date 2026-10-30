@@ -1,45 +1,72 @@
 /**
  * South stair of the seated Cenotaph.
  *
- * Measured from cenotaph.glb after the same sphere-fit seating as cenotaph.ts
- * (sphere radius 52.15, base on y=0, masonry out to about r=122).
- * CEN_BLOCK is 130, so the circular collider sits in front of the stone.
+ * Seating is the same as cenotaph.ts: sphere fit of Unir, then the SketchUp
+ * bounds sit on y = 0. That box starts at y = 0 (holder.y ≈ 60.93). A node
+ * outside SketchUp reaches y = -1 and must not be used as the floor datum.
  *
- * Centerline treads: z=122 y≈1.1, z=115 y≈4.2, z=109 y=7.0.
- * Landing y=7.28 from z≈107 through the arch. The floor stays 7.28 until z≈85,
- * then an interior rise to about y=11.6. A real opening about 3.6 m wide
- * (|x|<1.8 at body height) continues past that rise into an unmapped void.
- * The walk stops on the last flat threshold. It does not enter the chamber.
+ * GLTFLoader up-faces on the centerline, after that seating:
+ * z=121 y=0.415, z=118 y=1.797, z=115 y=3.195, z=112 y=4.595,
+ * z=109 y=5.995, z=108 y=6.275. The landing is 6.275 from there through
+ * the arch. The old ramp used 7.28, about a meter above this stone.
+ *
+ * The arch tightens near z=82. At chest height the opening is about ±2.0;
+ * just over head height it is about ±1.4, and the soffit is y≈8.95.
+ * The walk stops on the inner threshold, z=78.4, still on the landing,
+ * before the unmapped hall. The camera may come a little further into the
+ * opening and ducks under the soffit instead of entering the stone.
  */
 
 export const STAIR_HALF = 13.2;
-export const STAIR_THROAT = 1.7;
-/** Wide flight and landing. Inside this z the mouth narrows toward the door. */
+export const STAIR_THROAT = 0.95;
+/** Wide flight. Inside this z the mouth narrows toward the arch. */
 export const STAIR_MOUTH_Z = 92;
-/** Last walkable point. Beyond it the floor leaves the landing. */
-export const STAIR_DOOR_Z = 84.8;
-export const STAIR_LAND_Y = 7.28;
+/** Inner threshold. The landing floor continues, the hall beyond is not a room. */
+export const STAIR_DOOR_Z = 78.4;
+export const STAIR_LAND_Y = 6.275;
 /** Where the camera, like the old boom, stays outside the round wall. */
 export const CEN_CAMERA_LIMIT = 133;
 
 /** Pose a future interior chamber can return to. Not a scene transition. */
 export const CENOTAPH_ENTRY = { x: 0, z: STAIR_DOOR_Z, heading: Math.PI, y: STAIR_LAND_Y };
 
-const TOE_Z = 123;
+const TOE_Z = 122;
+const LAND_Z = 108;
+/** How far the trailing camera may sit past the walker stop, still in the opening. */
+const CAMERA_INNER_Z = 76.4;
+const SOFFIT_MARGIN = 0.32;
+
 const PROFILE: ReadonlyArray<readonly [number, number]> = [
-  [123, 0],
-  [121.9, 1.12],
-  [121.2, 1.4],
-  [109, 7],
-  [107.2, STAIR_LAND_Y],
+  [122, 0],
+  [121.5, 0.138],
+  [121, 0.415],
+  [120, 0.829],
+  [119, 1.382],
+  [118, 1.797],
+  [117, 2.212],
+  [116, 2.775],
+  [115, 3.195],
+  [114, 3.615],
+  [113, 4.035],
+  [112, 4.595],
+  [111, 5.015],
+  [110, 5.435],
+  [109, 5.995],
+  [108, STAIR_LAND_Y],
 ];
 
-/** Half-width of the authorized mouth. Narrows in front of the arch. */
+/** Half-width of the authorized mouth. Narrows through the measured arch. */
 export function stairHalf(z: number) {
   if (z >= STAIR_MOUTH_Z) return STAIR_HALF;
-  if (z <= STAIR_DOOR_Z) return STAIR_THROAT;
-  const t = (STAIR_MOUTH_Z - z) / (STAIR_MOUTH_Z - STAIR_DOOR_Z);
-  return STAIR_HALF + (STAIR_THROAT - STAIR_HALF) * t;
+  if (z >= 85) {
+    const t = (STAIR_MOUTH_Z - z) / (STAIR_MOUTH_Z - 85);
+    return STAIR_HALF + (4.4 - STAIR_HALF) * t;
+  }
+  if (z >= 82) {
+    const t = (85 - z) / (85 - 82);
+    return 4.4 + (STAIR_THROAT - 4.4) * t;
+  }
+  return STAIR_THROAT;
 }
 
 /** Inside the round blocker, but on the south stair or its threshold. */
@@ -49,12 +76,12 @@ export function inStairMouth(x: number, z: number, inset = 0) {
   return Math.abs(x) <= span + 0.03;
 }
 
-/** Piecewise ramp through the tread line. 0 off the stair, including the forecourt. */
+/** Piecewise ramp through the measured tread line. 0 off the stair. */
 export function stairHeight(x: number, z: number) {
   if (!inStairMouth(x, z)) return 0;
   let y = STAIR_LAND_Y;
   if (z >= TOE_Z) y = 0;
-  else if (z > PROFILE[PROFILE.length - 1][0]) {
+  else if (z > LAND_Z) {
     for (let i = 0; i < PROFILE.length - 1; i++) {
       const [z0, y0] = PROFILE[i];
       const [z1, y1] = PROFILE[i + 1];
@@ -65,16 +92,16 @@ export function stairHeight(x: number, z: number) {
       }
     }
   }
-  if (z > 107.2 && y > 0) {
+  if (z > LAND_Z && y > 0) {
     const edge = Math.min(1, (Math.abs(x) / 10) * (Math.abs(x) / 10));
     y = Math.max(0, y - 0.26 * edge);
   }
   return y;
 }
 
-/** Standing in the doorway, not merely on the flight. */
+/** Standing in the arch, not merely on the flight. */
 export function atCenotaphDoor(x: number, z: number) {
-  return z <= 91 && z >= STAIR_DOOR_Z - 0.05 && Math.abs(x) <= 4.2 && stairHeight(x, z) > 6.5;
+  return z <= 86.5 && z >= STAIR_DOOR_Z - 0.05 && Math.abs(x) <= 2.4 && stairHeight(x, z) > 6;
 }
 
 type Move = { x: number; z: number; vx: number; vz: number };
@@ -126,35 +153,74 @@ export function constrainCenotaph(x: number, z: number, vx: number, vz: number, 
   return { x: bx, z: bz, vx, vz };
 }
 
+/** Opening half-width the camera may use. Inside the stone, outside the coat. */
+function doorHalf(z: number) {
+  if (z >= 88) return 6;
+  if (z >= 84) {
+    const t = (88 - z) / 4;
+    return 6 + (4.2 - 6) * t;
+  }
+  if (z >= 81.6) {
+    const t = (84 - z) / (84 - 81.6);
+    return 4.2 + (1.15 - 4.2) * t;
+  }
+  return 1.15;
+}
+
+/** Underside of the arch. High on the landing, low through the doorway, open in the hall. */
+function doorSoffit(z: number) {
+  if (z >= 86) return 13.5;
+  if (z >= 82) {
+    const t = (86 - z) / 4;
+    return 12.69 + (8.95 - 12.69) * t;
+  }
+  if (z >= CAMERA_INNER_Z) return 8.75;
+  return 13;
+}
+
+function cameraSpan(x: number, z: number, nearDoor: boolean) {
+  if (inStairMouth(x, z, 0.35)) return true;
+  if (!nearDoor || z < CAMERA_INNER_Z || z > 90) return false;
+  return Math.abs(x) <= doorHalf(z);
+}
+
 type Boom = { x: number; y: number; z: number };
 
 /**
- * The boom may enter the round blocker only along the same mouth as the walker.
- * Elsewhere it stays outside CEN_CAMERA_LIMIT, as it did before the stair existed.
+ * The boom may enter the round blocker only along the stair mouth, and a
+ * little further into the doorway when the walker is already there.
+ * A boom that would cross the arch crown is lowered under the soffit.
+ * Elsewhere it stays outside CEN_CAMERA_LIMIT, as it did before the stair.
  */
 export function placeCenotaphCamera(avatarX: number, avatarZ: number, boom: Boom): Boom {
   const r = Math.hypot(boom.x, boom.z);
   const avatarIn = inStairMouth(avatarX, avatarZ);
-  if (r >= CEN_CAMERA_LIMIT && !avatarIn) return boom;
-  if (avatarIn && (inStairMouth(boom.x, boom.z, 0.35) || r >= CEN_CAMERA_LIMIT)) return boom;
-  if (avatarIn) {
-    let x = boom.x;
-    let z = boom.z;
-    for (let i = 0; i < 8; i++) {
-      if (inStairMouth(x, z, 0.35) || Math.hypot(x, z) >= CEN_CAMERA_LIMIT) break;
+  if (!avatarIn) {
+    if (r > 0.01 && r < CEN_CAMERA_LIMIT) {
+      const s = CEN_CAMERA_LIMIT / r;
+      return { x: boom.x * s, y: boom.y, z: boom.z * s };
+    }
+    return boom;
+  }
+  const nearDoor = avatarZ <= 91;
+  let x = boom.x;
+  let y = boom.y;
+  let z = boom.z;
+  if (!(cameraSpan(x, z, nearDoor) || r >= CEN_CAMERA_LIMIT)) {
+    for (let i = 0; i < 12; i++) {
+      if (cameraSpan(x, z, nearDoor) || Math.hypot(x, z) >= CEN_CAMERA_LIMIT) break;
       x += (avatarX - x) * 0.42;
       z += (avatarZ - z) * 0.42;
     }
-    if (!inStairMouth(x, z, 0.35) && Math.hypot(x, z) < CEN_CAMERA_LIMIT) {
+    if (!cameraSpan(x, z, nearDoor) && Math.hypot(x, z) < CEN_CAMERA_LIMIT) {
       const fixed = constrainCenotaph(x, z, 0, 0);
       x = fixed.x;
       z = fixed.z;
     }
-    return { x, y: boom.y, z };
   }
-  if (r > 0.01 && r < CEN_CAMERA_LIMIT) {
-    const s = CEN_CAMERA_LIMIT / r;
-    return { x: boom.x * s, y: boom.y, z: boom.z * s };
+  if (nearDoor && z <= 86 && z >= CAMERA_INNER_Z) {
+    const cap = doorSoffit(z) - SOFFIT_MARGIN;
+    if (y > cap) y = cap;
   }
-  return boom;
+  return { x, y, z };
 }

@@ -10,7 +10,7 @@ import {
   placeCenotaphCamera,
   stairHeight,
 } from "./ascent";
-import { WALK_BACK, WALK_CLEARANCE, WALK_EYE, WALK_LOOK } from "./framing";
+import { WALK_BACK, WALK_CLEARANCE, WALK_EYE, WALK_LOOK, WALK_LOOK_MIN } from "./framing";
 import { createWalker } from "./mister-why";
 import { sampleGround } from "./terrain";
 import { CEN_BLOCK, PLACES, projectOut } from "./world";
@@ -31,12 +31,15 @@ function march(walker: ReturnType<typeof createWalker>, frames: number, input = 
 describe("cenotaph stair", () => {
   it("matches the measured tread line and stays on the fair beside it", () => {
     expect(stairHeight(0, 150)).toBe(0);
-    expect(stairHeight(0, 115)).toBeGreaterThan(4.05);
-    expect(stairHeight(0, 115)).toBeLessThan(4.4);
+    expect(stairHeight(0, 121)).toBeCloseTo(0.415, 2);
+    expect(stairHeight(0, 115)).toBeCloseTo(3.195, 2);
+    expect(stairHeight(0, 109)).toBeCloseTo(5.995, 2);
+    expect(stairHeight(10, 115)).toBeCloseTo(2.935, 2);
     expect(stairHeight(10, 115)).toBeLessThan(stairHeight(0, 115));
-    expect(stairHeight(10, 115)).toBeGreaterThan(3.7);
     expect(stairHeight(0, 100)).toBeCloseTo(STAIR_LAND_Y, 2);
+    expect(stairHeight(0, 82)).toBeCloseTo(STAIR_LAND_Y, 2);
     expect(stairHeight(0, STAIR_DOOR_Z)).toBeCloseTo(STAIR_LAND_Y, 2);
+    expect(STAIR_LAND_Y).toBeCloseTo(6.275, 3);
     expect(stairHeight(0, 70)).toBe(0);
     expect(sampleGround(0, 115)).toBeCloseTo(stairHeight(0, 115), 5);
     expect(sampleGround(0, 100)).toBeCloseTo(STAIR_LAND_Y, 2);
@@ -162,8 +165,63 @@ describe("cenotaph stair", () => {
     expect(home.pose().z).toBeCloseTo(158, 4);
 
     const boom = placeCenotaphCamera(0, STAIR_DOOR_Z, { x: 0, y: 10, z: STAIR_DOOR_Z - 8 });
-    expect(boom.z).toBeGreaterThanOrEqual(STAIR_DOOR_Z - 0.2);
+    expect(boom.z).toBeGreaterThan(76);
+    expect(boom.z).toBeLessThan(STAIR_DOOR_Z + 0.2);
+    expect(boom.y).toBeLessThan(9);
+    expect(CENOTAPH_ENTRY.y).toBe(STAIR_LAND_Y);
     expect(CENOTAPH_ENTRY.z).toBe(STAIR_DOOR_Z);
+  });
+
+  it("fits the arch and lets the camera into the opening, not the stone", () => {
+    const jamb = constrainCenotaph(3.2, 82, 2, 0, CEN_BLOCK);
+    expect(Math.abs(jamb.x)).toBeLessThanOrEqual(1.3);
+    expect(inStairMouth(jamb.x, jamb.z)).toBe(true);
+    expect(stairHeight(jamb.x, jamb.z)).toBeCloseTo(STAIR_LAND_Y, 2);
+
+    const under = placeCenotaphCamera(0, 80, { x: 0, y: 10, z: 79.2 });
+    expect(under.z).toBeGreaterThan(78);
+    expect(under.z).toBeLessThan(81);
+    expect(under.y).toBeLessThan(8.6);
+    expect(under.y).toBeGreaterThan(8.2);
+
+    const deep = placeCenotaphCamera(0, 84, { x: 0, y: 8.2, z: 70 });
+    expect(deep.z).toBeGreaterThan(76);
+    expect(deep.z).toBeLessThan(82);
+    expect(Math.abs(deep.x)).toBeLessThan(1.3);
+
+    const cheekCam = placeCenotaphCamera(0, 80, { x: 6, y: 8, z: 80 });
+    expect(Math.abs(cheekCam.x)).toBeLessThanOrEqual(1.2);
+
+    const flight = placeCenotaphCamera(0, 115, { x: 0, y: 9, z: 70 });
+    expect(flight.z).toBeGreaterThan(85);
+    expect(flight.z).toBeLessThan(116);
+    expect(inStairMouth(flight.x, flight.z, 0.2)).toBe(true);
+  });
+
+  it("recovers extreme pitch at the threshold without leaving the walk", () => {
+    const walker = walkerAt(0, 80);
+    const camera = new THREE.PerspectiveCamera();
+    expect(walker.active).toBe(true);
+    walker.orbit(120, 0);
+    expect(Math.abs(walker.snapshot().camYaw)).toBeGreaterThan(0.4);
+    walker.orbit(0, -700);
+    expect(walker.snapshot().lookLift).toBeGreaterThan(40);
+    walker.orbit(0, 6000);
+    expect(walker.snapshot().lookLift).toBe(WALK_LOOK_MIN);
+    walker.orbit(0, -20);
+    expect(walker.snapshot().lookLift).toBeGreaterThan(2);
+    expect(walker.snapshot().lookLift).toBeLessThan(4);
+    walker.applyCamera(camera, 1, true);
+    expect(walker.active).toBe(true);
+    expect(walker.group.position.y).toBeCloseTo(STAIR_LAND_Y, 2);
+    expect(camera.position.y).toBeGreaterThan(STAIR_LAND_Y + 0.4);
+    expect(camera.position.y).toBeLessThan(STAIR_LAND_Y + WALK_EYE + 0.5);
+
+    const returned = createWalker(new THREE.Scene());
+    returned.enter(new THREE.Vector3(0, 9, 80), camera);
+    expect(returned.active).toBe(true);
+    expect(returned.pose().z).toBeGreaterThan(STAIR_DOOR_Z - 0.2);
+    expect(returned.pose().z).toBeLessThan(90);
   });
 
   it("does not move the western halls", () => {
