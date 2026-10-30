@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasMode, type AtlasUi, type CenotaphVariant, type WalkerPose } from "./destinations";
+import { atCenotaphDoor } from "./ascent";
 import { FairMap, WalkStick } from "./walk-ui";
 import "./interactive-atlas.css";
 
@@ -114,6 +115,7 @@ export default function InteractiveAtlas() {
   const showFull = (exhibit && ui.proximity > 0.56) || (landmark && ui.proximity > 0.4);
 
   const walking = ui.mode === "walk" && ui.walker;
+  const atDoor = Boolean(walking && ui.walker && atCenotaphDoor(ui.walker.x, ui.walker.z));
   const setMode = (mode: AtlasMode) => apiRef.current?.setMode(mode);
 
   return (
@@ -185,6 +187,12 @@ export default function InteractiveAtlas() {
             <button type="button" className="ia-enter" onClick={() => apiRef.current?.returnOutside()}>
               Return outside
             </button>
+          </div>
+        ) : atDoor ? (
+          <div className="ia-plate">
+            <p className="ia-kicker">{CENOTAPH.name}</p>
+            <p className="ia-question">Enter the Cenotaph</p>
+            <p className="ia-note">The chamber is beyond this door.</p>
           </div>
         ) : showFull && landmark ? (
           <div className="ia-plate">

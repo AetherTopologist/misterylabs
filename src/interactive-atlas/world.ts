@@ -1,4 +1,5 @@
 import type { ExhibitId } from "./destinations";
+import { constrainCenotaph } from "./ascent";
 
 /** One coordinate record for the fair. The scene, the walker, and the map all read this. */
 export const LAYOUT = 6.6;
@@ -7,7 +8,7 @@ export const GROUND_R = 96 * LAYOUT;
 /** Circular plinth of the native Cenotaph. The map draws this. */
 export const CEN_FOOT = 122;
 
-/** Walker stays outside the stair and plinth. */
+/** Walker stays outside the stair and plinth, except the south mouth. */
 export const CEN_BLOCK = 130;
 
 export const GROUND_WALK = GROUND_R * 0.92;
@@ -79,6 +80,11 @@ export function projectOut(x: number, z: number, vx: number, vz: number) {
     x = 0;
     z = CEN_BLOCK;
   }
+  const cen = constrainCenotaph(x, z, vx, vz, CEN_BLOCK);
+  x = cen.x;
+  z = cen.z;
+  vx = cen.vx;
+  vz = cen.vz;
   const push = (cx: number, cz: number, rad: number) => {
     const dx = x - cx;
     const dz = z - cz;
@@ -94,7 +100,6 @@ export function projectOut(x: number, z: number, vx: number, vz: number) {
       vz -= vn * nz;
     }
   };
-  push(0, 0, CEN_BLOCK);
   for (const id of Object.keys(PLACES) as ExhibitId[]) {
     const p = PLACES[id];
     push(p.x, p.z, p.block);
