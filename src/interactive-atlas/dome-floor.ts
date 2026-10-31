@@ -18,7 +18,8 @@ import * as THREE from "three";
  *
  * The slab sits on the arrival level, inside the chord where the shell
  * meets y = 12.937 (horizontal radius 20.4). A pier under the center
- * stops above the bowl. A narrower neck crosses the opening to the ramp.
+ * stops above the bowl. The mouth is ±6.75 and the old neck was ±3.15,
+ * so an apron fills both wings back to the last tread.
  */
 
 export const DOME_CY = 60.928;
@@ -31,6 +32,10 @@ export const WALK_R = 13.35;
 export const NECK_HALF = 3.15;
 export const NECK_Z0 = 12.4;
 export const NECK_Z1 = 20.9;
+/** Landing that fills the wings between the 13.5 m stair mouth and the disc. */
+export const APRON_HALF = 6.45;
+export const APRON_Z0 = 13.55;
+export const APRON_Z1 = 20.92;
 export const PIER_R = 2.2;
 export const PIER_BOTTOM_Y = 9.2;
 
@@ -53,6 +58,7 @@ export function onObservationFloor(x: number, z: number, inset = 0) {
   const limit = WALK_R - inset;
   if (z <= STONE_END_Z + 0.08 && Math.hypot(x, z) <= limit + 0.02) return true;
   if (z >= _neck.z0 && z <= _neck.z1 && Math.abs(x) <= _neck.half - inset + 0.02) return true;
+  if (z >= APRON_Z0 && z <= APRON_Z1 && Math.abs(x) <= APRON_HALF - inset + 0.02) return true;
   return false;
 }
 
@@ -66,35 +72,29 @@ export type ObservationFloor = {
  * Slab, curb, neck, pier, and two unshadowed spots.
  * The group is in world space. Nothing here is parented under the GLB.
  */
-export function buildObservationFloor(): ObservationFloor {
+export function buildObservationFloor(masonry?: THREE.Material): ObservationFloor {
   const group = new THREE.Group();
   group.name = "mistery-observation-floor";
   group.userData.addition = "mistery-labs";
 
-  const stone = new THREE.MeshStandardMaterial({
-    color: 0x7e776c,
-    roughness: 0.88,
-    metalness: 0.04,
+  const stone = masonry ? masonry : new THREE.MeshStandardMaterial({
+    color: 0x4a453f,
+    roughness: 0.92,
+    metalness: 0.02,
   });
-  // Only the neck overlaps the last historic tread. Offset that one, not the slab.
-  const joint = new THREE.MeshStandardMaterial({
-    color: 0x7e776c,
-    roughness: 0.88,
-    metalness: 0.04,
-    polygonOffset: true,
-    polygonOffsetFactor: -1,
-    polygonOffsetUnits: -1,
-  });
+  // r184 Material.clone() does not copy onBeforeCompile. A bare clone of the
+  // stair shader renders as flat white and reads as a different stone.
+  const joint = stone.clone();
+  joint.onBeforeCompile = stone.onBeforeCompile;
+  joint.customProgramCacheKey = stone.customProgramCacheKey;
+  joint.fog = stone.fog;
+  joint.polygonOffset = true;
+  joint.polygonOffsetFactor = -2;
+  joint.polygonOffsetUnits = -2;
   const bronze = new THREE.MeshStandardMaterial({
     color: 0x8d6436,
     roughness: 0.42,
     metalness: 0.62,
-  });
-  const fasciaMat = new THREE.MeshStandardMaterial({
-    color: 0x6f685e,
-    roughness: 0.92,
-    metalness: 0.04,
-    side: THREE.DoubleSide,
   });
 
   const slab = new THREE.Mesh(new THREE.CircleGeometry(SLAB_R, 48), stone);
@@ -117,7 +117,7 @@ export function buildObservationFloor(): ObservationFloor {
   const fasciaH = 1.28;
   const fascia = new THREE.Mesh(
     new THREE.CylinderGeometry(SLAB_R, SLAB_R - 0.22, fasciaH, 48, 1, true, fasciaGap / 2, Math.PI * 2 - fasciaGap),
-    fasciaMat,
+    stone,
   );
   fascia.position.y = DOME_FLOOR_Y - fasciaH / 2 + 0.02;
   fascia.name = "observation-fascia";
@@ -127,13 +127,12 @@ export function buildObservationFloor(): ObservationFloor {
   inlay.position.y = DOME_FLOOR_Y + 0.012;
   inlay.name = "observation-inlay";
 
-  // Lands on the historic ramp. Survey: a neck of ±3.15 at the opening misses the shell.
-  const neckZ0 = 14.35;
-  const neckZ1 = 20.65;
-  const neckLen = neckZ1 - neckZ0;
-  const neck = new THREE.Mesh(new THREE.BoxGeometry(NECK_HALF * 2, 0.2, neckLen), joint);
-  neck.position.set(0, DOME_FLOOR_Y - 0.1, neckZ0 + neckLen / 2);
-  neck.name = "observation-neck";
+  // The historic mouth is ±6.75 and ends at z≈20.75. The old neck was ±3.15,
+  // so both wings were a hole. This plate covers that span and tucks under the disc.
+  const apronLen = APRON_Z1 - APRON_Z0;
+  const apron = new THREE.Mesh(new THREE.BoxGeometry(APRON_HALF * 2, 0.16, apronLen), joint);
+  apron.position.set(0, DOME_FLOOR_Y - 0.08, APRON_Z0 + apronLen / 2);
+  apron.name = "observation-apron";
 
   // Keel under the span, bottom held above the bowl. The pier carries the disc.
   const keelZ0 = 15.2;
@@ -167,7 +166,7 @@ export function buildObservationFloor(): ObservationFloor {
   railPivot.position.y = DOME_FLOOR_Y + 0.72;
   railPivot.add(rail);
 
-  group.add(slab, curb, fascia, inlay, neck, keel, pier, band, railPivot);
+  group.add(slab, curb, fascia, inlay, apron, keel, pier, band, railPivot);
 
   const pool = new THREE.SpotLight(0xffe6c4, 480, 38, 1.02, 0.62, 2);
   pool.position.set(0, 22.4, 0.6);

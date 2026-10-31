@@ -29,6 +29,9 @@
  */
 
 import {
+  APRON_HALF,
+  APRON_Z0,
+  APRON_Z1,
   DOME_R,
   NECK_HALF,
   NECK_Z0,
@@ -227,6 +230,9 @@ export function constrainCenotaph(x: number, z: number, vx: number, vz: number, 
     const nx = Math.max(-NECK_HALF, Math.min(NECK_HALF, x));
     const nz = Math.max(NECK_Z0, Math.min(STONE_END_Z, z));
     considerInto(best, x, z, nx, nz);
+    const ax = Math.max(-APRON_HALF, Math.min(APRON_HALF, x));
+    const az = Math.max(APRON_Z0, Math.min(APRON_Z1, z));
+    considerInto(best, x, z, ax, az);
     const hx = Math.max(-stairHalf(STONE_END_Z), Math.min(stairHalf(STONE_END_Z), x));
     considerInto(best, x, z, hx, STONE_END_Z);
   }
@@ -261,6 +267,7 @@ function corridorXZ(x: number, z: number) {
   if (inStairMouth(x, z)) return true;
   if (Math.hypot(x, z) <= WALK_R + 1.5 && z <= STONE_END_Z + 0.4) return true;
   if (z >= NECK_Z0 && z <= NECK_Z1 && Math.abs(x) <= NECK_HALF + 0.45) return true;
+  if (z >= APRON_Z0 && z <= APRON_Z1 && Math.abs(x) <= APRON_HALF + 0.4) return true;
   if (z >= STONE_END_Z && z <= 131 && Math.abs(x) <= cameraHalf(z) + 0.04) return true;
   return false;
 }

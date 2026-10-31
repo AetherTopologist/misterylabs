@@ -19,7 +19,7 @@ import { createWalker } from "./mister-why";
 import { ATLAS_RESUME_KEY, captureAtlasResume, takeAtlasResume } from "./resume";
 import { sampleGround } from "./terrain";
 import { CEN_BLOCK, PLACES, projectOut } from "./world";
-import { DOME_FLOOR_Y, WALK_R } from "./dome-floor";
+import { DOME_FLOOR_Y, APRON_HALF, WALK_R } from "./dome-floor";
 
 const AHEAD = { x: 0, y: 1, orbiting: false };
 const BACK = { x: 0, y: -1, orbiting: false };
@@ -62,6 +62,10 @@ describe("cenotaph stair", () => {
     expect(stairHeight(0, 0)).toBeCloseTo(DOME_FLOOR_Y, 2);
     expect(stairHeight(14, 0)).toBe(0);
     expect(stairHeight(0, 16)).toBeCloseTo(DOME_FLOOR_Y, 2);
+    expect(stairHeight(6.2, 18)).toBeCloseTo(DOME_FLOOR_Y, 2);
+    const wing = constrainCenotaph(8, 18, 2, 0);
+    expect(wing.x).toBeCloseTo(APRON_HALF, 1);
+    expect(wing.z).toBeCloseTo(18, 1);
     expect(sampleGround(0, 0)).toBeCloseTo(DOME_FLOOR_Y, 2);
     expect(stairHalf(80)).toBe(STAIR_THROAT);
     expect(stairHalf(STAIR_DOOR_Z)).toBe(STAIR_THROAT);
