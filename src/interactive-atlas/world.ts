@@ -1,4 +1,5 @@
 import type { ExhibitId } from "./destinations";
+import { onObservationFloor } from "./dome-floor";
 import { constrainCenotaph } from "./ascent";
 
 /** One coordinate record for the fair. The scene, the walker, and the map all read this. */
@@ -76,7 +77,7 @@ export const PATHS: Array<{ pts: Array<[number, number, number]>; samples: numbe
 ];
 
 export function projectOut(x: number, z: number, vx: number, vz: number) {
-  if (Math.hypot(x, z) < 1e-3) {
+  if (Math.hypot(x, z) < 1e-3 && !onObservationFloor(x, z)) {
     x = 0;
     z = CEN_BLOCK;
   }

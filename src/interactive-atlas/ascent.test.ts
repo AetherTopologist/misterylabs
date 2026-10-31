@@ -19,6 +19,7 @@ import { createWalker } from "./mister-why";
 import { ATLAS_RESUME_KEY, captureAtlasResume, takeAtlasResume } from "./resume";
 import { sampleGround } from "./terrain";
 import { CEN_BLOCK, PLACES, projectOut } from "./world";
+import { DOME_FLOOR_Y, WALK_R } from "./dome-floor";
 
 const AHEAD = { x: 0, y: 1, orbiting: false };
 const BACK = { x: 0, y: -1, orbiting: false };
@@ -54,7 +55,14 @@ describe("cenotaph stair", () => {
     expect(stairHeight(0, 36)).toBeCloseTo(8.607, 3);
     expect(stairHeight(0, 34)).toBeCloseTo(8.607, 3);
     expect(stairHeight(0, HALL_END_Z)).toBeCloseTo(HALL_END_Y, 3);
-    expect(stairHeight(0, 20)).toBe(0);
+    expect(stairHeight(0, 28)).toBeCloseTo(10.938, 2);
+    expect(13.08 - stairHeight(0, 28)).toBeGreaterThan(1.9);
+    expect(stairHeight(0, 21)).toBeCloseTo(12.937, 2);
+    expect(stairHeight(0, 20)).toBeCloseTo(12.937, 2);
+    expect(stairHeight(0, 0)).toBeCloseTo(DOME_FLOOR_Y, 2);
+    expect(stairHeight(14, 0)).toBe(0);
+    expect(stairHeight(0, 16)).toBeCloseTo(DOME_FLOOR_Y, 2);
+    expect(sampleGround(0, 0)).toBeCloseTo(DOME_FLOOR_Y, 2);
     expect(stairHalf(80)).toBe(STAIR_THROAT);
     expect(stairHalf(STAIR_DOOR_Z)).toBe(STAIR_THROAT);
     expect(sampleGround(0, 115)).toBeCloseTo(stairHeight(0, 115), 5);
@@ -80,16 +88,15 @@ describe("cenotaph stair", () => {
     expect(walker.group.position.y).toBeCloseTo(STAIR_LAND_Y, 2);
     expect(atCenotaphDoor(0, 82)).toBe(true);
 
-    march(walker, 160);
+    march(walker, 220);
     const top = walker.pose();
-    expect(top.z).toBeGreaterThan(HALL_END_Z - 0.05);
-    expect(top.z).toBeLessThan(HALL_END_Z + 0.4);
+    expect(top.z).toBeLessThan(-10);
+    expect(top.z).toBeGreaterThan(-14);
     expect(Math.abs(top.x)).toBeLessThan(1.2);
-    expect(walker.group.position.y).toBeCloseTo(HALL_END_Y, 2);
+    expect(walker.group.position.y).toBeCloseTo(DOME_FLOOR_Y, 2);
     expect(atCenotaphDoor(top.x, top.z)).toBe(false);
-    expect(top.z).toBeLessThan(STAIR_DOOR_Z);
 
-    march(walker, 280, BACK);
+    march(walker, 360, BACK);
     const down = walker.pose();
     expect(down.z).toBeGreaterThan(118);
     expect(walker.group.position.y).toBeLessThan(2);
@@ -101,11 +108,15 @@ describe("cenotaph stair", () => {
     expect(Math.hypot(east.x, east.z)).toBeGreaterThanOrEqual(CEN_BLOCK - 1e-3);
     expect(inStairMouth(east.x, east.z)).toBe(false);
 
-    const through = projectOut(0, 12, 0, -24);
-    expect(through.z).toBeGreaterThanOrEqual(HALL_END_Z - 1e-3);
-    expect(through.z).toBeLessThan(HALL_END_Z + 0.2);
-    expect(Math.abs(through.x)).toBeLessThanOrEqual(4.2);
+    const through = projectOut(0, -20, 0, -24);
+    expect(through.z).toBeGreaterThanOrEqual(-WALK_R - 0.05);
+    expect(through.z).toBeLessThan(-WALK_R + 0.35);
+    expect(Math.abs(through.x)).toBeLessThan(0.2);
     expect(through.vz).toBeGreaterThanOrEqual(-1e-6);
+
+    const onFloor = projectOut(0, 8, 0, -4);
+    expect(onFloor.z).toBeCloseTo(8, 3);
+    expect(onFloor.vz).toBeCloseTo(-4, 3);
 
     const hall = projectOut(0, 50, 0, -4);
     expect(hall.z).toBeCloseTo(50, 3);
@@ -197,7 +208,12 @@ describe("cenotaph stair", () => {
     const home = createWalker(new THREE.Scene());
     home.enter(new THREE.Vector3(0, 40, 0), camera);
     expect(home.pose().x).toBeCloseTo(0, 4);
-    expect(home.pose().z).toBeCloseTo(158, 4);
+    expect(home.pose().z).toBeCloseTo(0, 4);
+    expect(home.group.position.y).toBeCloseTo(DOME_FLOOR_Y, 2);
+
+    const offSlab = createWalker(new THREE.Scene());
+    offSlab.enter(new THREE.Vector3(40, 40, 40), camera);
+    expect(offSlab.pose().z).toBeCloseTo(158, 4);
 
     const boom = placeCenotaphCamera(0, STAIR_DOOR_Z, { x: 0, y: 10, z: STAIR_DOOR_Z - 8 });
     expect(boom.z).toBeGreaterThan(HALL_END_Z);
@@ -230,9 +246,9 @@ describe("cenotaph stair", () => {
     expect(Math.abs(cheekCam.x)).toBeLessThanOrEqual(1.2);
 
     const flight = placeCenotaphCamera(0, 115, { x: 0, y: 9, z: 70 });
-    expect(flight.z).toBeGreaterThan(HALL_END_Z);
+    expect(flight.z).toBeGreaterThan(86);
     expect(flight.z).toBeLessThan(116);
-    expect(flight.y).toBeLessThan(8.6);
+    expect(flight.y).toBeCloseTo(9, 1);
     for (let i = 0; i <= 8; i++) {
       const t = i / 8;
       const x = 0 + (flight.x - 0) * t;
@@ -246,8 +262,19 @@ describe("cenotaph stair", () => {
     expect(walled.z).toBeLessThan(70);
 
     const past = placeCenotaphCamera(0, HALL_END_Z, { x: 0, y: 12.4, z: HALL_END_Z - 8 });
-    expect(past.z).toBeGreaterThanOrEqual(HALL_END_Z - 0.05);
-    expect(Math.hypot(past.x, past.z - HALL_END_Z)).toBeLessThan(WALK_BACK);
+    expect(past.z).toBeCloseTo(HALL_END_Z - 8, 1);
+    expect(past.y).toBeLessThanOrEqual(12.78);
+    expect(past.y).toBeGreaterThan(11.5);
+    expect(inStairMouth(past.x, past.z)).toBe(true);
+
+    const pinch = placeCenotaphCamera(0, 28, { x: 0, y: 10.938 + 2.42, z: 34 });
+    expect(pinch.y).toBeLessThanOrEqual(13.08 - 0.32 + 0.02);
+    expect(pinch.y).toBeGreaterThan(10.938 + 1.7);
+
+    const ducked = placeCenotaphCamera(0, 24, { x: 0, y: 16.2, z: 31 });
+    expect(ducked.z).toBeLessThan(26.6);
+    expect(ducked.z).toBeGreaterThan(24);
+    expect(ducked.y).toBeGreaterThan(15);
   });
 
   it("recovers extreme pitch at the threshold without leaving the walk", () => {
@@ -278,7 +305,7 @@ describe("cenotaph stair", () => {
 
   it("recovers repeated vertical orbits in the arch, the hall, and on the rise", () => {
     const camera = new THREE.PerspectiveCamera();
-    for (const z of [115, 80, 60, 36, HALL_END_Z]) {
+    for (const z of [115, 80, 60, 36, HALL_END_Z, 0]) {
       const walker = walkerAt(0, z);
       for (let cycle = 0; cycle < 4; cycle++) {
         walker.orbit(0, -700);
@@ -305,12 +332,14 @@ describe("cenotaph stair", () => {
       expect(camera.position.y).toBeGreaterThan(sampleGround(walker.pose().x, walker.pose().z) + 0.4);
     }
 
-    const jammed = walkerAt(0, HALL_END_Z, Math.PI);
+    const rimZ = -(WALK_R - 0.2);
+    const jammed = walkerAt(0, rimZ, Math.PI);
     jammed.applyCamera(camera, 1, true);
-    expect(camera.position.z).toBeGreaterThanOrEqual(HALL_END_Z - 0.05);
+    expect(camera.position.z).toBeGreaterThan(rimZ - 1.9);
+    expect(Math.hypot(camera.position.x, camera.position.z)).toBeLessThan(WALK_R + 1.7);
     jammed.orbit(-680, 0);
     jammed.applyCamera(camera, 1, true);
-    const restored = Math.hypot(camera.position.x, camera.position.z - HALL_END_Z);
+    const restored = Math.hypot(camera.position.x - jammed.pose().x, camera.position.z - jammed.pose().z);
     expect(restored).toBeGreaterThan(4);
     expect(jammed.active).toBe(true);
 
@@ -358,8 +387,29 @@ describe("cenotaph stair", () => {
     expect(stayed.group.position.y).toBeCloseTo(STAIR_LAND_Y, 2);
 
     const outside = createWalker(new THREE.Scene());
-    outside.enter(new THREE.Vector3(0, 20, 10), camera);
+    outside.enter(new THREE.Vector3(0, 20, -24), camera);
     expect(outside.pose().z).toBeCloseTo(158, 4);
+
+    const center = walkerAt(0, 0);
+    expect(center.group.position.y).toBeCloseTo(DOME_FLOOR_Y, 2);
+    captureAtlasResume({
+      v: 1,
+      t: now + 2000,
+      mode: "walk",
+      focus: [0, DOME_FLOOR_Y + 2, 0],
+      radius: 12,
+      yaw: 0.2,
+      pitch: 0.4,
+      selected: null,
+      walker: center.snapshot(),
+    });
+    const fromFloor = takeAtlasResume(now + 3000);
+    expect(fromFloor?.walker?.x).toBeCloseTo(0, 3);
+    expect(fromFloor?.walker?.z).toBeCloseTo(0, 3);
+    const stood = createWalker(new THREE.Scene());
+    stood.restore(fromFloor!.walker!);
+    expect(stood.group.position.y).toBeCloseTo(DOME_FLOOR_Y, 2);
+    expect(stood.active).toBe(true);
   });
 
   it("does not move the western halls", () => {
