@@ -6,6 +6,7 @@ import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import type { AtlasApi, AtlasUi, CenotaphVariant, DestinationId, ExhibitId } from "./destinations";
 import { COLLECTIONS, HIDDEN_DESTINATIONS } from "./destinations";
 import { buildCenotaph } from "./cenotaph";
+import { buildObservationFloor } from "./dome-floor";
 import { FOREST_LINKS } from "./forest";
 import { buildEightfoldCross } from "./eightfold-cross";
 import { buildHallOfFaces } from "./hall-of-faces";
@@ -412,6 +413,8 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   observer.position.y = CEN_Y;
   cenotaph.group.add(observer);
   scene.add(cenotaph.group);
+  const observation = buildObservationFloor();
+  scene.add(observation.group);
   let cenFit: { center: THREE.Vector3; radius: number; outer: number } | null = null;
   void cenotaph.ready.then((reg) => {
     cavity.position.copy(reg.center);
@@ -1593,12 +1596,14 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     const ease = reduced ? 1 : 1 - Math.exp(-raw * 2.6);
 
     if (walking) {
+      cavity.visible = false;
       walker.update(dt, time, walkInput(), reduced);
       const near = walker.nearest();
       selected = near.id;
       walkProx = near.proximity;
       walker.applyCamera(camera, raw, reduced);
     } else {
+      cavity.visible = true;
       radiusT = clamp(radiusT, snapAnchor ? R_MIN : minRadius(), maxRadius());
       radius += (radiusT - radius) * ease;
       pitch += (pitchT - pitch) * ease;
