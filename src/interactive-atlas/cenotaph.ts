@@ -240,6 +240,14 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
   const doorLamp = new THREE.PointLight(0xfff6e8, 4, 26, 2);
   doorLamp.position.set(0, 7.5, 130);
   cen.add(doorLamp);
+  // Temporary hall lamp, not a lighting design. The terrace spots point up at
+  // the shell, and the door lamp sits outside at z=130, so the passage reads
+  // black. One spot, no shadow, no fixture mesh. Delete it when the hall is lit.
+  const hallLamp = new THREE.SpotLight(0xffe6c4, 40, 64, 0.55, 0.7, 2);
+  hallLamp.position.set(0, 10.6, 73);
+  hallLamp.target.position.set(0, 8.4, 34);
+  hallLamp.castShadow = false;
+  cen.add(hallLamp, hallLamp.target);
 
   const presets: Record<
     CenotaphVariant,
@@ -277,6 +285,8 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
     niche.intensity = p.niche;
     doorLamp.color.setHex(p.light);
     doorLamp.intensity = p.door;
+    hallLamp.color.setHex(p.light);
+    hallLamp.intensity = p.spot * 0.42;
   }
 
   apply(initialVariant());

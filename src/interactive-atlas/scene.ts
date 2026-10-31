@@ -1466,7 +1466,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
         selected,
         snap: snapAnchor,
         mode: walking ? "walk" : "fly",
-        walker: walking ? walker.pose() : null,
+        walker: walking ? { ...walker.pose(), y: walker.group.position.y } : null,
         cam: [camera.position.x, camera.position.y, camera.position.z],
       }),
       march: (seconds: number) => {
