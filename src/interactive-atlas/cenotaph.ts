@@ -302,7 +302,7 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
     people,
   });
 
-  return { group: cen, uniforms: shared, apply, ready };
+  return { group: cen, uniforms: shared, apply, ready, masonry: archMat };
 }
 
 type LoadOpts = {

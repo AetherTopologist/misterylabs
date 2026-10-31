@@ -413,7 +413,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   observer.position.y = CEN_Y;
   cenotaph.group.add(observer);
   scene.add(cenotaph.group);
-  const observation = buildObservationFloor();
+  const observation = buildObservationFloor(cenotaph.masonry);
   scene.add(observation.group);
   let cenFit: { center: THREE.Vector3; radius: number; outer: number } | null = null;
   void cenotaph.ready.then((reg) => {
