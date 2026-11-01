@@ -3,7 +3,7 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-import type { AtlasApi, AtlasUi, CenotaphVariant, DestinationId, ExhibitId } from "./destinations";
+import type { AtlasApi, AtlasUi, CenotaphVariant, DestinationId, ExhibitId, WalkCamera } from "./destinations";
 import { COLLECTIONS, HIDDEN_DESTINATIONS } from "./destinations";
 import { buildCenotaph } from "./cenotaph";
 import { buildObservationFloor } from "./dome-floor";
@@ -1333,7 +1333,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       Math.abs(pitch - HOME_P) < 0.08;
     const body = walking ? walker.pose() : null;
     const poseKey = body ? `${body.x.toFixed(0)}|${body.z.toFixed(0)}|${body.heading.toFixed(2)}` : "-";
-    const key = `${selected ?? "-"}|${scale.toFixed(3)}|${proximity.toFixed(3)}|${atHome ? 1 : 0}|${inside ? 1 : 0}|${walking ? "w" : "f"}|${poseKey}`;
+    const key = `${selected ?? "-"}|${scale.toFixed(3)}|${proximity.toFixed(3)}|${atHome ? 1 : 0}|${inside ? 1 : 0}|${walking ? "w" : "f"}|${walker.view}|${poseKey}`;
     if (!force && key === lastSent) return;
     lastSent = key;
     onChange({
@@ -1343,6 +1343,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       atHome,
       inside,
       mode: walking ? "walk" : "fly",
+      camera: walker.view,
       walker: body
         ? { x: Math.round(body.x * 10) / 10, z: Math.round(body.z * 10) / 10, heading: Math.round(body.heading * 100) / 100 }
         : null,
@@ -1388,6 +1389,11 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     setMode: (mode) => {
       if (mode === "walk") beginWalk();
       else endWalk();
+    },
+    setCamera: (mode: WalkCamera) => {
+      walker.setView(mode);
+      if (walking) walker.applyCamera(camera, 1, true);
+      emit(true);
     },
     setMove: (x, y) => {
       stickX = x;
@@ -1516,6 +1522,11 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
         walkProx = near.proximity;
         snapAnchor = null;
         walker.applyCamera(camera, 1, true);
+        emit(true);
+      },
+      camera: (mode: WalkCamera) => {
+        walker.setView(mode);
+        if (walking) walker.applyCamera(camera, 1, true);
         emit(true);
       },
       screen: () => {

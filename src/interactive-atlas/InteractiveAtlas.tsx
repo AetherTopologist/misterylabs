@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasMode, type AtlasUi, type CenotaphVariant, type WalkerPose } from "./destinations";
+import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasMode, type AtlasUi, type CenotaphVariant, type WalkCamera, type WalkerPose } from "./destinations";
 import { atCenotaphDoor } from "./ascent";
 import { FairMap, WalkStick } from "./walk-ui";
 import "./interactive-atlas.css";
@@ -33,6 +33,7 @@ function same(a: AtlasUi, b: AtlasUi) {
     a.atHome === b.atHome &&
     a.inside === b.inside &&
     a.mode === b.mode &&
+    (a.camera ?? "follow") === (b.camera ?? "follow") &&
     walkerSame(a.walker, b.walker) &&
     Math.abs(a.scale - b.scale) < 0.012 &&
     Math.abs(a.proximity - b.proximity) < 0.02
@@ -117,6 +118,8 @@ export default function InteractiveAtlas() {
   const walking = ui.mode === "walk" && ui.walker;
   const atDoor = Boolean(walking && ui.walker && atCenotaphDoor(ui.walker.x, ui.walker.z));
   const setMode = (mode: AtlasMode) => apiRef.current?.setMode(mode);
+  const setCamera = (camera: WalkCamera) => apiRef.current?.setCamera(camera);
+  const walkCamera = ui.camera ?? "follow";
 
   return (
     <main className="ia-world" data-mode={ui.mode}>
@@ -150,6 +153,19 @@ export default function InteractiveAtlas() {
             Walk
           </button>
         </div>
+        {ui.mode === "walk" ? (
+          <div className="ia-cam" role="group" aria-label="Walk camera">
+            <button type="button" data-on={walkCamera === "follow"} onClick={() => setCamera("follow")}>
+              Follow
+            </button>
+            <button type="button" data-on={walkCamera === "eyes"} onClick={() => setCamera("eyes")}>
+              Eyes
+            </button>
+            <button type="button" data-on={walkCamera === "overhead"} onClick={() => setCamera("overhead")}>
+              Overhead
+            </button>
+          </div>
+        ) : null}
       </header>
 
       {walking ? (

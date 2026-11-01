@@ -11,6 +11,8 @@ export const WALK_BACK_MAX = 14;
 export const WALK_BACK_INHERIT = 22;
 export const WALK_EYE = 2.42;
 export const WALK_NEAR_EYE = 0.55;
+/** Head-sphere center. First person sits here, not on the third-person boom. */
+export const EYE_HEIGHT = 1.62;
 export const WALK_AHEAD = 8.5;
 export const WALK_LOOK = 1.95;
 export const WALK_LOOK_MIN = 0.3;

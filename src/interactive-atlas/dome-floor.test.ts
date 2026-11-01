@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 import {
   APRON_HALF,
+  APRON_Z1,
   DOME_CY,
   DOME_FLOOR_Y,
   DOME_R,
@@ -51,7 +52,7 @@ describe("observation floor", () => {
       for (const mat of mats) {
         if (mat.transparent || mat.opacity < 1) transparent += 1;
       }
-      if (mesh.name !== "observation-apron" && mesh.name !== "observation-keel") {
+      if (mesh.name !== "observation-keel") {
         const pos = mesh.geometry.getAttribute("position");
         for (let i = 0; i < pos.count; i++) {
           const p = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld);
@@ -81,11 +82,45 @@ describe("observation floor", () => {
       if (mesh.name === "observation-apron") apron = mesh;
       if (mesh.name === "observation-slab") slab = mesh;
     });
-    expect(slab?.material).toBe(masonry);
-    const mat = apron?.material as THREE.MeshStandardMaterial;
+    expect(apron).toBeUndefined();
+    const mat = slab?.material as THREE.MeshStandardMaterial;
     expect(mat).not.toBe(masonry);
     expect(mat.onBeforeCompile).toBe(compile);
     expect(mat.customProgramCacheKey()).toBe("cenotaph-stone-v6-4");
     expect(mat.polygonOffsetFactor).toBe(-2);
+  });
+
+  it("is one floor from the disc through both wings, with the rim open across the landing", () => {
+    const built = buildObservationFloor();
+    built.group.updateMatrixWorld(true);
+    const ray = new THREE.Raycaster();
+    const down = new THREE.Vector3(0, -1, 0);
+    const hitFloor = (x: number, z: number) => {
+      ray.set(new THREE.Vector3(x, 20, z), down);
+      return ray.intersectObject(built.group, true).filter((h) => Math.abs(h.point.y - DOME_FLOOR_Y) < 0.03);
+    };
+    for (const [x, z] of [
+      [0, 0],
+      [0, 16],
+      [6.2, 18],
+      [-6.2, 19],
+      [5.5, 14.2],
+    ] as Array<[number, number]>) {
+      const hits = hitFloor(x, z).filter((h) => (h.object as THREE.Object3D).name === "observation-slab");
+      expect(hits).toHaveLength(1);
+      expect(hits[0].object.name).toBe("observation-slab");
+    }
+    let blocked = 0;
+    built.group.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      if (mesh.name !== "observation-fascia" && mesh.name !== "observation-curb" && mesh.name !== "observation-rail") return;
+      const pos = mesh.geometry.getAttribute("position");
+      for (let i = 0; i < pos.count; i++) {
+        const p = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld);
+        if (Math.abs(p.x) < APRON_HALF - 0.15 && p.z > 14 && p.z < APRON_Z1) blocked += 1;
+      }
+    });
+    expect(blocked).toBe(0);
   });
 });

@@ -68,6 +68,51 @@ export type ObservationFloor = {
   lights: number;
 };
 
+/** Rim opening wide enough for the landing, centered on +Z by the callers. */
+function openingGap(radius: number) {
+  const half = Math.min(radius * 0.92, APRON_HALF + 0.5);
+  return 2 * Math.asin(half / radius);
+}
+
+/**
+ * Disc union the south landing, as one mesh. Shape Y is -Z so Rx(-π/2)
+ * lays it on y = DOME_FLOOR_Y with the normal pointing up.
+ */
+function landingGeometry() {
+  const zHit = Math.sqrt(SLAB_R * SLAB_R - APRON_HALF * APRON_HALF);
+  const world: Array<[number, number]> = [
+    [APRON_HALF, zHit],
+    [APRON_HALF, APRON_Z1],
+    [-APRON_HALF, APRON_Z1],
+    [-APRON_HALF, zHit],
+  ];
+  const aLeft = Math.atan2(zHit, -APRON_HALF);
+  const aRight = Math.atan2(zHit, APRON_HALF);
+  const steps = 56;
+  for (let i = 1; i <= steps; i++) {
+    const t = aLeft + ((aRight + Math.PI * 2 - aLeft) * i) / steps;
+    world.push([Math.cos(t) * SLAB_R, Math.sin(t) * SLAB_R]);
+  }
+  const shape = new THREE.Shape(world.map(([x, z]) => new THREE.Vector2(x, -z)));
+  const geo = new THREE.ShapeGeometry(shape);
+  geo.rotateX(-Math.PI / 2);
+  geo.translate(0, DOME_FLOOR_Y, 0);
+  geo.computeVertexNormals();
+  const normals = geo.getAttribute("normal");
+  let ny = 0;
+  for (let i = 0; i < normals.count; i++) ny += normals.getY(i);
+  const index = geo.index;
+  if (ny < 0 && index) {
+    for (let i = 0; i < index.count; i += 3) {
+      const a = index.getX(i);
+      index.setX(i, index.getX(i + 2));
+      index.setX(i + 2, a);
+    }
+    geo.computeVertexNormals();
+  }
+  return geo;
+}
+
 /**
  * Slab, curb, neck, pier, and two unshadowed spots.
  * The group is in world space. Nothing here is parented under the GLB.
@@ -97,23 +142,23 @@ export function buildObservationFloor(masonry?: THREE.Material): ObservationFloo
     metalness: 0.62,
   });
 
-  const slab = new THREE.Mesh(new THREE.CircleGeometry(SLAB_R, 48), stone);
-  slab.rotation.x = -Math.PI / 2;
-  slab.position.y = DOME_FLOOR_Y;
+  // One surface. A circle plus a separate box left a triangular plate where the
+  // box's south triangle stuck out past the disc, and the rim gap was narrower
+  // than that plate, so the landing read as a broken wedge.
+  const slab = new THREE.Mesh(landingGeometry(), joint);
   slab.name = "observation-slab";
 
-  // Ring theta 0 is +X. After Rx(-π/2), theta −π/2 is world +Z, the neck.
-  const curbGap = 0.78;
+  const curbGap = openingGap(WALK_R + 0.08);
   const curb = new THREE.Mesh(
-    new THREE.RingGeometry(WALK_R + 0.08, SLAB_R, 48, 1, -Math.PI / 2 + curbGap / 2, Math.PI * 2 - curbGap),
+    new THREE.RingGeometry(WALK_R + 0.08, SLAB_R, 64, 1, -Math.PI / 2 + curbGap / 2, Math.PI * 2 - curbGap),
     stone,
   );
   curb.rotation.x = -Math.PI / 2;
   curb.position.y = DOME_FLOOR_Y + 0.16;
   curb.name = "observation-curb";
 
-  // Cylinder theta 0 is +Z. That sector stays open so the neck is not walled.
-  const fasciaGap = 0.7;
+  // Cylinder theta 0 is +Z. The gap has to clear the full landing, not just the old neck.
+  const fasciaGap = openingGap(SLAB_R);
   const fasciaH = 1.28;
   const fascia = new THREE.Mesh(
     new THREE.CylinderGeometry(SLAB_R, SLAB_R - 0.22, fasciaH, 48, 1, true, fasciaGap / 2, Math.PI * 2 - fasciaGap),
@@ -126,13 +171,6 @@ export function buildObservationFloor(masonry?: THREE.Material): ObservationFloo
   inlay.rotation.x = -Math.PI / 2;
   inlay.position.y = DOME_FLOOR_Y + 0.012;
   inlay.name = "observation-inlay";
-
-  // The historic mouth is ±6.75 and ends at z≈20.75. The old neck was ±3.15,
-  // so both wings were a hole. This plate covers that span and tucks under the disc.
-  const apronLen = APRON_Z1 - APRON_Z0;
-  const apron = new THREE.Mesh(new THREE.BoxGeometry(APRON_HALF * 2, 0.16, apronLen), joint);
-  apron.position.set(0, DOME_FLOOR_Y - 0.08, APRON_Z0 + apronLen / 2);
-  apron.name = "observation-apron";
 
   // Keel under the span, bottom held above the bowl. The pier carries the disc.
   const keelZ0 = 15.2;
@@ -156,7 +194,7 @@ export function buildObservationFloor(masonry?: THREE.Material): ObservationFloo
   band.name = "observation-pier-band";
 
   // Torus arc starts at +X and the gap is the missing tail. Lay it flat, then yaw the gap to +Z.
-  const railGap = 0.82;
+  const railGap = openingGap(WALK_R + 0.1);
   const rail = new THREE.Mesh(new THREE.TorusGeometry(WALK_R + 0.1, 0.04, 5, 56, Math.PI * 2 - railGap), bronze);
   rail.rotation.x = Math.PI / 2;
   rail.name = "observation-rail";
@@ -166,7 +204,7 @@ export function buildObservationFloor(masonry?: THREE.Material): ObservationFloo
   railPivot.position.y = DOME_FLOOR_Y + 0.72;
   railPivot.add(rail);
 
-  group.add(slab, curb, fascia, inlay, apron, keel, pier, band, railPivot);
+  group.add(slab, curb, fascia, inlay, keel, pier, band, railPivot);
 
   const pool = new THREE.SpotLight(0xffe6c4, 480, 38, 1.02, 0.62, 2);
   pool.position.set(0, 22.4, 0.6);

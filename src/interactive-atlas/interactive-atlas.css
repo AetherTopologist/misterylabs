@@ -277,6 +277,33 @@
   box-shadow: inset 0 -1px 0 var(--ia-gold);
 }
 
+.ia-cam {
+  pointer-events: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.85rem;
+  max-width: min(16rem, calc(100vw - 9.2rem));
+  margin-top: 0.05rem;
+}
+
+.ia-cam button {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: color-mix(in srgb, var(--ia-mist) 70%, transparent);
+  font: inherit;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.ia-cam button[data-on="true"] {
+  color: var(--ia-lumen);
+  box-shadow: inset 0 -1px 0 var(--ia-gold);
+}
+
 .ia-map {
   position: absolute;
   z-index: 3;
@@ -351,6 +378,7 @@ html[data-ia-shot="1"] .ia-rail,
 html[data-ia-shot="1"] .ia-vignette,
 html[data-ia-shot="1"] .ia-map,
 html[data-ia-shot="1"] .ia-stick,
-html[data-ia-shot="1"] .ia-mode {
+html[data-ia-shot="1"] .ia-mode,
+html[data-ia-shot="1"] .ia-cam {
   visibility: hidden !important;
 }

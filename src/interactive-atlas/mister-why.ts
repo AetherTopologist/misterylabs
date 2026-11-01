@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { ExhibitId } from "./destinations";
+import type { ExhibitId, WalkCamera } from "./destinations";
 import { FOLLOW_GRACE, angDelta, stepHeadingFollow, type FollowState } from "./follow-camera";
 import {
   ORBIT_PITCH_DOWN,
@@ -12,6 +12,7 @@ import {
   WALK_LOOK,
   WALK_LOOK_MAX,
   WALK_LOOK_MIN,
+  EYE_HEIGHT,
   aheadForLook,
   eyeForLook,
 } from "./framing";
@@ -51,6 +52,9 @@ export type Walker = {
   nearest: () => { id: ExhibitId | null; proximity: number };
   snapshot: () => WalkerSnapshot;
   restore: (pose: WalkerSnapshot) => void;
+  /** Follow, eyes, or overhead. Does not move the body. */
+  setView: (next: WalkCamera) => void;
+  readonly view: WalkCamera;
 };
 
 export type WalkerSnapshot = {
@@ -120,7 +124,8 @@ export function createWalker(scene: THREE.Scene): Walker {
   seam.position.set(0, 1.08, -0.2);
 
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 10), cloth);
-  head.position.y = 1.62;
+  head.name = "mister-why-head";
+  head.position.y = EYE_HEIGHT;
   const face = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), ivory);
   face.position.set(0, 1.64, 0.09);
   const brow = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.012, 0.02), gold);
@@ -152,6 +157,12 @@ export function createWalker(scene: THREE.Scene): Walker {
   let basisHeld = false;
   let heldStick = 0;
   let followState: FollowState = { yaw: 0, grace: 0, sustained: 0 };
+  let view: WalkCamera = "follow";
+  let eyeYaw = 0;
+  let eyePitch = 0;
+  let overYaw = 0;
+  let overH = 26;
+  let overTilt = 1.15;
   const look = new THREE.Vector3();
   const lookT = new THREE.Vector3();
   const desired = new THREE.Vector3();
@@ -159,6 +170,10 @@ export function createWalker(scene: THREE.Scene): Walker {
   function placeBody() {
     group.position.set(x, sampleGround(x, z), z);
     group.rotation.y = heading;
+  }
+
+  function showBody() {
+    group.visible = active && view !== "eyes";
   }
 
   function nearest() {
@@ -212,6 +227,15 @@ export function createWalker(scene: THREE.Scene): Walker {
       const inherited = Math.hypot(camera.position.x - x, camera.position.z - z);
       back = Math.max(WALK_BACK, Math.min(WALK_BACK_INHERIT, inherited));
       backT = WALK_BACK;
+      // Walk is starting from a new stance. Keep the chosen mode, but aim it
+      // with this entry instead of a yaw left over from the last visit.
+      if (view === "eyes") {
+        eyeYaw = camYaw;
+        eyePitch = 0;
+      } else if (view === "overhead") {
+        overYaw = camYaw;
+      }
+      showBody();
     },
     stop() {
       active = false;
@@ -224,6 +248,7 @@ export function createWalker(scene: THREE.Scene): Walker {
       armL.rotation.x = 0;
       armR.rotation.x = 0;
       torso.position.y = 1.18;
+      group.visible = true;
     },
     update(dt, _time, input, reduced) {
       if (!active) return;
@@ -235,11 +260,11 @@ export function createWalker(scene: THREE.Scene): Walker {
       if (!commanded) {
         basisHeld = false;
       } else if (!basisHeld) {
-        moveBasis = camYaw;
+        moveBasis = view === "eyes" ? eyeYaw : view === "overhead" ? overYaw : camYaw;
         basisHeld = true;
         heldStick = stick;
       } else if (!input.orbiting && Math.abs(angDelta(heldStick, stick)) > STICK_RELATCH) {
-        moveBasis = camYaw;
+        moveBasis = view === "eyes" ? eyeYaw : view === "overhead" ? overYaw : camYaw;
         heldStick = stick;
       }
       const lookx = -Math.sin(moveBasis);
@@ -286,44 +311,90 @@ export function createWalker(scene: THREE.Scene): Walker {
       torso.position.y = 1.18 + bob;
       coat.position.y = 1.05 + bob;
       placeBody();
-      followState = stepHeadingFollow(followState, step, {
-        reduced,
-        orbiting: input.orbiting,
-        moving: sp > FOLLOW_SPEED,
-        heading,
-      });
-      camYaw = followState.yaw;
+      if (view === "follow") {
+        followState = stepHeadingFollow(followState, step, {
+          reduced,
+          orbiting: input.orbiting,
+          moving: sp > FOLLOW_SPEED,
+          heading,
+        });
+        camYaw = followState.yaw;
+      }
     },
     applyCamera(camera, dt, reduced) {
       if (!active) return;
+      showBody();
       const step = Math.min(0.08, Math.max(0, dt));
       const damp = reduced ? 1 : 1 - Math.exp(-step * 1.8);
-      const ox = Math.sin(camYaw);
-      const oz = Math.cos(camYaw);
-      back += (backT - back) * damp;
-      lookLift += (lookLiftT - lookLift) * damp;
       const feet = sampleGround(x, z);
-      const ahead = aheadForLook(lookLift);
-      lookT.set(x - ox * ahead, feet + lookLift, z - oz * ahead);
-      look.lerp(lookT, damp);
-      const eye = feet + eyeForLook(lookLift);
-      desired.set(x + ox * back, eye, z + oz * back);
-      let boom = clearBoom(x, z, { x: desired.x, y: desired.y, z: desired.z });
-      boom = placeCenotaphCamera(x, z, boom);
-      boom = clearBoom(x, z, boom);
-      desired.set(boom.x, boom.y, boom.z);
-      if (reduced) camera.position.copy(desired);
+      if (view === "eyes") {
+        const fx = -Math.sin(eyeYaw);
+        const fz = -Math.cos(eyeYaw);
+        const eyeY = feet + EYE_HEIGHT;
+        const reach = 8;
+        const cp = Math.cos(eyePitch);
+        const sp = Math.sin(eyePitch);
+        lookT.set(x + fx * cp * reach, eyeY + sp * reach, z + fz * cp * reach);
+        look.lerp(lookT, damp);
+        let boom = placeCenotaphCamera(x, z, { x, y: eyeY, z });
+        boom = clearBoom(x, z, boom, 0.2);
+        if (boom.y > eyeY) boom.y = eyeY;
+        desired.set(boom.x, boom.y, boom.z);
+      } else if (view === "overhead") {
+        const back = overH * Math.cos(overTilt);
+        const lift = overH * Math.sin(overTilt);
+        const ox = Math.sin(overYaw);
+        const oz = Math.cos(overYaw);
+        lookT.set(x, feet + 0.35, z);
+        look.lerp(lookT, damp);
+        desired.set(x + ox * back, feet + lift, z + oz * back);
+        let boom = clearBoom(x, z, { x: desired.x, y: desired.y, z: desired.z });
+        boom = placeCenotaphCamera(x, z, boom);
+        boom = clearBoom(x, z, boom);
+        desired.set(boom.x, boom.y, boom.z);
+      } else {
+        const ox = Math.sin(camYaw);
+        const oz = Math.cos(camYaw);
+        back += (backT - back) * damp;
+        lookLift += (lookLiftT - lookLift) * damp;
+        const ahead = aheadForLook(lookLift);
+        lookT.set(x - ox * ahead, feet + lookLift, z - oz * ahead);
+        look.lerp(lookT, damp);
+        const eye = feet + eyeForLook(lookLift);
+        desired.set(x + ox * back, eye, z + oz * back);
+        let boom = clearBoom(x, z, { x: desired.x, y: desired.y, z: desired.z });
+        boom = placeCenotaphCamera(x, z, boom);
+        boom = clearBoom(x, z, boom);
+        desired.set(boom.x, boom.y, boom.z);
+      }
+      if (reduced || view !== "follow") camera.position.copy(desired);
       else camera.position.lerp(desired, damp);
       camera.lookAt(look);
       camera.updateMatrixWorld();
     },
     orbit(dx, dy) {
+      if (view === "eyes") {
+        eyeYaw -= dx * ORBIT_YAW;
+        const gain = dy > 0 ? 0.0045 : 0.008;
+        eyePitch = clamp(eyePitch - dy * gain, -1.15, 1.3);
+        return;
+      }
+      if (view === "overhead") {
+        overYaw -= dx * ORBIT_YAW;
+        overTilt = clamp(overTilt - dy * 0.0025, 0.55, 1.35);
+        return;
+      }
       camYaw -= dx * ORBIT_YAW;
       const gain = dy > 0 ? ORBIT_PITCH_DOWN : ORBIT_PITCH_UP;
       lookLiftT = clamp(lookLiftT - dy * gain, WALK_LOOK_MIN, WALK_LOOK_MAX);
       followState = { yaw: camYaw, grace: FOLLOW_GRACE, sustained: 0 };
     },
     zoom(factor) {
+      if (view === "overhead") {
+        overH = clamp(overH * factor, 9, 48);
+        return;
+      }
+      if (view === "eyes") return;
       backT = clamp(backT * factor, WALK_BACK_MIN, WALK_BACK_MAX);
     },
     pose: () => ({ x, z, heading, camYaw }),
@@ -354,6 +425,22 @@ export function createWalker(scene: THREE.Scene): Walker {
       const ahead = aheadForLook(lookLift);
       look.set(x - ox * ahead, feet + lookLift, z - oz * ahead);
       lookT.copy(look);
+    },
+    setView(next) {
+      if (next !== "follow" && next !== "eyes" && next !== "overhead") return;
+      if (next !== view) {
+        if (next === "eyes") {
+          eyeYaw = camYaw;
+          eyePitch = 0;
+        } else if (next === "overhead") {
+          overYaw = camYaw;
+        }
+        view = next;
+      }
+      showBody();
+    },
+    get view() {
+      return view;
     },
   };
 
