@@ -159,6 +159,9 @@ export const HIDDEN_DESTINATIONS: Destination[] = [];
 
 export type AtlasMode = "fly" | "walk";
 
+/** Walk camera. Follow is the third-person boom. Eyes and Overhead do not move him. */
+export type WalkCamera = "follow" | "eyes" | "overhead";
+
 export type WalkerPose = {
   x: number;
   z: number;
@@ -172,6 +175,8 @@ export type AtlasUi = {
   atHome: boolean;
   inside: boolean;
   mode: AtlasMode;
+  /** Present while walking. Absent in older callers; Follow is the default. */
+  camera?: WalkCamera;
   walker: WalkerPose | null;
 };
 
@@ -183,6 +188,7 @@ export type AtlasApi = {
   returnOutside: () => void;
   setCenotaphVariant: (variant: CenotaphVariant) => void;
   setMode: (mode: AtlasMode) => void;
+  setCamera: (camera: WalkCamera) => void;
   setMove: (x: number, y: number) => void;
   /** Remember where the visitor is standing before they leave for an instrument. */
   remember: () => void;

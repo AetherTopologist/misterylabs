@@ -8,6 +8,7 @@ const { remember, api } = vi.hoisted(() => {
     returnOutside: vi.fn(),
     setCenotaphVariant: vi.fn(),
     setMode: vi.fn(),
+    setCamera: vi.fn(),
     setMove: vi.fn(),
     remember,
   };
@@ -79,6 +80,22 @@ describe("hollow genius exhibit plate", () => {
     expect(enter.getAttribute("href")).toContain("from=interactive-atlas");
     fireEvent.click(enter);
     expect(remember).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers Follow, Eyes, and Overhead while walking, and not while flying", async () => {
+    await mount();
+    expect(screen.queryByRole("group", { name: "Walk camera" })).not.toBeInTheDocument();
+    await act(async () => {
+      pushUi!(atHall(0.2));
+    });
+    const eyes = screen.getByRole("button", { name: "Eyes" });
+    const overhead = screen.getByRole("button", { name: "Overhead" });
+    expect(screen.getByRole("button", { name: "Follow" })).toBeInTheDocument();
+    fireEvent.click(eyes);
+    fireEvent.click(overhead);
+    expect(api.setCamera).toHaveBeenCalledWith("eyes");
+    expect(api.setCamera).toHaveBeenCalledWith("overhead");
+    expect(api.setMode).not.toHaveBeenCalled();
   });
 
   it("shows only the name at the edge of reach, and does not remember other halls", async () => {
