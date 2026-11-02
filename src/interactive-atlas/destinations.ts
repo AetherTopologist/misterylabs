@@ -177,16 +177,22 @@ export type AtlasUi = {
   mode: AtlasMode;
   /** Present while walking. Absent in older callers; Follow is the default. */
   camera?: WalkCamera;
+  /** Cenotaph mesh. Absent in older callers; Production is the default. */
+  glb?: CenotaphGlb;
   walker: WalkerPose | null;
 };
 
 export type CenotaphVariant = "a" | "b" | "c" | "m";
+
+/** Production is the known-good mesh. Full is the Blender export under comparison. */
+export type CenotaphGlb = "production" | "full";
 
 export type AtlasApi = {
   returnHome: () => void;
   crossBoundary: () => void;
   returnOutside: () => void;
   setCenotaphVariant: (variant: CenotaphVariant) => void;
+  setGlb: (glb: CenotaphGlb) => Promise<void>;
   setMode: (mode: AtlasMode) => void;
   setCamera: (camera: WalkCamera) => void;
   setMove: (x: number, y: number) => void;

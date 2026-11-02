@@ -7,6 +7,7 @@ const { remember, api } = vi.hoisted(() => {
     crossBoundary: vi.fn(),
     returnOutside: vi.fn(),
     setCenotaphVariant: vi.fn(),
+    setGlb: vi.fn(() => Promise.resolve()),
     setMode: vi.fn(),
     setCamera: vi.fn(),
     setMove: vi.fn(),
@@ -349,5 +350,48 @@ describe("cenotaph door plate", () => {
     expect(screen.getByText("The chamber is beyond this door.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Cross the boundary" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Enter exhibit" })).not.toBeInTheDocument();
+  });
+});
+
+describe("cenotaph geometry selector", () => {
+  beforeEach(() => {
+    api.setGlb.mockClear();
+    api.setMode.mockClear();
+    pushUi = null;
+  });
+
+  it("stays on the public atlas in fly and walk, and defaults to production", async () => {
+    await mount();
+    const summary = screen.getByText("DEV · GLB");
+    const panel = summary.closest("details") as HTMLDetailsElement;
+    expect(panel.open).toBe(false);
+    expect(panel).toHaveTextContent("Production");
+    panel.open = true;
+    const production = screen.getByRole("button", { name: "Production" });
+    const full = screen.getByRole("button", { name: "Full Resolution" });
+    expect(production).toHaveAttribute("aria-pressed", "true");
+    expect(full).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByText(/Observation floor at 12\.937 m/)).toBeInTheDocument();
+    let release: (() => void) | null = null;
+    api.setGlb.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          release = resolve;
+        }),
+    );
+    fireEvent.click(full);
+    expect(api.setGlb).toHaveBeenCalledWith("full");
+    expect(api.setMode).not.toHaveBeenCalled();
+    expect(full).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/13\.103 m/)).toBeInTheDocument();
+    await act(async () => {
+      release?.();
+    });
+
+    await act(async () => {
+      pushUi!(atHall(0.2));
+    });
+    expect(screen.getByText("DEV · GLB")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Walk" })).toHaveAttribute("data-on", "true");
   });
 });
