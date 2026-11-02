@@ -1,3 +1,4 @@
+import type { CapGrid } from "./cenotaph-seat";
 import { GROUND_R } from "./world";
 import { WALK_CLEARANCE } from "./framing";
 import { stairHeight } from "./ascent";
@@ -28,6 +29,23 @@ export const GARDEN_RAIL = {
 
 const ABYSS = -8.4;
 const ABYSS_RUN = 16;
+
+let capGrid: CapGrid | null = null;
+
+/** Full-resolution cap only. Production leaves this empty so the stair survey stays put. */
+export function setMonumentCap(grid: CapGrid | null) {
+  capGrid = grid && grid.cells > 0 ? grid : null;
+}
+
+function capAt(x: number, z: number) {
+  const cap = capGrid;
+  if (!cap) return 0;
+  const ix = Math.round((x - cap.x0) / cap.step);
+  const iz = Math.round((z - cap.z0) / cap.step);
+  if (ix < 0 || iz < 0 || ix >= cap.cols || iz >= cap.rows) return 0;
+  const y = cap.heights[iz * cap.cols + ix];
+  return Number.isFinite(y) ? y : 0;
+}
 
 function ringHeight(distance: number) {
   const [outer, mid, inner] = GARDEN_COURT.rings;
@@ -74,6 +92,8 @@ export function sampleGround(x: number, z: number) {
   if (rail > 0) height = Math.max(height, rail);
   const stair = stairHeight(x, z);
   if (stair > 0) height = Math.max(height, stair);
+  const cap = capAt(x, z);
+  if (cap > 0) height = Math.max(height, cap);
   return height;
 }
 

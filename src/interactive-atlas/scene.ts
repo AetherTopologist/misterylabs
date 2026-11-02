@@ -3,7 +3,7 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-import type { AtlasApi, AtlasUi, CenotaphVariant, DestinationId, ExhibitId, WalkCamera } from "./destinations";
+import type { AtlasApi, AtlasUi, CenotaphGlb, CenotaphVariant, DestinationId, ExhibitId, WalkCamera } from "./destinations";
 import { COLLECTIONS, HIDDEN_DESTINATIONS } from "./destinations";
 import { buildCenotaph } from "./cenotaph";
 import { buildObservationFloor } from "./dome-floor";
@@ -243,17 +243,20 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
 
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const coarse = window.matchMedia("(pointer: coarse)").matches;
+  const shotBuffer =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("shot") === "1";
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: !coarse,
+    antialias: !coarse && !shotBuffer,
     alpha: false,
     powerPreference: "high-performance",
+    preserveDrawingBuffer: shotBuffer,
   });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.98;
   renderer.setClearColor(0x07080b, 1);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1.15 : 1.5));
+  renderer.setPixelRatio(shotBuffer ? 1 : Math.min(window.devicePixelRatio || 1, coarse ? 1.15 : 1.5));
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x07080b);
@@ -416,7 +419,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   const observation = buildObservationFloor(cenotaph.masonry);
   scene.add(observation.group);
   let cenFit: { center: THREE.Vector3; radius: number; outer: number } | null = null;
-  void cenotaph.ready.then((reg) => {
+  const publishFit = (reg: { center: THREE.Vector3; radius: number; outer: number }) => {
     cavity.position.copy(reg.center);
     cavity.scale.setScalar(reg.radius / CEN_R);
     observer.position.y = reg.center.y;
@@ -427,7 +430,8 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       const hook = (window as Window & { __atlasStudy?: { fit?: unknown } }).__atlasStudy;
       if (hook) hook.fit = reg;
     }
-  });
+  };
+  void cenotaph.ready.then(publishFit);
 
   const glowTex = glowTexture();
   const spriteMat = new THREE.SpriteMaterial({
@@ -982,6 +986,8 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   const walker = createWalker(scene);
   let walking = false;
   let walkProx = 0;
+  let glbToken = 0;
+  let holdCam: { px: number; py: number; pz: number; tx: number; ty: number; tz: number } | null = null;
   const held = new Set<string>();
   let stickX = 0;
   let stickY = 0;
@@ -1333,7 +1339,8 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       Math.abs(pitch - HOME_P) < 0.08;
     const body = walking ? walker.pose() : null;
     const poseKey = body ? `${body.x.toFixed(0)}|${body.z.toFixed(0)}|${body.heading.toFixed(2)}` : "-";
-    const key = `${selected ?? "-"}|${scale.toFixed(3)}|${proximity.toFixed(3)}|${atHome ? 1 : 0}|${inside ? 1 : 0}|${walking ? "w" : "f"}|${walker.view}|${poseKey}`;
+    const glb = cenotaph.glb;
+    const key = `${selected ?? "-"}|${scale.toFixed(3)}|${proximity.toFixed(3)}|${atHome ? 1 : 0}|${inside ? 1 : 0}|${walking ? "w" : "f"}|${walker.view}|${glb}|${poseKey}`;
     if (!force && key === lastSent) return;
     lastSent = key;
     onChange({
@@ -1344,6 +1351,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       inside,
       mode: walking ? "walk" : "fly",
       camera: walker.view,
+      glb,
       walker: body
         ? { x: Math.round(body.x * 10) / 10, z: Math.round(body.z * 10) / 10, heading: Math.round(body.heading * 100) / 100 }
         : null,
@@ -1385,6 +1393,21 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     },
     setCenotaphVariant: (variant) => {
       cenotaph.apply(variant);
+    },
+    setGlb: async (glb: CenotaphGlb) => {
+      if (glb !== "production" && glb !== "full") return;
+      const mine = ++glbToken;
+      const pose = walking ? walker.snapshot() : null;
+      const view = walker.view;
+      const reg = await cenotaph.setGlb(glb);
+      if (mine !== glbToken || cenotaph.glb !== glb) return;
+      publishFit(reg);
+      if (pose && walking) {
+        walker.restore(pose);
+        walker.setView(view);
+        if (!holdCam) walker.applyCamera(camera, 1, true);
+      }
+      emit(true);
     },
     setMode: (mode) => {
       if (mode === "walk") beginWalk();
@@ -1529,6 +1552,59 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
         if (walking) walker.applyCamera(camera, 1, true);
         emit(true);
       },
+      setGlb: async (which: CenotaphGlb) => {
+        await api.setGlb(which);
+        return cenotaph.glb;
+      },
+      glb: () => cenotaph.glb,
+      still: (pos: [number, number, number], target: [number, number, number]) => {
+        holdCam = { px: pos[0], py: pos[1], pz: pos[2], tx: target[0], ty: target[1], tz: target[2] };
+        camera.position.set(pos[0], pos[1], pos[2]);
+        camera.up.set(0, 1, 0);
+        camera.lookAt(target[0], target[1], target[2]);
+        camera.updateMatrixWorld();
+      },
+      release: () => {
+        holdCam = null;
+        if (walking) walker.applyCamera(camera, 1, true);
+      },
+      grab: () => {
+        camera.updateMatrixWorld();
+        if (useComposer && composer) composer.render();
+        else renderer.render(scene, camera);
+        return canvas.toDataURL("image/png");
+      },
+      aimPoint: () => {
+        const dir = new THREE.Vector3();
+        camera.getWorldDirection(dir);
+        const p = camera.position.clone().addScaledVector(dir, 8);
+        const body = walking ? walker.pose() : null;
+        return {
+          pos: [camera.position.x, camera.position.y, camera.position.z] as [number, number, number],
+          look: [p.x, p.y, p.z] as [number, number, number],
+          feet: walking ? walker.group.position.y : null,
+          x: body?.x ?? null,
+          z: body?.z ?? null,
+          heading: body?.heading ?? null,
+          view: walker.view,
+          glb: cenotaph.glb,
+        };
+      },
+      bench: () => {
+        const n = 20;
+        renderer.info.reset();
+        const t0 = performance.now();
+        for (let i = 0; i < n; i++) {
+          if (useComposer && composer) composer.render();
+          else renderer.render(scene, camera);
+        }
+        return {
+          ms: (performance.now() - t0) / n,
+          calls: renderer.info.render.calls,
+          triangles: renderer.info.render.triangles,
+          glb: cenotaph.glb,
+        };
+      },
       screen: () => {
         camera.updateMatrixWorld();
         const rect = canvas.getBoundingClientRect();
@@ -1612,7 +1688,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       const near = walker.nearest();
       selected = near.id;
       walkProx = near.proximity;
-      walker.applyCamera(camera, raw, reduced);
+      if (!holdCam) walker.applyCamera(camera, raw, reduced);
     } else {
       cavity.visible = true;
       radiusT = clamp(radiusT, snapAnchor ? R_MIN : minRadius(), maxRadius());
@@ -1649,7 +1725,12 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       h.mat.opacity += (target - h.mat.opacity) * (reduced ? 1 : 1 - Math.exp(-dt * 6));
     }
 
-    if (!walking) placeCamera();
+    if (holdCam) {
+      camera.position.set(holdCam.px, holdCam.py, holdCam.pz);
+      camera.up.set(0, 1, 0);
+      camera.lookAt(holdCam.tx, holdCam.ty, holdCam.tz);
+      camera.updateMatrixWorld();
+    } else if (!walking) placeCamera();
 
     if (useComposer && composer) {
       try {
@@ -1662,7 +1743,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       renderer.render(scene, camera);
     }
 
-    if (gradeTick === 1) enableGrade();
+    if (gradeTick === 1 && !shotBuffer) enableGrade();
     if (gradeTick < 3) gradeTick += 1;
 
     acc += dt;

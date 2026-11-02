@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasMode, type AtlasUi, type CenotaphVariant, type WalkCamera, type WalkerPose } from "./destinations";
+import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasMode, type AtlasUi, type CenotaphGlb, type CenotaphVariant, type WalkCamera, type WalkerPose } from "./destinations";
 import { atCenotaphDoor } from "./ascent";
 import { FairMap, WalkStick } from "./walk-ui";
 import "./interactive-atlas.css";
@@ -34,6 +34,7 @@ function same(a: AtlasUi, b: AtlasUi) {
     a.inside === b.inside &&
     a.mode === b.mode &&
     (a.camera ?? "follow") === (b.camera ?? "follow") &&
+    (a.glb ?? "production") === (b.glb ?? "production") &&
     walkerSame(a.walker, b.walker) &&
     Math.abs(a.scale - b.scale) < 0.012 &&
     Math.abs(a.proximity - b.proximity) < 0.02
@@ -59,6 +60,7 @@ export default function InteractiveAtlas() {
   const [ui, setUi] = useState<AtlasUi>(INITIAL);
   const [failed, setFailed] = useState(() => (typeof document === "undefined" ? false : !canWebGL()));
   const [mapOpen, setMapOpen] = useState(false);
+  const [pendingGlb, setPendingGlb] = useState<CenotaphGlb | null>(null);
   const [params, setSearchParams] = useSearchParams();
   const variantRef = useRef<CenotaphVariant>(studyVariant());
 
@@ -120,6 +122,14 @@ export default function InteractiveAtlas() {
   const setMode = (mode: AtlasMode) => apiRef.current?.setMode(mode);
   const setCamera = (camera: WalkCamera) => apiRef.current?.setCamera(camera);
   const walkCamera = ui.camera ?? "follow";
+  const glb = pendingGlb ?? ui.glb ?? "production";
+  const chooseGlb = (next: CenotaphGlb) => {
+    if (next === glb) return;
+    setPendingGlb(next);
+    void Promise.resolve(apiRef.current?.setGlb(next)).finally(() => {
+      setPendingGlb((current) => (current === next ? null : current));
+    });
+  };
 
   return (
     <main className="ia-world" data-mode={ui.mode}>
@@ -266,7 +276,29 @@ export default function InteractiveAtlas() {
             Return to Atlas
           </Link>
         </div>
-      ) : null}
+      ) : (
+        <details className="ia-dev" data-glb={glb}>
+          <summary>
+            <span>DEV · GLB</span>
+            <span className="ia-dev-current">{glb === "full" ? "Full Resolution" : "Production"}</span>
+          </summary>
+          <div className="ia-dev-body">
+            <div role="group" aria-label="Cenotaph geometry">
+              <button type="button" data-on={glb === "production"} aria-pressed={glb === "production"} onClick={() => chooseGlb("production")}>
+                Production
+              </button>
+              <button type="button" data-on={glb === "full"} aria-pressed={glb === "full"} onClick={() => chooseGlb("full")}>
+                Full Resolution
+              </button>
+            </div>
+            <p className="ia-dev-note">
+              {glb === "full"
+                ? "Full-resolution export. Flat cap at 13.103 m sits above the historic tread and the observation floor at 12.937 m. The step is left visible."
+                : "Known-good mesh. Observation floor at 12.937 m."}
+            </p>
+          </div>
+        </details>
+      )}
     </main>
   );
 }

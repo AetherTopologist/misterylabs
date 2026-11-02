@@ -1,6 +1,14 @@
 import * as THREE from "three";
+import { seatMonument, surveyCap, type MonumentSeat } from "./cenotaph-seat";
+import { setMonumentCap } from "./terrain";
 
 export type CenotaphVariant = "a" | "b" | "c" | "m";
+export type CenotaphGlb = "production" | "full";
+
+const GLB_URL: Record<CenotaphGlb, string> = {
+  production: new URL("./cenotaph.glb", import.meta.url).href,
+  full: new URL("./Cenotaph_FullRes_PPLremovedOnly.glb", import.meta.url).href,
+};
 
 type Shared = {
   uVariant: { value: number };
@@ -178,7 +186,7 @@ function initialVariant(): CenotaphVariant {
   return "m";
 }
 
-export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
+export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
   const cen = new THREE.Group();
   const shared: Shared = {
     uVariant: { value: 0 },
@@ -291,136 +299,94 @@ export function buildCenotaph(coarse: boolean, cenY: number, cenR: number) {
 
   apply(initialVariant());
 
-  const ready = loadArchitecture({
-    holder,
-    cenR,
-    cenY,
-    diagnostic,
-    neutral,
-    sphereMat,
-    archMat,
-    people,
-  });
+  let current: CenotaphGlb = "production";
+  let token = 0;
+  let seated: { center: THREE.Vector3; radius: number; outer: number } | null = null;
+  let pending: Promise<{ center: THREE.Vector3; radius: number; outer: number }> | null = null;
+  let pendingWhich: CenotaphGlb | null = null;
 
-  return { group: cen, uniforms: shared, apply, ready, masonry: archMat };
-}
-
-type LoadOpts = {
-  holder: THREE.Group;
-  cenR: number;
-  cenY: number;
-  diagnostic: boolean;
-  neutral: THREE.Material;
-  sphereMat: THREE.Material;
-  archMat: THREE.Material;
-  people: THREE.Object3D[];
-};
-
-function solveSphere(pts: Array<[number, number, number]>) {
-  const ata = [
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-  ];
-  const atb = [0, 0, 0, 0];
-  for (const [x, y, z] of pts) {
-    const row = [x, y, z, 1];
-    const b = -(x * x + y * y + z * z);
-    for (let i = 0; i < 4; i++) {
-      atb[i] += row[i] * b;
-      for (let j = 0; j < 4; j++) ata[i][j] += row[i] * row[j];
+  function setGlb(which: CenotaphGlb) {
+    if (which !== "production" && which !== "full") {
+      return Promise.resolve(
+        seated ?? { center: new THREE.Vector3(0, holder.position.y, 0), radius: cenR, outer: cenR },
+      );
     }
+    if (pending && pendingWhich === which) return pending;
+    if (!pending && which === current && seated) return Promise.resolve(seated);
+    pendingWhich = which;
+    let job!: Promise<{ center: THREE.Vector3; radius: number; outer: number }>;
+    job = mountGlb(which).finally(() => {
+      if (pending === job) {
+        pending = null;
+        pendingWhich = null;
+      }
+    });
+    pending = job;
+    return job;
   }
-  for (let col = 0; col < 4; col++) {
-    let pivot = col;
-    for (let r = col + 1; r < 4; r++) if (Math.abs(ata[r][col]) > Math.abs(ata[pivot][col])) pivot = r;
-    [ata[col], ata[pivot]] = [ata[pivot], ata[col]];
-    [atb[col], atb[pivot]] = [atb[pivot], atb[col]];
-    const div = ata[col][col] || 1e-12;
-    for (let j = col; j < 4; j++) ata[col][j] /= div;
-    atb[col] /= div;
-    for (let r = 0; r < 4; r++) {
-      if (r === col) continue;
-      const f = ata[r][col];
-      for (let j = col; j < 4; j++) ata[r][j] -= f * ata[col][j];
-      atb[r] -= f * atb[col];
+
+  const ready = setGlb("production");
+
+  async function mountGlb(which: CenotaphGlb) {
+    const mine = ++token;
+    const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js");
+    const gltf = await new GLTFLoader().loadAsync(GLB_URL[which]);
+    if (mine !== token) return seated ?? { center: new THREE.Vector3(0, holder.position.y, 0), radius: cenR, outer: cenR };
+    const root = gltf.scene;
+    root.userData.architecture = true;
+    root.position.set(0, 0, 0);
+    root.rotation.set(0, 0, 0);
+    root.scale.set(1, 1, 1);
+    root.updateMatrixWorld(true);
+    const seat = seatMonument(root);
+    for (const child of [...holder.children]) {
+      if (child.userData.architecture) holder.remove(child);
     }
+    applySeat(root, seat, which);
+    current = which;
+    seated = measure(seat);
+    return seated;
   }
-  const cx = -atb[0] / 2;
-  const cy = -atb[1] / 2;
-  const cz = -atb[2] / 2;
-  const r = Math.sqrt(Math.max(0, cx * cx + cy * cy + cz * cz - atb[3]));
-  return { cx, cy, cz, r };
-}
 
-async function loadArchitecture(opts: LoadOpts) {
-  const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js");
-  const gltf = await new GLTFLoader().loadAsync(new URL("./cenotaph.glb", import.meta.url).href);
-  const root = gltf.scene;
-  opts.holder.add(root);
-  root.updateMatrixWorld(true);
-
-  const sphereNode = root.getObjectByName("Unir");
-  const sample: Array<[number, number, number]> = [];
-  const v = new THREE.Vector3();
-  const take = (obj: THREE.Object3D) => {
-    const mesh = obj as THREE.Mesh;
-    if (!mesh.isMesh) return;
-    const pos = mesh.geometry.getAttribute("position");
-    if (!pos) return;
-    const step = Math.max(1, Math.floor(pos.count / 900));
-    for (let i = 0; i < pos.count; i += step) {
-      v.fromBufferAttribute(pos as THREE.BufferAttribute, i).applyMatrix4(mesh.matrixWorld);
-      sample.push([v.x, v.y, v.z]);
+  function applySeat(root: THREE.Object3D, seat: MonumentSeat, which: CenotaphGlb) {
+    holder.add(root);
+    root.position.copy(seat.rootPosition);
+    holder.position.y = seat.holderY;
+    holder.scale.setScalar(1);
+    holder.rotation.y = 0;
+    holder.updateMatrixWorld(true);
+    const shell = new Set<THREE.Object3D>(seat.shellMeshes);
+    root.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      if (!mesh.geometry.getAttribute("normal")) mesh.geometry.computeVertexNormals();
+      mesh.material = diagnostic ? neutral : shell.has(mesh) ? sphereMat : archMat;
+      mesh.castShadow = false;
+      mesh.receiveShadow = false;
+    });
+    const ray = new THREE.Raycaster();
+    const down = new THREE.Vector3(0, -1, 0);
+    for (const figure of people) {
+      const drop = figure.userData.drop as [number, number] | undefined;
+      if (!drop) continue;
+      ray.set(new THREE.Vector3(drop[0], 240, drop[1]), down);
+      const hit = ray.intersectObject(holder, true).find((h) => h.point.y >= 0 && h.point.y < 48);
+      if (hit) figure.position.set(hit.point.x, hit.point.y, hit.point.z);
     }
-  };
-  if (sphereNode) sphereNode.traverse(take);
-  const fit = sample.length > 20 ? solveSphere(sample) : null;
-  const sketch = root.getObjectByName("SketchUp") ?? root;
-  const bounds = new THREE.Box3().setFromObject(sketch);
-  if (fit && fit.r > 1) {
-    const minLocal = bounds.min.y - fit.cy;
-    root.position.set(-fit.cx, -fit.cy, -fit.cz);
-    opts.holder.position.y = -minLocal;
-  } else {
-    opts.holder.position.y = opts.cenY;
-  }
-  // Loaded size. The file is not scaled down to the old cenotaph radius.
-  opts.holder.scale.setScalar(1);
-  opts.holder.rotation.y = 0;
-  opts.holder.updateMatrixWorld(true);
-
-  const sphereMeshes = new Set<THREE.Object3D>();
-  sphereNode?.traverse((obj) => {
-    if ((obj as THREE.Mesh).isMesh) sphereMeshes.add(obj);
-  });
-  root.traverse((obj) => {
-    const mesh = obj as THREE.Mesh;
-    if (!mesh.isMesh) return;
-    if (!mesh.geometry.getAttribute("normal")) mesh.geometry.computeVertexNormals();
-    mesh.material = opts.diagnostic ? opts.neutral : sphereMeshes.has(mesh) ? opts.sphereMat : opts.archMat;
-    mesh.castShadow = false;
-    mesh.receiveShadow = false;
-  });
-
-  const ray = new THREE.Raycaster();
-  const down = new THREE.Vector3(0, -1, 0);
-  for (const figure of opts.people) {
-    const drop = figure.userData.drop as [number, number] | undefined;
-    if (!drop) continue;
-    ray.set(new THREE.Vector3(drop[0], 240, drop[1]), down);
-    const hit = ray.intersectObject(opts.holder, true).find((h) => h.point.y >= 0 && h.point.y < 48);
-    if (hit) figure.position.set(hit.point.x, hit.point.y, hit.point.z);
+    setMonumentCap(which === "full" ? surveyCap(root) : null);
   }
 
-  const seated = new THREE.Box3().setFromObject(opts.holder);
-  const outer = Math.max(
-    Math.hypot(seated.min.x, seated.min.z),
-    Math.hypot(seated.max.x, seated.min.z),
-    Math.hypot(seated.min.x, seated.max.z),
-    Math.hypot(seated.max.x, seated.max.z),
-  );
-  const radius = fit && fit.r > 1 ? fit.r : opts.cenR;
-  return { center: new THREE.Vector3(0, opts.holder.position.y, 0), radius, outer };
+  function measure(seat: MonumentSeat) {
+    const box = new THREE.Box3().setFromObject(holder);
+    const outer = Math.max(
+      Math.hypot(box.min.x, box.min.z),
+      Math.hypot(box.max.x, box.min.z),
+      Math.hypot(box.min.x, box.max.z),
+      Math.hypot(box.max.x, box.max.z),
+    );
+    const radius = seat.fit && seat.fit.r > 1 ? seat.fit.r : cenR;
+    return { center: new THREE.Vector3(0, holder.position.y, 0), radius, outer };
+  }
+
+  return { group: cen, uniforms: shared, apply, ready, masonry: archMat, setGlb, get glb() { return current; } };
 }
