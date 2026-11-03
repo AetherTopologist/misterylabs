@@ -42,6 +42,17 @@ import {
   shellUpperY,
 } from "./dome-floor";
 import { CAP_WALK_R, capAt, monumentCapActive } from "./monument-cap";
+import {
+  NORTH_END_Z,
+  NORTH_JOIN_Z,
+  inNorthCamera,
+  inNorthMouth,
+  northCameraHalf,
+  northHalf,
+  northHeight,
+  northRouteOpen,
+  northSoffit,
+} from "./north-passage";
 
 export const STAIR_HALF = 13.2;
 export const STAIR_THROAT = 0.95;
@@ -155,10 +166,11 @@ function inHistoricMouth(x: number, z: number, inset = 0) {
   return Math.abs(x) <= span + 0.03;
 }
 
-/** Inside the round blocker, on the measured route, the new floor, or the cap. */
+/** Inside the round blocker, on the measured route, the new floor, the cap, or the north passage. */
 export function inStairMouth(x: number, z: number, inset = 0) {
   if (inHistoricMouth(x, z, inset)) return true;
   if (onObservationFloor(x, z, inset)) return true;
+  if (inNorthMouth(x, z, inset)) return true;
   // The full-resolution annulus. Empty on production, so this stays false.
   if (capAt(x, z) <= 0) return false;
   return Math.hypot(x, z) <= CAP_WALK_R - inset + 0.02;
@@ -188,6 +200,8 @@ export function stairHeight(x: number, z: number) {
     return y;
   }
   if (onObservationFloor(x, z)) return 12.937;
+  const north = northHeight(x, z);
+  if (north > 0) return north;
   return 0;
 }
 
@@ -240,8 +254,8 @@ export function constrainCenotaph(x: number, z: number, vx: number, vz: number, 
     const hx = Math.max(-stairHalf(STONE_END_Z), Math.min(stairHalf(STONE_END_Z), x));
     considerInto(best, x, z, hx, STONE_END_Z);
   }
-  // Full-resolution cap only. A step past 19.5 returns to the cap, not to the
-  // inner disc and not into the north hall.
+  // Full-resolution cap only. A step past 19.5 returns to the cap, except
+  // where the northern passage is the nearer measured floor.
   if (monumentCapActive()) {
     const d = Math.hypot(x, z);
     if (d > CAP_WALK_R && d > 1e-4) {
@@ -249,6 +263,12 @@ export function constrainCenotaph(x: number, z: number, vx: number, vz: number, 
       const pz = (z / d) * CAP_WALK_R;
       if (capAt(px, pz) > 0) considerInto(best, x, z, px, pz);
     }
+  }
+  if (northRouteOpen() && z < NORTH_JOIN_Z + 0.8) {
+    const nz = Math.max(NORTH_END_Z, Math.min(NORTH_JOIN_Z, z));
+    const half = northHalf(nz);
+    const nx = Math.max(-half, Math.min(half, x));
+    considerInto(best, x, z, nx, nz);
   }
   const dx = best.x - x;
   const dz = best.z - z;
@@ -265,8 +285,16 @@ export function constrainCenotaph(x: number, z: number, vx: number, vz: number, 
   return { x: best.x, z: best.z, vx, vz };
 }
 
-/** Underside of the arch, the hall ceiling, then the open vault. */
+/** Underside of the arch, the hall ceiling, the northern passage, then the open vault. */
 function passageSoffit(x: number, z: number) {
+  if (z < -18) {
+    const northern = northSoffit(z);
+    if (northern != null) return northern;
+    if (northRouteOpen() && z >= NORTH_END_Z - 4) {
+      const radial = Math.min(Math.hypot(x, z), DOME_R - 0.8);
+      return Math.min(96, shellUpperY(radial) - 0.5);
+    }
+  }
   if (z >= 86) return 13.5;
   if (z >= 82) return lerp(z, 86, 12.69, 82, 8.95);
   if (z >= ARCH_KEEP_Z) return 8.75;
@@ -283,6 +311,8 @@ function corridorXZ(x: number, z: number) {
   if (z >= NECK_Z0 && z <= NECK_Z1 && Math.abs(x) <= NECK_HALF + 0.45) return true;
   if (z >= APRON_Z0 && z <= APRON_Z1 && Math.abs(x) <= APRON_HALF + 0.4) return true;
   if (z >= STONE_END_Z && z <= 131 && Math.abs(x) <= cameraHalf(z) + 0.04) return true;
+  if (inNorthCamera(x, z)) return true;
+  if (z <= NORTH_JOIN_Z && z >= NORTH_END_Z - 3.8 && Math.abs(x) <= northCameraHalf(z) + 0.04 && northRouteOpen()) return true;
   return false;
 }
 
@@ -348,4 +378,18 @@ export function placeCenotaphCamera(avatarX: number, avatarZ: number, boom: Boom
   const cap = segmentSoffitCap(avatarX, avatarZ, x, z);
   if (y > cap) y = cap;
   return { x, y, z };
+}
+
+/**
+ * Where to put a visitor who is inside the drum after a model switch
+ * removed the floor they were standing on. Null when the current route
+ * still holds them. The landing is the observation disc, along the same
+ * bearing, which both models support.
+ */
+export function fallbackInsideMonument(x: number, z: number, block = 130) {
+  if (inStairMouth(x, z) || Math.hypot(x, z) >= block - 0.05) return null;
+  const r = Math.hypot(x, z);
+  if (r < 1e-3) return { x: 0, z: 0 };
+  const limit = Math.min(WALK_R - 0.05, r);
+  return { x: (x / r) * limit, z: (z / r) * limit };
 }

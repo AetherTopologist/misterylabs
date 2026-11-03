@@ -138,7 +138,7 @@ afterEach(() => {
 });
 
 describe("cenotaph seating adapter", () => {
-  it("walks only the flat cap inside the shell clearance", () => {
+  it("walks the flat cap and, while that cap is installed, the northern passage", () => {
     const root = new THREE.Group();
     const cap = new THREE.PlaneGeometry(40, 40);
     cap.rotateX(-Math.PI / 2);
@@ -160,8 +160,9 @@ describe("cenotaph seating adapter", () => {
     expect(sampleGround(0, -16)).toBeCloseTo(CAP_Y, 2);
     expect(inStairMouth(16, 0)).toBe(true);
     expect(inStairMouth(0, -16)).toBe(true);
-    expect(inStairMouth(0, -21)).toBe(false);
-    expect(sampleGround(0, -28)).toBe(0);
+    expect(inStairMouth(0, -21)).toBe(true);
+    expect(sampleGround(0, -21)).toBeCloseTo(12.937, 2);
+    expect(sampleGround(0, -28)).toBeCloseTo(10.938, 2);
     expect(sampleGround(0, 60)).toBeCloseTo(6.275, 2);
     expect(sampleGround(0, 108)).toBeCloseTo(6.275, 2);
     expect(sampleGround(0, 21)).toBeCloseTo(TREAD_Y, 2);
@@ -170,8 +171,8 @@ describe("cenotaph seating adapter", () => {
     expect(Math.hypot(out.x, out.z)).toBeCloseTo(CAP_WALK_R, 2);
     expect(inStairMouth(out.x, out.z)).toBe(true);
     const north = constrainCenotaph(0, -30, 0, -4);
-    expect(north.z).toBeGreaterThanOrEqual(-CAP_WALK_R - 0.05);
-    expect(north.z).toBeLessThan(-WALK_R);
+    expect(north.z).toBeCloseTo(-30, 3);
+    expect(north.vz).toBeCloseTo(-4, 3);
     expect(inStairMouth(north.x, north.z)).toBe(true);
 
     const walker = createWalker(new THREE.Scene());
@@ -180,6 +181,8 @@ describe("cenotaph seating adapter", () => {
 
     setMonumentCap(null);
     expect(inStairMouth(16, 0)).toBe(false);
+    expect(inStairMouth(0, -28)).toBe(false);
+    expect(sampleGround(0, -28)).toBe(0);
     expect(sampleGround(16, 0)).toBe(0);
     const back = constrainCenotaph(21, 0, 2, 0);
     expect(Math.hypot(back.x, back.z)).toBeGreaterThan(WALK_R - 0.2);
@@ -293,8 +296,8 @@ describe("cenotaph seating adapter", () => {
     expect(sampleGround(0, 18)).toBeCloseTo(CAP_Y, 2);
     expect(inStairMouth(16, 0)).toBe(true);
     expect(inStairMouth(0, -16)).toBe(true);
-    expect(inStairMouth(0, -28)).toBe(false);
-    expect(sampleGround(0, -28)).toBe(0);
+    expect(inStairMouth(0, -28)).toBe(true);
+    expect(sampleGround(0, -28)).toBeCloseTo(10.938, 2);
     expect(sampleGround(0, 60)).toBeCloseTo(6.275, 2);
     expect(sampleGround(0, 108)).toBeCloseTo(6.275, 2);
     expect(sampleGround(0, 21)).toBeCloseTo(TREAD_Y, 2);
@@ -305,7 +308,9 @@ describe("cenotaph seating adapter", () => {
     setMonumentCap(null);
     expect(sampleGround(0, 8)).toBeCloseTo(TREAD_Y, 5);
     expect(sampleGround(16, 0)).toBe(0);
+    expect(sampleGround(0, -28)).toBe(0);
     expect(inStairMouth(16, 0)).toBe(false);
+    expect(inStairMouth(0, -28)).toBe(false);
     expect(production.gzip).toBeLessThan(full.gzip);
   }, 60000);
 });

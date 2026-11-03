@@ -100,4 +100,43 @@ describe("walk cameras", () => {
     expect(aim.z).toBeLessThan(pose.z - 1);
     expect(Math.abs(aim.x - pose.x)).toBeLessThan(1);
   });
+
+  it("keeps Eyes locked to Mister Why's heading", () => {
+    const walker = stood(16);
+    const camera = new THREE.PerspectiveCamera(46, 16 / 9, 0.25, 400);
+    walker.restore({ x: 0, z: 16, heading: Math.PI, camYaw: 1.2, back: WALK_BACK, lookLift: WALK_LOOK });
+    const before = walker.pose();
+    walker.setView("eyes");
+    walker.applyCamera(camera, 1, true);
+    expect(walker.pose().heading).toBeCloseTo(before.heading, 5);
+    expect(walker.pose().x).toBeCloseTo(before.x, 5);
+    expect(walker.pose().z).toBeCloseTo(before.z, 5);
+    const aim = walker.aim();
+    expect(aim.z).toBeLessThan(before.z - 1);
+    expect(Math.abs(aim.x - before.x)).toBeLessThan(0.4);
+    expect(camera.position.y).toBeCloseTo(walker.group.position.y + EYE_HEIGHT, 2);
+
+    const still = walker.aim().clone();
+    walker.applyCamera(camera, 1, true);
+    expect(walker.pose().heading).toBeCloseTo(Math.PI, 5);
+    expect(walker.aim().distanceTo(still)).toBeLessThan(1e-4);
+
+    walker.orbit(0, -120);
+    walker.applyCamera(camera, 1, true);
+    expect(walker.pose().heading).toBeCloseTo(Math.PI, 5);
+    expect(walker.aim().y).toBeGreaterThan(walker.group.position.y + EYE_HEIGHT + 3);
+
+    const faced = walker.pose().heading;
+    walker.orbit(90, 0);
+    walker.applyCamera(camera, 1, true);
+    expect(Math.abs(walker.pose().heading - faced)).toBeGreaterThan(0.2);
+    expect(Math.abs(walker.aim().x - before.x)).toBeGreaterThan(1);
+
+    const turned = walker.pose().heading;
+    walker.setView("follow");
+    walker.applyCamera(camera, 1, true);
+    expect(walker.pose().heading).toBeCloseTo(turned, 5);
+    expect(walker.pose().camYaw).toBeCloseTo(Math.atan2(Math.sin(turned + Math.PI), Math.cos(turned + Math.PI)), 5);
+    expect(walker.group.visible).toBe(true);
+  });
 });

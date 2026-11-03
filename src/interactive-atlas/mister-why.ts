@@ -158,7 +158,6 @@ export function createWalker(scene: THREE.Scene): Walker {
   let heldStick = 0;
   let followState: FollowState = { yaw: 0, grace: 0, sustained: 0 };
   let view: WalkCamera = "follow";
-  let eyeYaw = 0;
   let eyePitch = 0;
   let overYaw = 0;
   let overH = 26;
@@ -230,7 +229,6 @@ export function createWalker(scene: THREE.Scene): Walker {
       // Walk is starting from a new stance. Keep the chosen mode, but aim it
       // with this entry instead of a yaw left over from the last visit.
       if (view === "eyes") {
-        eyeYaw = camYaw;
         eyePitch = 0;
       } else if (view === "overhead") {
         overYaw = camYaw;
@@ -255,16 +253,20 @@ export function createWalker(scene: THREE.Scene): Walker {
       const step = Math.min(0.05, Math.max(0, dt));
       const commanded = Math.hypot(input.x, input.y) > MOVE_DEADZONE;
       const stick = Math.atan2(input.x, input.y);
-      // Latch at the start of a command, including one that begins mid-orbit.
-      // A held stick keeps that basis so follow cannot steer the walk.
-      if (!commanded) {
+      // Eyes looks along the body. Forward is that facing, every frame,
+      // so a sidestep cannot leave the view pointing somewhere else.
+      // Follow and Overhead latch a basis so the boom cannot steer the walk.
+      if (view === "eyes") {
+        moveBasis = heading + Math.PI;
+        basisHeld = false;
+      } else if (!commanded) {
         basisHeld = false;
       } else if (!basisHeld) {
-        moveBasis = view === "eyes" ? eyeYaw : view === "overhead" ? overYaw : camYaw;
+        moveBasis = view === "overhead" ? overYaw : camYaw;
         basisHeld = true;
         heldStick = stick;
       } else if (!input.orbiting && Math.abs(angDelta(heldStick, stick)) > STICK_RELATCH) {
-        moveBasis = view === "eyes" ? eyeYaw : view === "overhead" ? overYaw : camYaw;
+        moveBasis = view === "overhead" ? overYaw : camYaw;
         heldStick = stick;
       }
       const lookx = -Math.sin(moveBasis);
@@ -296,7 +298,9 @@ export function createWalker(scene: THREE.Scene): Walker {
       vx = kept.vx;
       vz = kept.vz;
       const sp = Math.hypot(vx, vz);
-      if (sp > 0.35) {
+      // In Eyes the body does not chase a strafe. Heading is the look,
+      // and only a turn changes it. Follow and Overhead still face travel.
+      if (view !== "eyes" && sp > 0.35) {
         const face = Math.atan2(vx, vz);
         heading += angDelta(heading, face) * (1 - Math.exp(-step * 9));
       }
@@ -328,8 +332,8 @@ export function createWalker(scene: THREE.Scene): Walker {
       const damp = reduced ? 1 : 1 - Math.exp(-step * 1.8);
       const feet = sampleGround(x, z);
       if (view === "eyes") {
-        const fx = -Math.sin(eyeYaw);
-        const fz = -Math.cos(eyeYaw);
+        const fx = Math.sin(heading);
+        const fz = Math.cos(heading);
         const eyeY = feet + EYE_HEIGHT;
         const reach = 8;
         const cp = Math.cos(eyePitch);
@@ -374,7 +378,7 @@ export function createWalker(scene: THREE.Scene): Walker {
     },
     orbit(dx, dy) {
       if (view === "eyes") {
-        eyeYaw -= dx * ORBIT_YAW;
+        heading = Math.atan2(Math.sin(heading - dx * ORBIT_YAW), Math.cos(heading - dx * ORBIT_YAW));
         const gain = dy > 0 ? 0.0045 : 0.008;
         eyePitch = clamp(eyePitch - dy * gain, -1.15, 1.3);
         return;
@@ -429,12 +433,20 @@ export function createWalker(scene: THREE.Scene): Walker {
     setView(next) {
       if (next !== "follow" && next !== "eyes" && next !== "overhead") return;
       if (next !== view) {
-        if (next === "eyes") {
-          eyeYaw = camYaw;
-          eyePitch = 0;
+        if (view === "eyes") {
+          const behind = Math.atan2(Math.sin(heading + Math.PI), Math.cos(heading + Math.PI));
+          if (next === "follow") {
+            camYaw = behind;
+            moveBasis = behind;
+            basisHeld = false;
+            followState = { yaw: behind, grace: 0, sustained: 0 };
+          } else {
+            overYaw = behind;
+          }
         } else if (next === "overhead") {
           overYaw = camYaw;
         }
+        if (next === "eyes") eyePitch = 0;
         view = next;
       }
       showBody();
