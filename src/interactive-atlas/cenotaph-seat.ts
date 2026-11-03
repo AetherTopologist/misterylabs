@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { stairHeight } from "./ascent";
+import { CAP_WALK_R } from "./monument-cap";
 
 /**
  * Seats either Cenotaph GLB into the same monument frame.
@@ -12,7 +13,8 @@ import { stairHeight } from "./ascent";
  *
  * The full-resolution file also adds a flat cap at 13.103 m across the
  * open dome. The historic tread and the procedural observation floor stay
- * at 12.937 m. That step is measured here and left visible.
+ * at 12.937 m. That 166 mm step is measured and left visible. The cap is
+ * walkable out to CAP_WALK_R. The north hall and the terrace are not.
  */
 export const TREAD_Y = 12.937;
 export const CAP_Y = 13.103;
@@ -164,7 +166,7 @@ export function seatMonument(root: THREE.Object3D): MonumentSeat {
   };
 }
 
-/** Up-facing mesh that sits just above the procedural floor. The cap, not a ceiling. */
+/** Up-facing mesh of the flat cap. Not a ceiling, and not the historic ramp. */
 export function surveyCap(root: THREE.Object3D, step = 0.5): CapGrid {
   root.updateMatrixWorld(true);
   const x0 = -22;
@@ -216,10 +218,11 @@ export function surveyCap(root: THREE.Object3D, step = 0.5): CapGrid {
       const cy = (a.y + b.y + c.y) / 3;
       const cz = (a.z + b.z + c.z) / 3;
       const base = stairHeight(cx, cz);
-      // Only the flat arrival at 12.937. Stair lips a few centimeters off the
-      // piecewise profile are not the cap, and must not retread the walk.
-      if (Math.abs(base - TREAD_Y) > 0.03) continue;
-      if (!(cy > base + 0.02 && cy < base + 0.45)) continue;
+      const flatCap = Math.abs(cy - CAP_Y) < 0.012 && Math.hypot(cx, cz) <= 21.5;
+      // Stair lips a few centimeters off the piecewise profile are not the cap.
+      const overTread =
+        Math.abs(base - TREAD_Y) <= 0.03 && cy > base + 0.02 && cy < base + 0.45;
+      if (!flatCap && !overTread) continue;
       const minX = Math.min(a.x, b.x, c.x);
       const maxX = Math.max(a.x, b.x, c.x);
       const minZ = Math.min(a.z, b.z, c.z);
@@ -250,6 +253,12 @@ export function surveyCap(root: THREE.Object3D, step = 0.5): CapGrid {
           const v = (dot00 * dot12 - dot01 * dot02) * inv;
           if (u < -1e-3 || v < -1e-3 || u + v > 1 + 1e-3) continue;
           const y = a.y + (b.y - a.y) * v + (c.y - a.y) * u;
+          const ground = stairHeight(x, z);
+          const aboveTread = Math.abs(ground - TREAD_Y) <= 0.03;
+          // Do not retread the historic ramp below the arrival.
+          if (ground > 0.05 && ground < TREAD_Y - 0.05) continue;
+          if (!aboveTread && Math.hypot(x, z) > CAP_WALK_R + 1e-3) continue;
+          if (!aboveTread && Math.abs(y - CAP_Y) > 0.02) continue;
           mark(x, z, y);
         }
       }

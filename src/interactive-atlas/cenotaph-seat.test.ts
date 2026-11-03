@@ -5,9 +5,13 @@ import fs from "node:fs";
 import zlib from "node:zlib";
 import * as THREE from "three";
 import { afterEach, describe, expect, it } from "vitest";
-import { stairHeight } from "./ascent";
+import { constrainCenotaph, inStairMouth, stairHeight } from "./ascent";
 import { CAP_Y, TREAD_Y, capTriangles, seatMonument, surveyCap } from "./cenotaph-seat";
+import { CAP_WALK_R } from "./monument-cap";
+import { createWalker } from "./mister-why";
 import { sampleGround, setMonumentCap } from "./terrain";
+import { WALK_BACK, WALK_LOOK } from "./framing";
+import { WALK_R } from "./dome-floor";
 
 const PRODUCTION = new URL("./cenotaph.glb", import.meta.url);
 const FULL = new URL("./Cenotaph_FullRes_PPLremovedOnly.glb", import.meta.url);
@@ -134,6 +138,54 @@ afterEach(() => {
 });
 
 describe("cenotaph seating adapter", () => {
+  it("walks only the flat cap inside the shell clearance", () => {
+    const root = new THREE.Group();
+    const cap = new THREE.PlaneGeometry(40, 40);
+    cap.rotateX(-Math.PI / 2);
+    cap.translate(0, CAP_Y, 0);
+    root.add(new THREE.Mesh(cap));
+    const ramp = new THREE.PlaneGeometry(8, 16);
+    ramp.rotateX(-Math.PI / 2);
+    ramp.translate(0, 10.9, -28);
+    root.add(new THREE.Mesh(ramp));
+    const lid = new THREE.PlaneGeometry(14, 20);
+    lid.rotateX(-Math.PI / 2);
+    lid.translate(0, 13.08, 60);
+    root.add(new THREE.Mesh(lid));
+
+    const grid = surveyCap(root);
+    setMonumentCap(grid);
+    expect(grid.cells).toBeGreaterThan(100);
+    expect(sampleGround(16, 0)).toBeCloseTo(CAP_Y, 2);
+    expect(sampleGround(0, -16)).toBeCloseTo(CAP_Y, 2);
+    expect(inStairMouth(16, 0)).toBe(true);
+    expect(inStairMouth(0, -16)).toBe(true);
+    expect(inStairMouth(0, -21)).toBe(false);
+    expect(sampleGround(0, -28)).toBe(0);
+    expect(sampleGround(0, 60)).toBeCloseTo(6.275, 2);
+    expect(sampleGround(0, 108)).toBeCloseTo(6.275, 2);
+    expect(sampleGround(0, 21)).toBeCloseTo(TREAD_Y, 2);
+
+    const out = constrainCenotaph(21, 0, 2, 0);
+    expect(Math.hypot(out.x, out.z)).toBeCloseTo(CAP_WALK_R, 2);
+    expect(inStairMouth(out.x, out.z)).toBe(true);
+    const north = constrainCenotaph(0, -30, 0, -4);
+    expect(north.z).toBeGreaterThanOrEqual(-CAP_WALK_R - 0.05);
+    expect(north.z).toBeLessThan(-WALK_R);
+    expect(inStairMouth(north.x, north.z)).toBe(true);
+
+    const walker = createWalker(new THREE.Scene());
+    walker.restore({ x: 16, z: 0, heading: Math.PI, camYaw: 0, back: WALK_BACK, lookLift: WALK_LOOK });
+    expect(walker.group.position.y).toBeCloseTo(CAP_Y, 2);
+
+    setMonumentCap(null);
+    expect(inStairMouth(16, 0)).toBe(false);
+    expect(sampleGround(16, 0)).toBe(0);
+    const back = constrainCenotaph(21, 0, 2, 0);
+    expect(Math.hypot(back.x, back.z)).toBeGreaterThan(WALK_R - 0.2);
+    expect(Math.hypot(back.x, back.z)).toBeLessThan(WALK_R + 0.2);
+  });
+
   it("seats a named Unir shell on the SketchUp datum, not at 15.04", () => {
     const root = new THREE.Group();
     const sketch = new THREE.Group();
@@ -236,10 +288,24 @@ describe("cenotaph seating adapter", () => {
     expect(sampleGround(0, 8)).toBeCloseTo(stairHeight(0, 8), 5);
     setMonumentCap(fullGrid);
     expect(sampleGround(0, 8)).toBeCloseTo(CAP_Y, 2);
+    expect(sampleGround(16, 0)).toBeCloseTo(CAP_Y, 2);
+    expect(sampleGround(0, -16)).toBeCloseTo(CAP_Y, 2);
+    expect(sampleGround(0, 18)).toBeCloseTo(CAP_Y, 2);
+    expect(inStairMouth(16, 0)).toBe(true);
+    expect(inStairMouth(0, -16)).toBe(true);
+    expect(inStairMouth(0, -28)).toBe(false);
+    expect(sampleGround(0, -28)).toBe(0);
+    expect(sampleGround(0, 60)).toBeCloseTo(6.275, 2);
     expect(sampleGround(0, 108)).toBeCloseTo(6.275, 2);
     expect(sampleGround(0, 21)).toBeCloseTo(TREAD_Y, 2);
+    const rim = constrainCenotaph(22, -4, 1, 0);
+    expect(Math.hypot(rim.x, rim.z)).toBeLessThanOrEqual(CAP_WALK_R + 0.05);
+    expect(Math.hypot(rim.x, rim.z)).toBeGreaterThan(18);
+    expect(inStairMouth(rim.x, rim.z)).toBe(true);
     setMonumentCap(null);
     expect(sampleGround(0, 8)).toBeCloseTo(TREAD_Y, 5);
+    expect(sampleGround(16, 0)).toBe(0);
+    expect(inStairMouth(16, 0)).toBe(false);
     expect(production.gzip).toBeLessThan(full.gzip);
   }, 60000);
 });
