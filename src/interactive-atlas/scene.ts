@@ -7,6 +7,7 @@ import type { AtlasApi, AtlasUi, CenotaphGlb, CenotaphVariant, DestinationId, Ex
 import { COLLECTIONS, HIDDEN_DESTINATIONS } from "./destinations";
 import { buildCenotaph } from "./cenotaph";
 import { buildObservationFloor } from "./dome-floor";
+import { fallbackInsideMonument } from "./ascent";
 import { CAP_Y } from "./cenotaph-seat";
 import { CAP_WALK_R } from "./monument-cap";
 import { FOREST_LINKS } from "./forest";
@@ -1435,7 +1436,9 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       showProceduralFloor(glb !== "full");
       publishFit(reg);
       if (pose && walking) {
-        walker.restore(pose);
+        const moved = fallbackInsideMonument(pose.x, pose.z);
+        const next = moved ? { ...pose, x: moved.x, z: moved.z } : pose;
+        walker.restore(next);
         walker.setView(view);
         if (!holdCam) walker.applyCamera(camera, 1, true);
       }

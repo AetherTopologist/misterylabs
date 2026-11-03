@@ -14,7 +14,8 @@ import { CAP_WALK_R } from "./monument-cap";
  * The full-resolution file also adds a flat cap at 13.103 m across the
  * open dome. The historic tread and the procedural observation floor stay
  * at 12.937 m. That 166 mm step is measured and left visible. The cap is
- * walkable out to CAP_WALK_R. The north hall and the terrace are not.
+ * walkable out to CAP_WALK_R. The northern passage, measured separately,
+ * opens from that cap only while this grid is installed.
  */
 export const TREAD_Y = 12.937;
 export const CAP_Y = 13.103;

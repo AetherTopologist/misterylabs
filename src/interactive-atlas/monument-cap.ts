@@ -3,9 +3,9 @@ import type { CapGrid } from "./cenotaph-seat";
 /**
  * Full-resolution cap only. Production leaves the grid empty.
  *
- * The shell wall meets this floor near r = 20.7. The walk stops at 19.5
- * so a point collision still has clearance, and so the north hall and the
- * outer terrace are not opened by the same surface.
+ * The shell wall meets this floor near r = 20.7. The disc walk stops at
+ * 19.5. The northern passage is a separate corridor, and only while this
+ * grid is installed. The terrace ring stays closed.
  */
 export const CAP_WALK_R = 19.5;
 
