@@ -7,6 +7,8 @@ import type { AtlasApi, AtlasUi, CenotaphGlb, CenotaphVariant, DestinationId, Ex
 import { COLLECTIONS, HIDDEN_DESTINATIONS } from "./destinations";
 import { buildCenotaph } from "./cenotaph";
 import { buildObservationFloor } from "./dome-floor";
+import { CAP_Y } from "./cenotaph-seat";
+import { CAP_WALK_R } from "./monument-cap";
 import { FOREST_LINKS } from "./forest";
 import { buildEightfoldCross } from "./eightfold-cross";
 import { buildHallOfFaces } from "./hall-of-faces";
@@ -418,6 +420,35 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   scene.add(cenotaph.group);
   const observation = buildObservationFloor(cenotaph.masonry);
   scene.add(observation.group);
+  const showProceduralFloor = (on: boolean) => {
+    observation.group.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      if (mesh.isMesh) mesh.visible = on;
+    });
+  };
+  let walkLimit: THREE.Mesh | null = null;
+  const setWalkLimit = (on: boolean) => {
+    if (walkLimit) {
+      scene.remove(walkLimit);
+      walkLimit.geometry.dispose();
+      (walkLimit.material as THREE.Material).dispose();
+      walkLimit = null;
+    }
+    if (!on) return;
+    const geo = new THREE.RingGeometry(CAP_WALK_R - 0.55, CAP_WALK_R + 0.15, 160);
+    geo.rotateX(-Math.PI / 2);
+    geo.translate(0, CAP_Y + 0.12, 0);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0xc6ff4a,
+      side: THREE.DoubleSide,
+      depthTest: false,
+      fog: false,
+    });
+    walkLimit = new THREE.Mesh(geo, ringMat);
+    walkLimit.frustumCulled = false;
+    walkLimit.renderOrder = 20;
+    scene.add(walkLimit);
+  };
   let cenFit: { center: THREE.Vector3; radius: number; outer: number } | null = null;
   const publishFit = (reg: { center: THREE.Vector3; radius: number; outer: number }) => {
     cavity.position.copy(reg.center);
@@ -1401,6 +1432,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       const view = walker.view;
       const reg = await cenotaph.setGlb(glb);
       if (mine !== glbToken || cenotaph.glb !== glb) return;
+      showProceduralFloor(glb !== "full");
       publishFit(reg);
       if (pose && walking) {
         walker.restore(pose);
@@ -1568,9 +1600,18 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
         holdCam = null;
         if (walking) walker.applyCamera(camera, 1, true);
       },
-      grab: () => {
+      limits: (on: boolean) => setWalkLimit(on),
+      floor: () => {
+        const names: string[] = [];
+        observation.group.traverse((obj) => {
+          const mesh = obj as THREE.Mesh;
+          if (mesh.isMesh) names.push(`${mesh.name}:${mesh.visible ? 1 : 0}`);
+        });
+        return names.join(" ");
+      },
+      grab: (flat?: boolean) => {
         camera.updateMatrixWorld();
-        if (useComposer && composer) composer.render();
+        if (!flat && useComposer && composer) composer.render();
         else renderer.render(scene, camera);
         return canvas.toDataURL("image/png");
       },

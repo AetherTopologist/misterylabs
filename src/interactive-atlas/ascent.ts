@@ -41,6 +41,7 @@ import {
   onObservationFloor,
   shellUpperY,
 } from "./dome-floor";
+import { CAP_WALK_R, capAt, monumentCapActive } from "./monument-cap";
 
 export const STAIR_HALF = 13.2;
 export const STAIR_THROAT = 0.95;
@@ -154,10 +155,13 @@ function inHistoricMouth(x: number, z: number, inset = 0) {
   return Math.abs(x) <= span + 0.03;
 }
 
-/** Inside the round blocker, on the measured route or the new floor. */
+/** Inside the round blocker, on the measured route, the new floor, or the cap. */
 export function inStairMouth(x: number, z: number, inset = 0) {
   if (inHistoricMouth(x, z, inset)) return true;
-  return onObservationFloor(x, z, inset);
+  if (onObservationFloor(x, z, inset)) return true;
+  // The full-resolution annulus. Empty on production, so this stays false.
+  if (capAt(x, z) <= 0) return false;
+  return Math.hypot(x, z) <= CAP_WALK_R - inset + 0.02;
 }
 
 function pieceHeight(z: number, rows: ReadonlyArray<readonly [number, number]>, fallback: number) {
@@ -235,6 +239,16 @@ export function constrainCenotaph(x: number, z: number, vx: number, vz: number, 
     considerInto(best, x, z, ax, az);
     const hx = Math.max(-stairHalf(STONE_END_Z), Math.min(stairHalf(STONE_END_Z), x));
     considerInto(best, x, z, hx, STONE_END_Z);
+  }
+  // Full-resolution cap only. A step past 19.5 returns to the cap, not to the
+  // inner disc and not into the north hall.
+  if (monumentCapActive()) {
+    const d = Math.hypot(x, z);
+    if (d > CAP_WALK_R && d > 1e-4) {
+      const px = (x / d) * CAP_WALK_R;
+      const pz = (z / d) * CAP_WALK_R;
+      if (capAt(px, pz) > 0) considerInto(best, x, z, px, pz);
+    }
   }
   const dx = best.x - x;
   const dz = best.z - z;
