@@ -1603,6 +1603,10 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
         holdCam = null;
         if (walking) walker.applyCamera(camera, 1, true);
       },
+      orbit: (dx: number, dy: number) => {
+        walker.orbit(dx, dy);
+        if (walking && !holdCam) walker.applyCamera(camera, 1, true);
+      },
       limits: (on: boolean) => setWalkLimit(on),
       floor: () => {
         const names: string[] = [];
@@ -1678,18 +1682,88 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
           geo.setAttribute("normal", flat);
         });
       },
+      shadeGroups: (on: boolean) => {
+        scene.traverse((obj) => {
+          const mesh = obj as THREE.Mesh;
+          if (!mesh.isMesh) return;
+          let arch = false;
+          for (let p: THREE.Object3D | null = obj; p; p = p.parent) {
+            if (p.userData.architecture) arch = true;
+          }
+          if (!arch) return;
+          const saved = mesh.userData.groupMat as THREE.Material | THREE.Material[] | undefined;
+          if (!on) {
+            if (saved) {
+              mesh.material = saved;
+              delete mesh.userData.groupMat;
+            }
+            return;
+          }
+          if (!saved) mesh.userData.groupMat = mesh.material;
+          const id = mesh.geometry.uuid;
+          let hash = 0;
+          for (let i = 0; i < id.length; i++) hash = (hash * 33 + id.charCodeAt(i)) >>> 0;
+          const mat = new THREE.MeshBasicMaterial({
+            color: hash & 0xffffff,
+            side: THREE.DoubleSide,
+            fog: false,
+          });
+          mesh.material = mat;
+        });
+      },
+      shadeNormals: (on: boolean) => {
+        const normalMat = new THREE.MeshNormalMaterial({ side: THREE.DoubleSide });
+        scene.traverse((obj) => {
+          const mesh = obj as THREE.Mesh;
+          if (!mesh.isMesh) return;
+          let arch = false;
+          for (let p: THREE.Object3D | null = obj; p; p = p.parent) {
+            if (p.userData.architecture) arch = true;
+          }
+          if (!arch) return;
+          const saved = mesh.userData.normalMat as THREE.Material | THREE.Material[] | undefined;
+          if (!on) {
+            if (saved) {
+              mesh.material = saved;
+              delete mesh.userData.normalMat;
+            }
+            return;
+          }
+          if (!saved) mesh.userData.normalMat = mesh.material;
+          mesh.material = normalMat;
+        });
+      },
       bench: () => {
-        const n = 20;
+        camera.updateMatrixWorld();
+        const n = 12;
         renderer.info.reset();
+        const rawStart = performance.now();
+        for (let i = 0; i < n; i++) renderer.render(scene, camera);
+        const calls = renderer.info.render.calls / n;
+        const triangles = renderer.info.render.triangles / n;
+        const rawMs = (performance.now() - rawStart) / n;
+        let lights = 0;
+        let shadows = 0;
+        scene.traverse((obj) => {
+          const light = obj as THREE.Light;
+          if (!light.isLight) return;
+          lights += 1;
+          if (light.castShadow) shadows += 1;
+        });
+        const frames = 8;
         const t0 = performance.now();
-        for (let i = 0; i < n; i++) {
+        for (let i = 0; i < frames; i++) {
           if (useComposer && composer) composer.render();
           else renderer.render(scene, camera);
         }
         return {
-          ms: (performance.now() - t0) / n,
-          calls: renderer.info.render.calls,
-          triangles: renderer.info.render.triangles,
+          ms: (performance.now() - t0) / frames,
+          rawMs,
+          calls,
+          triangles,
+          lights,
+          shadows,
+          programs: renderer.info.programs?.length ?? 0,
           glb: cenotaph.glb,
         };
       },

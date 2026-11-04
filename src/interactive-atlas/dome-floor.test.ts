@@ -38,7 +38,7 @@ describe("observation floor", () => {
     const built = buildObservationFloor();
     expect(built.group.name).toBe("mistery-observation-floor");
     expect(built.group.userData.addition).toBe("mistery-labs");
-    expect(built.lights).toBe(2);
+    expect(built.lights).toBe(6);
     expect(built.triangles).toBeGreaterThan(200);
     expect(built.triangles).toBeLessThan(1600);
 
