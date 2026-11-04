@@ -5,6 +5,7 @@ import { WALK_BACK, WALK_LOOK } from "./framing";
 import { setMonumentCap, type CapGrid } from "./monument-cap";
 import { createWalker } from "./mister-why";
 import { NORTH_ARCH_SOFFIT, NORTH_END_Z, NORTH_HALL_Y, northHalf, northHeight } from "./north-passage";
+import { TERRACE_OUT } from "./terrace";
 import { sampleGround } from "./terrain";
 import { projectOut } from "./world";
 import { WALK_R } from "./dome-floor";
@@ -63,8 +64,11 @@ describe("northern passage", () => {
     const arch = projectOut(4, -85, 2, 0);
     expect(Math.abs(arch.x)).toBeLessThanOrEqual(1.05);
     const cliff = projectOut(0, -110, 0, -6);
-    expect(cliff.z).toBeGreaterThanOrEqual(NORTH_END_Z - 0.05);
-    expect(cliff.z).toBeLessThan(NORTH_END_Z + 0.2);
+    expect(cliff.z).toBeCloseTo(-110, 1);
+    expect(sampleGround(cliff.x, cliff.z)).toBeCloseTo(NORTH_HALL_Y, 2);
+    const rim = projectOut(0, -120, 0, -6);
+    expect(rim.z).toBeCloseTo(-TERRACE_OUT, 1);
+    expect(rim.z).toBeLessThan(NORTH_END_Z);
     const east = projectOut(22, -4, 3, 0);
     expect(Math.hypot(east.x, east.z)).toBeLessThanOrEqual(19.6);
 
@@ -92,8 +96,9 @@ describe("northern passage", () => {
     const ahead = { x: 0, y: 1, orbiting: false };
     for (let i = 0; i < 500; i++) walker.update(0.05, i * 0.05, ahead, true);
     const north = walker.pose();
-    expect(north.z).toBeLessThan(-90);
-    expect(north.z).toBeGreaterThanOrEqual(NORTH_END_Z - 0.05);
+    expect(north.z).toBeLessThan(-110);
+    expect(north.z).toBeGreaterThanOrEqual(-TERRACE_OUT - 0.2);
+    expect(walker.group.position.y).toBeCloseTo(NORTH_HALL_Y, 2);
     expect(walker.group.position.y).toBeCloseTo(sampleGround(north.x, north.z), 3);
     expect(Math.abs(north.x)).toBeLessThan(1.2);
 

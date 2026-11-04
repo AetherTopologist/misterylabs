@@ -171,6 +171,9 @@ export default function InteractiveAtlas() {
             <button type="button" data-on={walkCamera === "eyes"} onClick={() => setCamera("eyes")}>
               Eyes
             </button>
+            <button type="button" data-on={walkCamera === "vista"} onClick={() => setCamera("vista")}>
+              Vista
+            </button>
             <button type="button" data-on={walkCamera === "overhead"} onClick={() => setCamera("overhead")}>
               Overhead
             </button>

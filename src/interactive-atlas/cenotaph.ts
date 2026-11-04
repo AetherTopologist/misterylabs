@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { seatMonument, surveyCap, type MonumentSeat } from "./cenotaph-seat";
 import { setMonumentCap } from "./terrain";
+import { smoothShallowNormals } from "./stone-normals";
 
 export type CenotaphVariant = "a" | "b" | "c" | "m";
 export type CenotaphGlb = "production" | "full";
@@ -359,7 +360,10 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
     root.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
       if (!mesh.isMesh) return;
-      if (!mesh.geometry.getAttribute("normal")) mesh.geometry.computeVertexNormals();
+      // Full resolution stores a face normal on every vertex. Smooth only
+      // the shallow ones. Production is untouched, and 90° arrises stay.
+      if (which === "full") smoothShallowNormals(mesh.geometry);
+      else if (!mesh.geometry.getAttribute("normal")) mesh.geometry.computeVertexNormals();
       mesh.material = diagnostic ? neutral : shell.has(mesh) ? sphereMat : archMat;
       mesh.castShadow = false;
       mesh.receiveShadow = false;

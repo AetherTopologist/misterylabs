@@ -13,11 +13,17 @@ import {
   WALK_LOOK_MAX,
   WALK_LOOK_MIN,
   EYE_HEIGHT,
+  VISTA_BACK,
+  VISTA_BACK_MAX,
+  VISTA_BACK_MIN,
+  VISTA_LIFT,
+  VISTA_LIFT_MAX,
+  VISTA_LIFT_MIN,
   aheadForLook,
   eyeForLook,
 } from "./framing";
 import { clearBoom, keepGarden, sampleGround } from "./terrain";
-import { inStairMouth, placeCenotaphCamera } from "./ascent";
+import { fitBoom, inStairMouth, placeCenotaphCamera } from "./ascent";
 import { FOOT, PLACES, projectOut } from "./world";
 
 const SPEED = 24;
@@ -52,7 +58,7 @@ export type Walker = {
   nearest: () => { id: ExhibitId | null; proximity: number };
   snapshot: () => WalkerSnapshot;
   restore: (pose: WalkerSnapshot) => void;
-  /** Follow, eyes, or overhead. Does not move the body. */
+  /** Follow, Eyes, Vista, or Overhead. Does not move the body. */
   setView: (next: WalkCamera) => void;
   readonly view: WalkCamera;
 };
@@ -162,6 +168,12 @@ export function createWalker(scene: THREE.Scene): Walker {
   let overYaw = 0;
   let overH = 26;
   let overTilt = 1.15;
+  let vistaYaw = 0;
+  let vistaBack = VISTA_BACK;
+  let vistaBackT = VISTA_BACK;
+  let vistaLift = VISTA_LIFT;
+  let vistaLiftT = VISTA_LIFT;
+  let vistaState: FollowState = { yaw: 0, grace: 0, sustained: 0 };
   const look = new THREE.Vector3();
   const lookT = new THREE.Vector3();
   const desired = new THREE.Vector3();
@@ -232,6 +244,9 @@ export function createWalker(scene: THREE.Scene): Walker {
         eyePitch = 0;
       } else if (view === "overhead") {
         overYaw = camYaw;
+      } else if (view === "vista") {
+        vistaYaw = camYaw;
+        vistaState = { yaw: camYaw, grace: 0, sustained: 0 };
       }
       showBody();
     },
@@ -255,18 +270,19 @@ export function createWalker(scene: THREE.Scene): Walker {
       const stick = Math.atan2(input.x, input.y);
       // Eyes looks along the body. Forward is that facing, every frame,
       // so a sidestep cannot leave the view pointing somewhere else.
-      // Follow and Overhead latch a basis so the boom cannot steer the walk.
+      // Follow, Vista, and Overhead latch a basis so the boom cannot steer the walk.
+      const basisYaw = view === "overhead" ? overYaw : view === "vista" ? vistaYaw : camYaw;
       if (view === "eyes") {
         moveBasis = heading + Math.PI;
         basisHeld = false;
       } else if (!commanded) {
         basisHeld = false;
       } else if (!basisHeld) {
-        moveBasis = view === "overhead" ? overYaw : camYaw;
+        moveBasis = basisYaw;
         basisHeld = true;
         heldStick = stick;
       } else if (!input.orbiting && Math.abs(angDelta(heldStick, stick)) > STICK_RELATCH) {
-        moveBasis = view === "overhead" ? overYaw : camYaw;
+        moveBasis = basisYaw;
         heldStick = stick;
       }
       const lookx = -Math.sin(moveBasis);
@@ -299,7 +315,7 @@ export function createWalker(scene: THREE.Scene): Walker {
       vz = kept.vz;
       const sp = Math.hypot(vx, vz);
       // In Eyes the body does not chase a strafe. Heading is the look,
-      // and only a turn changes it. Follow and Overhead still face travel.
+      // and only a turn changes it. Follow, Vista, and Overhead still face travel.
       if (view !== "eyes" && sp > 0.35) {
         const face = Math.atan2(vx, vz);
         heading += angDelta(heading, face) * (1 - Math.exp(-step * 9));
@@ -315,14 +331,21 @@ export function createWalker(scene: THREE.Scene): Walker {
       torso.position.y = 1.18 + bob;
       coat.position.y = 1.05 + bob;
       placeBody();
-      if (view === "follow") {
-        followState = stepHeadingFollow(followState, step, {
+      if (view === "follow" || view === "vista") {
+        const state = view === "vista" ? vistaState : followState;
+        const stepped = stepHeadingFollow(state, step, {
           reduced,
           orbiting: input.orbiting,
           moving: sp > FOLLOW_SPEED,
           heading,
         });
-        camYaw = followState.yaw;
+        if (view === "vista") {
+          vistaState = stepped;
+          vistaYaw = stepped.yaw;
+        } else {
+          followState = stepped;
+          camYaw = stepped.yaw;
+        }
       }
     },
     applyCamera(camera, dt, reduced) {
@@ -356,6 +379,19 @@ export function createWalker(scene: THREE.Scene): Walker {
         boom = placeCenotaphCamera(x, z, boom);
         boom = clearBoom(x, z, boom);
         desired.set(boom.x, boom.y, boom.z);
+      } else if (view === "vista") {
+        const ox = Math.sin(vistaYaw);
+        const oz = Math.cos(vistaYaw);
+        vistaBack += (vistaBackT - vistaBack) * damp;
+        vistaLift += (vistaLiftT - vistaLift) * damp;
+        const ahead = Math.min(12, vistaBack * 0.42);
+        lookT.set(x - ox * ahead, feet + 2.05, z - oz * ahead);
+        look.lerp(lookT, damp);
+        desired.set(x + ox * vistaBack, feet + vistaLift, z + oz * vistaBack);
+        let boom = clearBoom(x, z, { x: desired.x, y: desired.y, z: desired.z });
+        boom = fitBoom(x, z, boom);
+        boom = clearBoom(x, z, boom);
+        desired.set(boom.x, boom.y, boom.z);
       } else {
         const ox = Math.sin(camYaw);
         const oz = Math.cos(camYaw);
@@ -371,7 +407,7 @@ export function createWalker(scene: THREE.Scene): Walker {
         boom = clearBoom(x, z, boom);
         desired.set(boom.x, boom.y, boom.z);
       }
-      if (reduced || view !== "follow") camera.position.copy(desired);
+      if (reduced || (view !== "follow" && view !== "vista")) camera.position.copy(desired);
       else camera.position.lerp(desired, damp);
       camera.lookAt(look);
       camera.updateMatrixWorld();
@@ -388,6 +424,13 @@ export function createWalker(scene: THREE.Scene): Walker {
         overTilt = clamp(overTilt - dy * 0.0025, 0.55, 1.35);
         return;
       }
+      if (view === "vista") {
+        vistaYaw -= dx * ORBIT_YAW;
+        const gain = dy > 0 ? ORBIT_PITCH_DOWN : ORBIT_PITCH_UP;
+        vistaLiftT = clamp(vistaLiftT - dy * gain, VISTA_LIFT_MIN, VISTA_LIFT_MAX);
+        vistaState = { yaw: vistaYaw, grace: FOLLOW_GRACE, sustained: 0 };
+        return;
+      }
       camYaw -= dx * ORBIT_YAW;
       const gain = dy > 0 ? ORBIT_PITCH_DOWN : ORBIT_PITCH_UP;
       lookLiftT = clamp(lookLiftT - dy * gain, WALK_LOOK_MIN, WALK_LOOK_MAX);
@@ -396,6 +439,10 @@ export function createWalker(scene: THREE.Scene): Walker {
     zoom(factor) {
       if (view === "overhead") {
         overH = clamp(overH * factor, 9, 48);
+        return;
+      }
+      if (view === "vista") {
+        vistaBackT = clamp(vistaBackT * factor, VISTA_BACK_MIN, VISTA_BACK_MAX);
         return;
       }
       if (view === "eyes") return;
@@ -431,20 +478,39 @@ export function createWalker(scene: THREE.Scene): Walker {
       lookT.copy(look);
     },
     setView(next) {
-      if (next !== "follow" && next !== "eyes" && next !== "overhead") return;
+      if (next !== "follow" && next !== "eyes" && next !== "overhead" && next !== "vista") return;
       if (next !== view) {
+        const behind = Math.atan2(Math.sin(heading + Math.PI), Math.cos(heading + Math.PI));
+        const seedVista = (yaw: number) => {
+          vistaYaw = yaw;
+          vistaState = { yaw, grace: 0, sustained: 0 };
+        };
         if (view === "eyes") {
-          const behind = Math.atan2(Math.sin(heading + Math.PI), Math.cos(heading + Math.PI));
           if (next === "follow") {
             camYaw = behind;
             moveBasis = behind;
             basisHeld = false;
             followState = { yaw: behind, grace: 0, sustained: 0 };
-          } else {
+          } else if (next === "overhead") {
             overYaw = behind;
+          } else {
+            seedVista(behind);
           }
+        } else if (view === "vista") {
+          if (next === "follow") {
+            camYaw = vistaYaw;
+            moveBasis = vistaYaw;
+            basisHeld = false;
+            followState = { yaw: vistaYaw, grace: 0, sustained: 0 };
+          } else if (next === "overhead") {
+            overYaw = vistaYaw;
+          }
+        } else if (view === "overhead") {
+          if (next === "vista") seedVista(overYaw);
         } else if (next === "overhead") {
           overYaw = camYaw;
+        } else if (next === "vista") {
+          seedVista(camYaw);
         }
         if (next === "eyes") eyePitch = 0;
         view = next;

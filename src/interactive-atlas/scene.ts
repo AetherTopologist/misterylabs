@@ -1634,6 +1634,50 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
           glb: cenotaph.glb,
         };
       },
+      shadeFlat: (on: boolean) => {
+        const ab = new THREE.Vector3();
+        const ac = new THREE.Vector3();
+        const n = new THREE.Vector3();
+        scene.traverse((obj) => {
+          const mesh = obj as THREE.Mesh;
+          if (!mesh.isMesh) return;
+          let arch = false;
+          for (let p: THREE.Object3D | null = obj; p; p = p.parent) {
+            if (p.userData.architecture) arch = true;
+          }
+          if (!arch) return;
+          const geo = mesh.geometry;
+          const smooth = geo.userData.smoothNormal as THREE.BufferAttribute | undefined;
+          if (!on) {
+            if (smooth) {
+              geo.setAttribute("normal", smooth);
+              delete geo.userData.smoothNormal;
+            }
+            return;
+          }
+          const pos = geo.getAttribute("position");
+          const current = geo.getAttribute("normal");
+          if (!pos || !current) return;
+          if (!smooth) geo.userData.smoothNormal = current.clone();
+          const index = geo.index;
+          const corner = (tri: number, i: number) => (index ? index.getX(tri * 3 + i) : tri * 3 + i);
+          const triCount = index ? index.count / 3 : pos.count / 3;
+          const flat = (smooth ?? current).clone();
+          for (let t = 0; t < triCount; t++) {
+            const ia = corner(t, 0);
+            const ib = corner(t, 1);
+            const ic = corner(t, 2);
+            ab.set(pos.getX(ib) - pos.getX(ia), pos.getY(ib) - pos.getY(ia), pos.getZ(ib) - pos.getZ(ia));
+            ac.set(pos.getX(ic) - pos.getX(ia), pos.getY(ic) - pos.getY(ia), pos.getZ(ic) - pos.getZ(ia));
+            n.crossVectors(ab, ac);
+            if (n.lengthSq() > 1e-10) n.normalize();
+            flat.setXYZ(ia, n.x, n.y, n.z);
+            flat.setXYZ(ib, n.x, n.y, n.z);
+            flat.setXYZ(ic, n.x, n.y, n.z);
+          }
+          geo.setAttribute("normal", flat);
+        });
+      },
       bench: () => {
         const n = 20;
         renderer.info.reset();

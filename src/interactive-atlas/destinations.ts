@@ -159,8 +159,8 @@ export const HIDDEN_DESTINATIONS: Destination[] = [];
 
 export type AtlasMode = "fly" | "walk";
 
-/** Walk camera. Follow is the third-person boom. Eyes and Overhead do not move him. */
-export type WalkCamera = "follow" | "eyes" | "overhead";
+/** Walk camera. Follow is the third-person boom. Vista is its own, higher boom. Eyes and Overhead do not move him. */
+export type WalkCamera = "follow" | "eyes" | "vista" | "overhead";
 
 export type WalkerPose = {
   x: number;

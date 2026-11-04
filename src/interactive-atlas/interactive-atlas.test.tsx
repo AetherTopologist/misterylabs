@@ -83,18 +83,21 @@ describe("hollow genius exhibit plate", () => {
     expect(remember).toHaveBeenCalledTimes(1);
   });
 
-  it("offers Follow, Eyes, and Overhead while walking, and not while flying", async () => {
+  it("offers Follow, Eyes, Vista, and Overhead while walking, and not while flying", async () => {
     await mount();
     expect(screen.queryByRole("group", { name: "Walk camera" })).not.toBeInTheDocument();
     await act(async () => {
       pushUi!(atHall(0.2));
     });
     const eyes = screen.getByRole("button", { name: "Eyes" });
+    const vista = screen.getByRole("button", { name: "Vista" });
     const overhead = screen.getByRole("button", { name: "Overhead" });
     expect(screen.getByRole("button", { name: "Follow" })).toBeInTheDocument();
     fireEvent.click(eyes);
+    fireEvent.click(vista);
     fireEvent.click(overhead);
     expect(api.setCamera).toHaveBeenCalledWith("eyes");
+    expect(api.setCamera).toHaveBeenCalledWith("vista");
     expect(api.setCamera).toHaveBeenCalledWith("overhead");
     expect(api.setMode).not.toHaveBeenCalled();
   });

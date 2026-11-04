@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
-import { EYE_HEIGHT, WALK_BACK, WALK_LOOK } from "./framing";
+import { EYE_HEIGHT, VISTA_BACK, VISTA_LIFT, WALK_BACK, WALK_LOOK } from "./framing";
 import { createWalker } from "./mister-why";
 import { sampleGround } from "./terrain";
 
@@ -138,5 +138,56 @@ describe("walk cameras", () => {
     expect(walker.pose().heading).toBeCloseTo(turned, 5);
     expect(walker.pose().camYaw).toBeCloseTo(Math.atan2(Math.sin(turned + Math.PI), Math.cos(turned + Math.PI)), 5);
     expect(walker.group.visible).toBe(true);
+  });
+
+  it("keeps Vista higher and farther than Follow, and off Follow's boom", () => {
+    const walker = stood(0);
+    const camera = new THREE.PerspectiveCamera(46, 16 / 9, 0.25, 400);
+    walker.applyCamera(camera, 1, true);
+    const pose = walker.pose();
+    const followY = camera.position.y;
+    const followBack = Math.hypot(camera.position.x, camera.position.z);
+    walker.setView("vista");
+    walker.applyCamera(camera, 1, true);
+    expect(walker.group.visible).toBe(true);
+    expect(walker.pose()).toEqual(pose);
+    expect(camera.position.y).toBeGreaterThan(followY + 4);
+    expect(Math.hypot(camera.position.x, camera.position.z)).toBeGreaterThan(followBack + 4);
+    expect(camera.position.y - walker.group.position.y).toBeCloseTo(VISTA_LIFT, 1);
+    expect(Math.hypot(camera.position.x, camera.position.z)).toBeCloseTo(VISTA_BACK, 1);
+    const down = walker.aim().clone().sub(camera.position).normalize();
+    expect(down.y).toBeGreaterThan(-0.65);
+    expect(down.y).toBeLessThan(-0.15);
+
+    const before = walker.snapshot();
+    walker.zoom(0.7);
+    walker.orbit(80, 40);
+    walker.setView("follow");
+    walker.applyCamera(camera, 1, true);
+    expect(walker.snapshot().back).toBe(WALK_BACK);
+    expect(walker.snapshot().lookLift).toBe(WALK_LOOK);
+    expect(walker.snapshot().back).toBe(before.back);
+    expect(Math.abs(walker.snapshot().camYaw)).toBeGreaterThan(0.2);
+
+    walker.setView("vista");
+    walker.applyCamera(camera, 1, true);
+    expect(Math.hypot(camera.position.x - walker.pose().x, camera.position.z - walker.pose().z)).toBeLessThan(VISTA_BACK);
+    expect(walker.snapshot().back).toBe(WALK_BACK);
+  });
+
+  it("ducks Vista under the hall and lets it recover in the dome", () => {
+    const hall = stood(60);
+    const hallCam = new THREE.PerspectiveCamera(46, 16 / 9, 0.25, 400);
+    hall.setView("vista");
+    hall.applyCamera(hallCam, 1, true);
+    expect(hallCam.position.y).toBeLessThan(13.08 - 0.2);
+    expect(hallCam.position.y).toBeGreaterThan(hall.group.position.y + 0.4);
+    expect(Math.hypot(hallCam.position.x, hallCam.position.z - 60)).toBeGreaterThan(8);
+
+    const dome = stood(0);
+    const domeCam = new THREE.PerspectiveCamera(46, 16 / 9, 0.25, 400);
+    dome.setView("vista");
+    dome.applyCamera(domeCam, 1, true);
+    expect(domeCam.position.y).toBeGreaterThan(dome.group.position.y + 6);
   });
 });

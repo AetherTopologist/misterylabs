@@ -23,6 +23,14 @@ export const ORBIT_YAW = 0.005;
 export const ORBIT_PITCH_DOWN = 0.014;
 export const ORBIT_PITCH_UP = 0.11;
 
+/** Vista sits farther and higher than Follow, and lower than Overhead. */
+export const VISTA_BACK = 14;
+export const VISTA_BACK_MIN = 9;
+export const VISTA_BACK_MAX = 26;
+export const VISTA_LIFT = 8.2;
+export const VISTA_LIFT_MIN = 4.2;
+export const VISTA_LIFT_MAX = 16;
+
 function clamp(v: number, a: number, b: number) {
   return Math.min(b, Math.max(a, v));
 }
