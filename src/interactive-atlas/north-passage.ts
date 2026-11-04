@@ -23,8 +23,8 @@ import { monumentCapActive } from "./monument-cap";
  *
  * Outside, the floor continues at 6.275 with no walls from z = -96.
  * It is the plinth, not a stair: still 6.275 at z = -122, then nothing.
- * There is no tread down to grade. The walk stops at z = -96.2, on the
- * last verified landing, and does not enter the ring.
+ * There is no tread down to grade. This corridor ends at z = -96.2.
+ * The exterior ring, when it is open, continues past that porch.
  */
 
 /** Where the northern corridor leaves the cap disc. */

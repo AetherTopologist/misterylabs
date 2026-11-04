@@ -53,6 +53,7 @@ import {
   northRouteOpen,
   northSoffit,
 } from "./north-passage";
+import { TERRACE_IN, clampToTerrace, inTerrace, terraceHeight, terraceOpen } from "./terrace";
 
 export const STAIR_HALF = 13.2;
 export const STAIR_THROAT = 0.95;
@@ -166,11 +167,12 @@ function inHistoricMouth(x: number, z: number, inset = 0) {
   return Math.abs(x) <= span + 0.03;
 }
 
-/** Inside the round blocker, on the measured route, the new floor, the cap, or the north passage. */
+/** Inside the round blocker, on the measured route, the new floor, the cap, the north passage, or the terrace. */
 export function inStairMouth(x: number, z: number, inset = 0) {
   if (inHistoricMouth(x, z, inset)) return true;
   if (onObservationFloor(x, z, inset)) return true;
   if (inNorthMouth(x, z, inset)) return true;
+  if (inTerrace(x, z, inset)) return true;
   // The full-resolution annulus. Empty on production, so this stays false.
   if (capAt(x, z) <= 0) return false;
   return Math.hypot(x, z) <= CAP_WALK_R - inset + 0.02;
@@ -202,6 +204,8 @@ export function stairHeight(x: number, z: number) {
   if (onObservationFloor(x, z)) return 12.937;
   const north = northHeight(x, z);
   if (north > 0) return north;
+  const terrace = terraceHeight(x, z);
+  if (terrace > 0) return terrace;
   return 0;
 }
 
@@ -270,6 +274,10 @@ export function constrainCenotaph(x: number, z: number, vx: number, vz: number, 
     const nx = Math.max(-half, Math.min(half, x));
     considerInto(best, x, z, nx, nz);
   }
+  if (terraceOpen()) {
+    const terrace = clampToTerrace(x, z);
+    if (terrace) considerInto(best, x, z, terrace.x, terrace.z);
+  }
   const dx = best.x - x;
   const dz = best.z - z;
   const len = Math.hypot(dx, dz);
@@ -287,6 +295,9 @@ export function constrainCenotaph(x: number, z: number, vx: number, vz: number, 
 
 /** Underside of the arch, the hall ceiling, the northern passage, then the open vault. */
 function passageSoffit(x: number, z: number) {
+  // The plinth is open air. A high boom must recover here instead of
+  // inheriting the hall ceiling from the south approach.
+  if (terraceOpen() && Math.hypot(x, z) >= TERRACE_IN - 1.5) return 72;
   if (z < -18) {
     const northern = northSoffit(z);
     if (northern != null) return northern;
@@ -306,6 +317,7 @@ function passageSoffit(x: number, z: number) {
 /** Inside the drum, the sample has to be in the passage. Outside is open air. */
 function corridorXZ(x: number, z: number) {
   if (Math.hypot(x, z) >= CEN_CAMERA_LIMIT - 0.05) return true;
+  if (terraceOpen() && Math.hypot(x, z) >= TERRACE_IN - 1.5) return true;
   if (inStairMouth(x, z)) return true;
   if (Math.hypot(x, z) <= WALK_R + 1.5 && z <= STONE_END_Z + 0.4) return true;
   if (z >= NECK_Z0 && z <= NECK_Z1 && Math.abs(x) <= NECK_HALF + 0.45) return true;
@@ -375,6 +387,38 @@ export function placeCenotaphCamera(avatarX: number, avatarZ: number, boom: Boom
     x = nx;
     z = nz;
   }
+  const cap = segmentSoffitCap(avatarX, avatarZ, x, z);
+  if (y > cap) y = cap;
+  return { x, y, z };
+}
+
+/**
+ * Vista. Same wall test as the walk boom, but a low soffit only ducks
+ * the height. Pulling the whole boom onto the body left him out of frame
+ * under a ceiling he can still stand in, and the elevated view never
+ * came back until the saved distance was thrown away.
+ */
+export function fitBoom(avatarX: number, avatarZ: number, boom: Boom): Boom {
+  const r = Math.hypot(boom.x, boom.z);
+  if (!inStairMouth(avatarX, avatarZ)) {
+    if (r > 0.01 && r < CEN_CAMERA_LIMIT) {
+      const s = CEN_CAMERA_LIMIT / r;
+      return { x: boom.x * s, y: boom.y, z: boom.z * s };
+    }
+    return boom;
+  }
+  let x = boom.x;
+  let z = boom.z;
+  for (let i = 0; i < 16 && segmentBlocked(avatarX, avatarZ, x, z); i++) {
+    x += (avatarX - x) * 0.42;
+    z += (avatarZ - z) * 0.42;
+  }
+  if (segmentBlocked(avatarX, avatarZ, x, z)) {
+    const fixed = constrainCenotaph(x, z, 0, 0);
+    x = fixed.x;
+    z = fixed.z;
+  }
+  let y = boom.y;
   const cap = segmentSoffitCap(avatarX, avatarZ, x, z);
   if (y > cap) y = cap;
   return { x, y, z };
