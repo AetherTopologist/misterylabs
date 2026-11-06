@@ -7,6 +7,8 @@
  * `hidden` destinations stay out of ordinary navigation, paths, and picking
  * until something explicit discovers them. Do not draw them by default.
  */
+import type { LightTier } from "./cenotaph-budget";
+
 export type DestinationKind = "landmark" | "collection" | "exhibit" | "hidden";
 
 export type ExhibitId =
@@ -196,6 +198,7 @@ export type AtlasApi = {
   setMode: (mode: AtlasMode) => void;
   setCamera: (camera: WalkCamera) => void;
   setMove: (x: number, y: number) => void;
+  setLightTier: (tier: LightTier) => void;
   /** Remember where the visitor is standing before they leave for an instrument. */
   remember: () => void;
 };

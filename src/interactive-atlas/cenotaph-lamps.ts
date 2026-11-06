@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { stairHalf } from "./ascent";
+import { registerArchLight } from "./cenotaph-budget";
 import { northHalf, northSoffit } from "./north-passage";
 import { TERRACE_Y } from "./terrace";
 
@@ -133,7 +134,7 @@ function cheek(sign: number): CenotaphLamp {
     distance: 18,
     angle: 0,
     penumbra: 0,
-    gain: 0.42,
+    gain: 0.22,
   };
 }
 
@@ -154,7 +155,7 @@ function threshold(): CenotaphLamp {
     distance: 16,
     angle: 0,
     penumbra: 0,
-    gain: 0.22,
+    gain: 0.09,
   };
 }
 
@@ -173,10 +174,10 @@ export function cenotaphLampLayout(): CenotaphLamp[] {
     bollard(298, "terrace-northeast"),
     cheek(1),
     cheek(-1),
-    pendant("south-arch", 0, 10.35, 89.2, 24, 0.48),
-    pendant("south-hall", 0, 11.45, 55, 30, 0.4),
-    pendant("north-hall", 0, 11.45, -60, 30, 0.4),
-    pendant("north-arch", 0, 10.05, -90.6, 22, 0.44),
+    pendant("south-arch", 0, 10.35, 89.2, 24, 0.28),
+    pendant("south-hall", 0, 11.45, 55, 30, 0.28),
+    pendant("north-hall", 0, 11.45, -60, 30, 0.28),
+    pendant("north-arch", 0, 10.05, -90.6, 22, 0.28),
     threshold(),
   ];
 }
@@ -325,6 +326,7 @@ export function buildCenotaphLamps(): CenotaphLampRig {
     light.position.set(lamp.x, lamp.y, lamp.z);
     light.castShadow = false;
     light.userData.gain = lamp.gain;
+    registerArchLight(light);
     if (light instanceof THREE.SpotLight) {
       light.target.position.set(lamp.tx, lamp.ty, lamp.tz);
       group.add(light.target);

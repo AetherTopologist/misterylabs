@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { registerArchLight } from "./cenotaph-budget";
 
 /**
  * First walkable floor inside the seated Cenotaph dome.
@@ -206,14 +207,14 @@ export function buildObservationFloor(masonry?: THREE.Material): ObservationFloo
 
   group.add(slab, curb, fascia, inlay, keel, pier, band, railPivot);
 
-  const pool = new THREE.SpotLight(0xffe6c4, 70, 38, 1.15, 0.85, 2);
+  const pool = new THREE.SpotLight(0xffe6c4, 36, 38, 1.15, 0.85, 2);
   pool.position.set(0, 20.5, 6.5);
   pool.target.position.set(0, DOME_FLOOR_Y, 0);
   pool.castShadow = false;
   pool.name = "observation-pool";
 
   // Wide, dim wash so the vault curve reads. Peak is well below the old crown blob.
-  const vault = new THREE.SpotLight(0xfff1d6, 2000, 140, 1.2, 0.92, 2);
+  const vault = new THREE.SpotLight(0xfff1d6, 1400, 140, 1.2, 0.92, 2);
   vault.position.set(0, 19.4, -0.4);
   vault.target.position.set(0, 108, 0);
   vault.castShadow = false;
@@ -250,7 +251,7 @@ export function buildObservationFloor(masonry?: THREE.Material): ObservationFloo
     censerDummy.updateMatrix();
     bowls.setMatrixAt(i, censerDummy.matrix);
     embers.setMatrixAt(i, censerDummy.matrix);
-    const light = new THREE.PointLight(0xffe1b8, 120, 14, 2);
+    const light = new THREE.PointLight(0xffe1b8, 48, 14, 2);
     light.position.set(x, DOME_FLOOR_Y + 1.45, z);
     light.castShadow = false;
     light.name = `observation-censer-${i}`;
@@ -260,6 +261,9 @@ export function buildObservationFloor(masonry?: THREE.Material): ObservationFloo
   embers.instanceMatrix.needsUpdate = true;
 
   group.add(pool, pool.target, vault, vault.target, bowls, embers, ...censerLights);
+  registerArchLight(pool);
+  registerArchLight(vault);
+  for (const light of censerLights) registerArchLight(light);
 
   let triangles = 0;
   group.traverse((obj) => {

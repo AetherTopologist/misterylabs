@@ -3,6 +3,19 @@ import { seatMonument, surveyCap, type MonumentSeat } from "./cenotaph-seat";
 import { setMonumentCap } from "./terrain";
 import { smoothFullResolutionNormals } from "./stone-continuity";
 import { buildCenotaphLamps } from "./cenotaph-lamps";
+import {
+  allArchLamps,
+  applyArchTier,
+  clearArchSlots,
+  initialLightTier,
+  makeSlotBlock,
+  noteLightBudget,
+  selectArchSlots,
+  visibleArchLights,
+  writeArchSlots,
+  type ArchLamp,
+} from "./cenotaph-budget";
+import { getDiagnostics, patchDiagnostics, type LightTier } from "./cenotaph-diagnostics";
 
 export type CenotaphVariant = "a" | "b" | "c" | "m";
 export type CenotaphGlb = "production" | "full";
@@ -17,11 +30,13 @@ type Shared = {
   uDetail: { value: number };
   uLift: { value: number };
   uContinuity: { value: number };
+  uWash: { value: number };
+  uDiag: { value: number };
   uShellC: { value: THREE.Vector3 };
   uShellR: { value: number };
 };
 
-function makeStone(octaves: number, shared: Shared, masonry: number) {
+function makeStone(octaves: number, shared: Shared, masonry: number, slots: ReturnType<typeof makeSlotBlock>) {
   const mat = new THREE.MeshStandardMaterial({
     color: 0xffffff,
     roughness: 0.88,
@@ -34,15 +49,20 @@ function makeStone(octaves: number, shared: Shared, masonry: number) {
     mat.polygonOffsetFactor = 1;
     mat.polygonOffsetUnits = 1;
   }
-  mat.customProgramCacheKey = () => `cenotaph-stone-v7-${octaves}`;
+  mat.customProgramCacheKey = () => `cenotaph-stone-v13-${octaves}`;
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uVariant = shared.uVariant;
     shader.uniforms.uDetail = shared.uDetail;
     shader.uniforms.uLift = shared.uLift;
     shader.uniforms.uContinuity = shared.uContinuity;
+    shader.uniforms.uWash = shared.uWash;
+    shader.uniforms.uDiag = shared.uDiag;
     shader.uniforms.uShellC = shared.uShellC;
     shader.uniforms.uShellR = shared.uShellR;
     shader.uniforms.uMasonry = { value: masonry };
+    shader.uniforms.uSlotPos = { value: slots.pos };
+    shader.uniforms.uSlotColor = { value: slots.color };
+    shader.uniforms.uSlotAim = { value: slots.aim };
     shader.vertexShader = shader.vertexShader
       .replace("#include <common>", "#include <common>\nvarying vec3 vWorldN;\nvarying vec3 vWorldP;")
       .replace(
@@ -62,8 +82,28 @@ uniform float uDetail;
 uniform float uLift;
 uniform float uMasonry;
 uniform float uContinuity;
+uniform float uWash;
+uniform float uDiag;
 uniform vec3 uShellC;
 uniform float uShellR;
+uniform vec4 uSlotPos[8];
+uniform vec4 uSlotColor[8];
+uniform vec4 uSlotAim[8];
+vec3 archSlot(vec4 pos, vec4 col, vec4 aim, vec3 wN) {
+  float cutoff = pos.w;
+  if (cutoff <= 0.0) return vec3(0.0);
+  vec3 toLight = pos.xyz - vWorldP;
+  float dist = length(toLight);
+  vec3 ldir = toLight / max(dist, 1.0e-3);
+  float atten = clamp(1.0 - dist / cutoff, 0.0, 1.0);
+  atten *= atten;
+  if (col.w > 0.0) {
+    float ang = dot(ldir, normalize(aim.xyz));
+    atten *= smoothstep(col.w, aim.w, ang);
+  }
+  float ndl = max(dot(wN, ldir), 0.0);
+  return col.rgb * atten * ndl * RECIPROCAL_PI;
+}
 float cHash(vec3 p){
   p = fract(p * 0.1031);
   p += dot(p, p.yzx + 33.33);
@@ -98,7 +138,22 @@ vec3 cenStoneNormal(vec3 geoN) {
   float agree = smoothstep(0.58, 0.82, abs(dot(geoN, radialN)));
   float side = sign(dot(geoN, radialN));
   if (side == 0.0) side = 1.0;
-  return normalize(mix(geoN, radialN * side, onShell * agree));
+  vec3 base = normalize(mix(geoN, radialN * side, onShell * agree));
+  // Both passages are one Z-axis tube: axis y=6.15, radius 6.77 (MAD 0.12 m).
+  // Crown and springing facets are nearly axis-aligned, so a diagonal-only
+  // gate left those wedges. Match the surface. Caps, treads, and the shell stay.
+  vec2 arm = vec2(vWorldP.x, vWorldP.y - 6.15);
+  float prad = length(arm);
+  float onTube = 1.0 - smoothstep(0.28, 0.62, abs(prad - 6.77));
+  float inHall = (1.0 - smoothstep(10.0, 14.0, abs(vWorldP.x)))
+    * smoothstep(32.0, 40.0, abs(vWorldP.z))
+    * (1.0 - smoothstep(102.0, 110.0, abs(vWorldP.z)));
+  vec3 cyl = vec3(arm.x, arm.y, 0.0) / max(prad, 1.0e-3);
+  float fit = smoothstep(0.5, 0.78, abs(dot(cyl, base)));
+  float notCap = 1.0 - smoothstep(0.38, 0.62, abs(base.z));
+  float sgn = sign(dot(base, cyl));
+  if (sgn == 0.0) sgn = 1.0;
+  return normalize(mix(base, cyl * sgn, onTube * inHall * fit * notCap * uContinuity * (1.0 - onShell)));
 }
 `,
       )
@@ -109,8 +164,11 @@ vec3 cenStoneNormal(vec3 geoN) {
   vec3 stoneN = cenStoneNormal(normalize(vWorldN));
   vec3 nBasis = mix(vWorldN, stoneN, uContinuity);
   float nFreq = mix(1.0, 0.2, uContinuity);
+  float posOnly = 0.0;
+  if (!(uDiag > 4.5 && uDiag < 6.5) && (uContinuity > 0.5 || uDiag > 3.5)) posOnly = 1.0;
+  vec3 noiseVec = mix(nBasis * nFreq, vWorldP * 0.22, posOnly);
   float grit = cFbm(vWorldP * 0.28);
-  float speckle = cFbm(nBasis * (5.5 * nFreq) + vWorldP * 0.8);
+  float speckle = cFbm(noiseVec * (5.5) + vWorldP * 0.8);
   float reveal = clamp(uDetail, 0.0, 1.0);
   vec3 albedo;
   if (uVariant < 0.5) {
@@ -122,15 +180,15 @@ vec3 cenStoneNormal(vec3 geoN) {
     }
   } else if (uVariant < 1.5) {
     vec3 ivory = vec3(0.84, 0.80, 0.72);
-    float field = cFbm(vWorldP * 0.16 + nBasis * (1.35 * nFreq));
+    float field = cFbm(vWorldP * 0.16 + noiseVec * (1.35));
     float vein = smoothstep(0.07, 0.0, abs(field - 0.52));
-    float broad = smoothstep(0.62, 0.86, cFbm(vWorldP * 0.07 + nBasis * (0.8 * nFreq)));
-    float fine = smoothstep(0.06, 0.0, abs(cFbm(nBasis * (4.8 * nFreq) + vWorldP * 0.55) - 0.48));
+    float broad = smoothstep(0.62, 0.86, cFbm(vWorldP * 0.07 + noiseVec * (0.8)));
+    float fine = smoothstep(0.06, 0.0, abs(cFbm(noiseVec * (4.8) + vWorldP * 0.55) - 0.48));
     albedo = ivory * (0.93 + 0.1 * grit);
     albedo = mix(albedo, vec3(0.08, 0.24, 0.55), broad * 0.14 + vein * (0.22 + reveal * 0.5) + fine * reveal * 0.35);
   } else if (uVariant < 2.5) {
     vec3 charcoal = vec3(0.20, 0.19, 0.175);
-    float seam = smoothstep(0.66, 0.9, cFbm(nBasis * (2.4 * nFreq) + vWorldP * 0.1));
+    float seam = smoothstep(0.66, 0.9, cFbm(noiseVec * (2.4) + vWorldP * 0.1));
     albedo = charcoal * (0.55 + 0.9 * grit) * (0.78 + 0.4 * speckle);
     albedo = mix(albedo, vec3(0.34, 0.38, 0.42), seam * (0.22 + reveal * 0.28));
     if (uMasonry > 0.5) {
@@ -140,17 +198,17 @@ vec3 cenStoneNormal(vec3 geoN) {
   } else {
     // MISTERY STONE. Night mass, with porcelain mineral only at walking distance.
     vec3 mineral = vec3(0.132, 0.126, 0.118);
-    float pore = cFbm(vWorldP * 1.7 + nBasis * (2.2 * nFreq));
+    float pore = cFbm(vWorldP * 1.7 + noiseVec * (2.2));
     albedo = mineral * (0.66 + 0.5 * grit) * (0.86 + 0.2 * speckle);
     albedo *= 0.9 + 0.12 * pore;
-    float seam = smoothstep(0.76, 0.95, cFbm(nBasis * (2.7 * nFreq) + vWorldP * 0.13));
+    float seam = smoothstep(0.76, 0.95, cFbm(noiseVec * (2.7) + vWorldP * 0.13));
     albedo = mix(albedo, vec3(0.26, 0.29, 0.33), seam * (0.04 + reveal * 0.08));
-    float field = cFbm(vWorldP * 0.48 + nBasis * (1.7 * nFreq));
+    float field = cFbm(vWorldP * 0.48 + noiseVec * (1.7));
     float vein = smoothstep(0.011, 0.0, abs(field - 0.5));
-    float fine = smoothstep(0.009, 0.0, abs(cFbm(nBasis * (8.2 * nFreq) + vWorldP * 1.6) - 0.5));
+    float fine = smoothstep(0.009, 0.0, abs(cFbm(noiseVec * (8.2) + vWorldP * 1.6) - 0.5));
     float veinAmt = (vein * 0.2 + fine * 0.12) * (0.05 + reveal * 0.95);
     albedo = mix(albedo, vec3(0.70, 0.78, 0.88), veinAmt);
-    float inclusion = smoothstep(0.94, 0.995, cFbm(vWorldP * 0.11 + nBasis * (0.4 * nFreq)));
+    float inclusion = smoothstep(0.94, 0.995, cFbm(vWorldP * 0.11 + noiseVec * (0.4)));
     albedo = mix(albedo, vec3(0.52, 0.48, 0.40), inclusion * reveal * 0.1);
     if (uMasonry > 0.5) {
       float course = smoothstep(0.038, 0.0, abs(fract(vWorldP.y * 1.25) - 0.5) - 0.44);
@@ -160,6 +218,7 @@ vec3 cenStoneNormal(vec3 geoN) {
   float haze = smoothstep(560.0, 1760.0, distance(cameraPosition, vWorldP));
   albedo = mix(albedo, vec3(0.075, 0.078, 0.086), haze * 0.32);
   diffuseColor.rgb = albedo;
+  if (uDiag > 2.5 && uDiag < 3.5) diffuseColor.rgb = vec3(0.46, 0.43, 0.37);
 }
 `,
       )
@@ -197,6 +256,22 @@ if (uVariant > 2.5) {
   } else {
     reflectedLight.directDiffuse += vec3(1.0, 0.74, 0.42) * (belly * 0.22 + wall * 0.14) * uLift;
   }
+  if (uWash > 0.5) {
+    float radial = length(vWorldP.xz);
+    float onDrum = smoothstep(78.0, 90.0, radial) * (1.0 - smoothstep(104.0, 118.0, radial));
+    float up = (1.0 - smoothstep(6.0, 46.0, vWorldP.y)) * (1.0 - smoothstep(0.05, 0.72, wN.y));
+    reflectedLight.directDiffuse += vec3(1.0, 0.74, 0.46) * onDrum * up * 0.42 * diffuseColor.rgb;
+  }
+  reflectedLight.directDiffuse += (
+  archSlot(uSlotPos[0], uSlotColor[0], uSlotAim[0], wN) +
+  archSlot(uSlotPos[1], uSlotColor[1], uSlotAim[1], wN) +
+  archSlot(uSlotPos[2], uSlotColor[2], uSlotAim[2], wN) +
+  archSlot(uSlotPos[3], uSlotColor[3], uSlotAim[3], wN) +
+  archSlot(uSlotPos[4], uSlotColor[4], uSlotAim[4], wN) +
+  archSlot(uSlotPos[5], uSlotColor[5], uSlotAim[5], wN) +
+  archSlot(uSlotPos[6], uSlotColor[6], uSlotAim[6], wN) +
+  archSlot(uSlotPos[7], uSlotColor[7], uSlotAim[7], wN)
+  ) * diffuseColor.rgb;
 }
 `,
       );
@@ -218,11 +293,14 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
     uDetail: { value: 0 },
     uLift: { value: 1 },
     uContinuity: { value: 0 },
+    uWash: { value: 0 },
+    uDiag: { value: 0 },
     uShellC: { value: new THREE.Vector3(0, 60.928, 0) },
     uShellR: { value: 52.148 },
   };
-  const sphereMat = makeStone(coarse ? 2 : 3, shared, 0);
-  const archMat = makeStone(coarse ? 2 : 3, shared, 1);
+  const slots = makeSlotBlock();
+  const sphereMat = makeStone(coarse ? 2 : 3, shared, 0, slots);
+  const archMat = makeStone(coarse ? 2 : 3, shared, 1, slots);
   const figureMat = new THREE.MeshStandardMaterial({ color: 0x12110e, roughness: 0.74, metalness: 0.04 });
   figureMat.fog = false;
   const neutral = new THREE.MeshStandardMaterial({ color: 0xc8c2b6, roughness: 0.9, metalness: 0 });
@@ -251,6 +329,15 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
 
   const lamps = buildCenotaphLamps();
   cen.add(lamps.group);
+  const archLamps: ArchLamp[] = allArchLamps();
+  let lightTier: LightTier = "budget";
+  let presetSpot = 2200;
+  let presetColor = 0xffe6c4;
+  let slotKey = "";
+  let slotCount = 0;
+  let visibleReal = 0;
+  const lastCam = new THREE.Vector3(0, 18, 140);
+  let shellSet = new Set<THREE.Object3D>();
 
   const presets: Record<
     CenotaphVariant,
@@ -281,6 +368,9 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
     sphereMat.envMapIntensity = p.env;
     archMat.envMapIntensity = p.env;
     lamps.apply(p.spot, p.light);
+    presetSpot = p.spot;
+    presetColor = p.light;
+    if (lightTier === "budget") writeSlots(lastCam);
   }
 
   apply(initialVariant());
@@ -290,6 +380,50 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
   let seated: { center: THREE.Vector3; radius: number; outer: number } | null = null;
   let pending: Promise<{ center: THREE.Vector3; radius: number; outer: number }> | null = null;
   let pendingWhich: CenotaphGlb | null = null;
+
+  function writeSlots(cam: THREE.Vector3) {
+    const picked = selectArchSlots(archLamps, cam);
+    writeArchSlots(picked, presetSpot, presetColor, slots);
+    slotCount = picked.length;
+    const key = picked.map((lamp) => lamp.name).join("|");
+    if (key !== slotKey) slotKey = key;
+  }
+
+  function setLightTier(tier: LightTier) {
+    lightTier = tier;
+    applyArchTier(tier);
+    shared.uWash.value = tier === "budget" || tier === "emissive" ? 1 : 0;
+    if (tier === "budget") writeSlots(lastCam);
+    else {
+      clearArchSlots(slots);
+      slotCount = 0;
+      slotKey = "";
+    }
+    paintStone();
+  }
+
+  function paintStone() {
+    holder.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      let arch = false;
+      for (let node: THREE.Object3D | null = mesh; node; node = node.parent) if (node.userData.architecture) arch = true;
+      if (!arch) return;
+      mesh.material = lightTier === "neutral" || diagnostic ? neutral : shellSet.has(mesh) ? sphereMat : archMat;
+    });
+  }
+
+  function setDiag(mode: number) {
+    shared.uDiag.value = mode;
+  }
+
+  function syncLights(cam: THREE.Vector3) {
+    lastCam.copy(cam);
+    if (lightTier !== "budget") return;
+    const before = slotKey;
+    writeSlots(cam);
+    if (before !== slotKey) noteLightBudget(lightTier, visibleReal, slotCount);
+  }
 
   function setGlb(which: CenotaphGlb) {
     if (which !== "production" && which !== "full") {
@@ -310,27 +444,65 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
     return job;
   }
 
-  const ready = setGlb("production");
+  const ready = setGlb("production").catch((err: unknown) => {
+    const message = err instanceof Error ? err.message : String(err);
+    patchDiagnostics({ initError: message });
+    return seated ?? { center: new THREE.Vector3(0, holder.position.y, 0), radius: cenR, outer: cenR };
+  });
+
+  function fallbackSeat() {
+    return seated ?? { center: new THREE.Vector3(0, holder.position.y, 0), radius: cenR, outer: cenR };
+  }
 
   async function mountGlb(which: CenotaphGlb) {
     const mine = ++token;
-    const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js");
-    const gltf = await new GLTFLoader().loadAsync(GLB_URL[which]);
-    if (mine !== token) return seated ?? { center: new THREE.Vector3(0, holder.position.y, 0), radius: cenR, outer: cenR };
-    const root = gltf.scene;
-    root.userData.architecture = true;
-    root.position.set(0, 0, 0);
-    root.rotation.set(0, 0, 0);
-    root.scale.set(1, 1, 1);
-    root.updateMatrixWorld(true);
-    const seat = seatMonument(root);
-    for (const child of [...holder.children]) {
-      if (child.userData.architecture) holder.remove(child);
+    const prior = which === "full" ? getDiagnostics().full : getDiagnostics().production;
+    patchDiagnostics(
+      which === "full"
+        ? { full: "loading", fullError: null }
+        : { production: "loading", productionError: null },
+    );
+    const abandon = () => {
+      const now = which === "full" ? getDiagnostics().full : getDiagnostics().production;
+      if (now === "loading") {
+        const restored = prior === "loading" ? "idle" : prior;
+        patchDiagnostics(which === "full" ? { full: restored } : { production: restored });
+      }
+      return fallbackSeat();
+    };
+    try {
+      const response = await fetch(GLB_URL[which]);
+      if (mine !== token) return abandon();
+      if (!response.ok) throw new Error(`GLB request failed (${response.status})`);
+      const bytes = await response.arrayBuffer();
+      if (mine !== token) return abandon();
+      const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js");
+      const gltf = await new GLTFLoader().parseAsync(bytes, "");
+      if (mine !== token) return abandon();
+      const root = gltf.scene;
+      root.userData.architecture = true;
+      root.position.set(0, 0, 0);
+      root.rotation.set(0, 0, 0);
+      root.scale.set(1, 1, 1);
+      root.updateMatrixWorld(true);
+      const seat = seatMonument(root);
+      for (const child of [...holder.children]) {
+        if (child.userData.architecture) holder.remove(child);
+      }
+      applySeat(root, seat, which);
+      current = which;
+      seated = measure(seat);
+      return seated;
+    } catch (err) {
+      if (mine !== token) return abandon();
+      const message = err instanceof Error ? err.message : String(err);
+      patchDiagnostics(
+        which === "full"
+          ? { full: "failed", fullError: message }
+          : { production: "failed", productionError: message },
+      );
+      throw err;
     }
-    applySeat(root, seat, which);
-    current = which;
-    seated = measure(seat);
-    return seated;
   }
 
   function applySeat(root: THREE.Object3D, seat: MonumentSeat, which: CenotaphGlb) {
@@ -343,17 +515,29 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
     shared.uShellC.value.set(0, holder.position.y, 0);
     shared.uShellR.value = seat.fit && seat.fit.r > 1 ? seat.fit.r : 0;
     shared.uContinuity.value = which === "full" && shared.uShellR.value > 1 ? 1 : 0;
+    const side = which === "full" ? THREE.FrontSide : THREE.DoubleSide;
+    archMat.side = side;
+    neutral.side = side;
     const shell = new Set<THREE.Object3D>(seat.shellMeshes);
+    shellSet = shell;
     const sources: { geometry: THREE.BufferGeometry; matrixWorld: THREE.Matrix4 }[] = [];
+    let triangles = 0;
     root.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
       if (!mesh.isMesh) return;
-      if (which === "full") sources.push({ geometry: mesh.geometry, matrixWorld: mesh.matrixWorld });
-      else if (!mesh.geometry.getAttribute("normal")) mesh.geometry.computeVertexNormals();
-      mesh.material = diagnostic ? neutral : shell.has(mesh) ? sphereMat : archMat;
+      const geo = mesh.geometry;
+      triangles += geo.index ? geo.index.count / 3 : geo.getAttribute("position").count / 3;
+      if (which === "full") sources.push({ geometry: geo, matrixWorld: mesh.matrixWorld });
+      else if (!geo.getAttribute("normal")) geo.computeVertexNormals();
+      mesh.material = lightTier === "neutral" || diagnostic ? neutral : shell.has(mesh) ? sphereMat : archMat;
       mesh.castShadow = false;
       mesh.receiveShadow = false;
     });
+    patchDiagnostics(
+      which === "full"
+        ? { full: "loaded", fullError: null, fullTriangles: triangles }
+        : { production: "loaded", productionError: null, productionTriangles: triangles },
+    );
     // Cross-primitive weld in seated meters. Production does not enter.
     smoothFullResolutionNormals(sources, which);
     const ray = new THREE.Raycaster();
@@ -380,5 +564,24 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
     return { center: new THREE.Vector3(0, holder.position.y, 0), radius, outer };
   }
 
-  return { group: cen, uniforms: shared, apply, ready, masonry: archMat, setGlb, get glb() { return current; } };
+  return {
+    group: cen,
+    uniforms: shared,
+    apply,
+    ready,
+    masonry: archMat,
+    setGlb,
+    setLightTier,
+    setDiag,
+    syncLights,
+    archSlotCount: () => slotCount,
+    lightTier: () => lightTier,
+    noteRealLights: (count: number) => {
+      visibleReal = count;
+      noteLightBudget(lightTier, count, lightTier === "budget" ? slotCount : 0);
+    },
+    get glb() {
+      return current;
+    },
+  };
 }
