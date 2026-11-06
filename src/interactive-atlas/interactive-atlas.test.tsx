@@ -11,6 +11,7 @@ const { remember, api } = vi.hoisted(() => {
     setMode: vi.fn(),
     setCamera: vi.fn(),
     setMove: vi.fn(),
+    setLightTier: vi.fn(),
     remember,
   };
   return { remember, api };
@@ -396,5 +397,18 @@ describe("cenotaph geometry selector", () => {
     });
     expect(screen.getByText("DEV · GLB")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Walk" })).toHaveAttribute("data-on", "true");
+  });
+
+  it("keeps a collapsed diagnostics panel that does not claim a shader log", async () => {
+    await mount();
+    const summary = screen.getByText("DEV · DIAGNOSTICS");
+    const panel = summary.closest("details") as HTMLDetailsElement;
+    expect(panel.open).toBe(false);
+    panel.open = true;
+    expect(screen.getByText(/Shader log: unavailable/)).toBeInTheDocument();
+    expect(screen.getByText(/Production GLB:/)).toBeInTheDocument();
+    expect(screen.getByText(/Full Resolution GLB:/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Copy Diagnostics" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Budget" })).toBeInTheDocument();
   });
 });

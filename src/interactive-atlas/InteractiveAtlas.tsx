@@ -1,7 +1,9 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasMode, type AtlasUi, type CenotaphGlb, type CenotaphVariant, type WalkCamera, type WalkerPose } from "./destinations";
 import { atCenotaphDoor } from "./ascent";
+import { diagnosticsReport, getDiagnostics, subscribeDiagnostics } from "./cenotaph-diagnostics";
+import type { LightTier } from "./cenotaph-budget";
 import { FairMap, WalkStick } from "./walk-ui";
 import "./interactive-atlas.css";
 
@@ -61,6 +63,8 @@ export default function InteractiveAtlas() {
   const [failed, setFailed] = useState(() => (typeof document === "undefined" ? false : !canWebGL()));
   const [mapOpen, setMapOpen] = useState(false);
   const [pendingGlb, setPendingGlb] = useState<CenotaphGlb | null>(null);
+  const [copied, setCopied] = useState(false);
+  const diag = useSyncExternalStore(subscribeDiagnostics, getDiagnostics, getDiagnostics);
   const [params, setSearchParams] = useSearchParams();
   const variantRef = useRef<CenotaphVariant>(studyVariant());
 
@@ -129,6 +133,26 @@ export default function InteractiveAtlas() {
     void Promise.resolve(apiRef.current?.setGlb(next)).finally(() => {
       setPendingGlb((current) => (current === next ? null : current));
     });
+  };
+  const chooseTier = (tier: LightTier) => {
+    apiRef.current?.setLightTier(tier);
+    setCopied(false);
+  };
+  const copyDiag = () => {
+    const text = diagnosticsReport(typeof navigator === "undefined" ? "unavailable" : navigator.userAgent);
+    const done = () => setCopied(true);
+    if (navigator.clipboard?.writeText) {
+      void navigator.clipboard.writeText(text).then(done).catch(() => done());
+      return;
+    }
+    done();
+  };
+  const tierLabel: Record<LightTier, string> = {
+    budget: "Budget",
+    pr38: "Full lamps",
+    minimal: "Minimal",
+    emissive: "Emissive",
+    neutral: "Neutral",
   };
 
   return (
@@ -279,7 +303,8 @@ export default function InteractiveAtlas() {
             Return to Atlas
           </Link>
         </div>
-      ) : (
+      ) : null}
+      <div className="ia-dev-stack">
         <details className="ia-dev" data-glb={glb}>
           <summary>
             <span>DEV · GLB</span>
@@ -301,7 +326,42 @@ export default function InteractiveAtlas() {
             </p>
           </div>
         </details>
-      )}
+        <details className="ia-dev ia-diag">
+          <summary>
+            <span>DEV · DIAGNOSTICS</span>
+            <span className="ia-dev-current">{tierLabel[diag.tier]}</span>
+          </summary>
+          <div className="ia-dev-body">
+            <p className="ia-dev-note">Production GLB: {diag.production}{diag.productionTriangles != null ? ` · ${diag.productionTriangles.toLocaleString()} tris` : ""}</p>
+            <p className="ia-dev-note">Full Resolution GLB: {diag.full}{diag.fullTriangles != null ? ` · ${diag.fullTriangles.toLocaleString()} tris` : ""}</p>
+            <p className="ia-dev-note">WebGL context: {diag.context}</p>
+            <p className="ia-dev-note">
+              {diag.webglVersion} · {diag.renderer}
+            </p>
+            <p className="ia-dev-note">
+              Uniforms: frag {diag.maxFragmentUniforms ?? "unavailable"} · vert {diag.maxVertexUniforms ?? "unavailable"} · tex {diag.maxTextureUnits ?? "unavailable"} · vary {diag.maxVaryingVectors ?? "unavailable"}
+            </p>
+            <p className="ia-dev-note">
+              Real lights: {diag.activeRealLights == null ? "unavailable" : diag.activeRealLights} · tier {tierLabel[diag.tier]}
+              {diag.tier === "budget" ? ` · ${diag.activeArchSlots ?? 0} slots` : ""}
+            </p>
+            <p className="ia-dev-note">Shader log: {diag.shaderLog}</p>
+            <p className="ia-dev-note">
+              {diag.initError || diag.productionError || diag.fullError || "No initialization error."}
+            </p>
+            <div role="group" aria-label="Lighting tier">
+              {(Object.keys(tierLabel) as LightTier[]).map((tier) => (
+                <button key={tier} type="button" data-on={diag.tier === tier} aria-pressed={diag.tier === tier} onClick={() => chooseTier(tier)}>
+                  {tierLabel[tier]}
+                </button>
+              ))}
+            </div>
+            <button type="button" onClick={copyDiag}>
+              {copied ? "Copied" : "Copy Diagnostics"}
+            </button>
+          </div>
+        </details>
+      </div>
     </main>
   );
 }

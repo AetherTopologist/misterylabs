@@ -7,6 +7,8 @@ import type { AtlasApi, AtlasUi, CenotaphGlb, CenotaphVariant, DestinationId, Ex
 import { COLLECTIONS, HIDDEN_DESTINATIONS } from "./destinations";
 import { buildCenotaph } from "./cenotaph";
 import { buildObservationFloor } from "./dome-floor";
+import { initialLightTier, type LightTier } from "./cenotaph-budget";
+import { patchDiagnostics } from "./cenotaph-diagnostics";
 import { fallbackInsideMonument } from "./ascent";
 import { CAP_Y } from "./cenotaph-seat";
 import { CAP_WALK_R } from "./monument-cap";
@@ -260,6 +262,34 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   renderer.toneMappingExposure = 0.98;
   renderer.setClearColor(0x07080b, 1);
   renderer.setPixelRatio(shotBuffer ? 1 : Math.min(window.devicePixelRatio || 1, coarse ? 1.15 : 1.5));
+  const gl = renderer.getContext();
+  const gpu = gl.getExtension("WEBGL_debug_renderer_info");
+  patchDiagnostics({
+    webglVersion: gl instanceof WebGL2RenderingContext ? "WebGL 2" : "WebGL 1",
+    renderer: String(gpu ? gl.getParameter(gpu.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)),
+    maxFragmentUniforms: gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS),
+    maxVertexUniforms: gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS),
+    maxTextureUnits: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
+    maxVaryingVectors: gl.getParameter(gl.MAX_VARYING_VECTORS),
+    context: "active",
+    tier: initialLightTier(),
+    shaderLog: "unavailable",
+  });
+  canvas.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault();
+    patchDiagnostics({ context: "lost" });
+  });
+  canvas.addEventListener("webglcontextrestored", () => {
+    patchDiagnostics({ context: "restored" });
+  });
+  renderer.debug.onShaderError = (glErr, program, vertexShader, fragmentShader) => {
+    const log = [glErr.getProgramInfoLog(program), glErr.getShaderInfoLog(fragmentShader), glErr.getShaderInfoLog(vertexShader)]
+      .map((part) => (part || "").trim())
+      .filter(Boolean)
+      .join("\n")
+      .slice(0, 700);
+    patchDiagnostics({ shaderLog: log || "link failed" });
+  };
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x07080b);
@@ -421,6 +451,21 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   scene.add(cenotaph.group);
   const observation = buildObservationFloor(cenotaph.masonry);
   scene.add(observation.group);
+  let lightTier: LightTier = initialLightTier();
+  const countVisibleLights = () => {
+    let count = 0;
+    scene.traverse((obj) => {
+      const light = obj as THREE.Light;
+      if (light.isLight && light.visible) count += 1;
+    });
+    return count;
+  };
+  const publishTier = (tier: LightTier) => {
+    lightTier = tier;
+    cenotaph.setLightTier(tier);
+    cenotaph.noteRealLights(countVisibleLights());
+  };
+  publishTier(lightTier);
   const showProceduralFloor = (on: boolean) => {
     observation.group.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
@@ -1457,6 +1502,9 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       stickX = x;
       stickY = y;
     },
+    setLightTier: (tier: LightTier) => {
+      publishTier(tier);
+    },
     remember: () => {
       captureAtlasResume({
         v: 1,
@@ -1592,6 +1640,11 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
         return cenotaph.glb;
       },
       glb: () => cenotaph.glb,
+      tier: () => cenotaph.lightTier(),
+      setTier: (tier: LightTier) => {
+        publishTier(tier);
+      },
+      setDiag: (mode: number) => cenotaph.setDiag(mode),
       still: (pos: [number, number, number], target: [number, number, number]) => {
         holdCam = { px: pos[0], py: pos[1], pz: pos[2], tx: target[0], ty: target[1], tz: target[2] };
         camera.position.set(pos[0], pos[1], pos[2]);
@@ -1730,6 +1783,8 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
             return;
           }
           if (!saved) mesh.userData.normalMat = mesh.material;
+          const source = mesh.material as THREE.Material;
+          normalMat.side = source && "side" in source ? source.side : THREE.FrontSide;
           mesh.material = normalMat;
         });
       },
@@ -1746,7 +1801,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
         let shadows = 0;
         scene.traverse((obj) => {
           const light = obj as THREE.Light;
-          if (!light.isLight) return;
+          if (!light.isLight || !light.visible) return;
           lights += 1;
           if (light.castShadow) shadows += 1;
         });
@@ -1765,6 +1820,8 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
           shadows,
           programs: renderer.info.programs?.length ?? 0,
           glb: cenotaph.glb,
+          tier: cenotaph.lightTier(),
+          archSlots: cenotaph.archSlotCount(),
         };
       },
       screen: () => {
@@ -1834,6 +1891,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     snapAnchor = resumed.selected && resumed.selected !== "cenotaph" ? resumed.selected : null;
     placeCamera();
   }
+  cenotaph.noteRealLights(countVisibleLights());
   renderer.render(scene, camera);
 
   renderer.setAnimationLoop((now) => {
@@ -1866,6 +1924,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     }
 
     cenotaph.uniforms.uDetail.value = 1 - smoothstep(120, 340, camera.position.distanceTo(interiorFocus));
+    cenotaph.syncLights(camera.position);
     interior.uniforms.uMeridian.value = inside ? 0.15 + 0.85 * Math.abs(Math.sin(yaw)) : 0.08;
 
     if (!reduced) {

@@ -54,7 +54,7 @@ describe("cenotaph lamps", () => {
     for (const light of rig.lights) expect(light.castShadow).toBe(false);
     rig.apply(2200, 0xffe6c4);
     const hall = rig.lights.find((light) => light.name === "south-hall");
-    expect(hall?.intensity).toBeCloseTo(2200 * 0.4, 4);
+    expect(hall?.intensity).toBeCloseTo(2200 * 0.28, 4);
     let emissive = 0;
     rig.group.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
