@@ -114,7 +114,7 @@ function landingGeometry() {
 }
 
 /**
- * Slab, curb, neck, pier, and two unshadowed spots.
+ * Slab, curb, neck, pier, a dim floor pool, a faint vault wash, and four censers.
  * The group is in world space. Nothing here is parented under the GLB.
  */
 export function buildObservationFloor(masonry?: THREE.Material): ObservationFloor {
@@ -206,20 +206,60 @@ export function buildObservationFloor(masonry?: THREE.Material): ObservationFloo
 
   group.add(slab, curb, fascia, inlay, keel, pier, band, railPivot);
 
-  const pool = new THREE.SpotLight(0xffe6c4, 480, 38, 1.02, 0.62, 2);
-  pool.position.set(0, 22.4, 0.6);
+  const pool = new THREE.SpotLight(0xffe6c4, 70, 38, 1.15, 0.85, 2);
+  pool.position.set(0, 20.5, 6.5);
   pool.target.position.set(0, DOME_FLOOR_Y, 0);
   pool.castShadow = false;
   pool.name = "observation-pool";
 
-  // One upward wash. Physical decay, so the crown stays dim and the floor is outside the cone.
-  const vault = new THREE.SpotLight(0xfff1d6, 6400, 140, 0.58, 0.92, 2);
+  // Wide, dim wash so the vault curve reads. Peak is well below the old crown blob.
+  const vault = new THREE.SpotLight(0xfff1d6, 2000, 140, 1.2, 0.92, 2);
   vault.position.set(0, 19.4, -0.4);
   vault.target.position.set(0, 108, 0);
   vault.castShadow = false;
   vault.name = "observation-vault";
 
-  group.add(pool, pool.target, vault, vault.target);
+  const censerMat = new THREE.MeshStandardMaterial({ color: 0x6d4e32, roughness: 0.46, metalness: 0.7 });
+  const censerEmber = new THREE.MeshStandardMaterial({
+    color: 0x3a2414,
+    emissive: 0xffb060,
+    emissiveIntensity: 1.35,
+    roughness: 0.42,
+  });
+  censerMat.fog = false;
+  censerEmber.fog = false;
+  const bowl = new THREE.CylinderGeometry(0.16, 0.22, 0.12, 7);
+  bowl.translate(0, 0.06, 0);
+  const ember = new THREE.SphereGeometry(0.04, 6, 4);
+  ember.translate(0, 0.1, 0);
+  const censerAngles = [20, 160, 230, 310].map((deg) => (deg * Math.PI) / 180);
+  const bowls = new THREE.InstancedMesh(bowl, censerMat, censerAngles.length);
+  const embers = new THREE.InstancedMesh(ember, censerEmber, censerAngles.length);
+  bowls.name = "observation-censers";
+  embers.name = "observation-censer-embers";
+  bowls.castShadow = false;
+  embers.castShadow = false;
+  bowls.frustumCulled = false;
+  embers.frustumCulled = false;
+  const censerDummy = new THREE.Object3D();
+  const censerLights: THREE.PointLight[] = [];
+  censerAngles.forEach((theta, i) => {
+    const x = Math.cos(theta) * 10.6;
+    const z = Math.sin(theta) * 10.6;
+    censerDummy.position.set(x, DOME_FLOOR_Y, z);
+    censerDummy.updateMatrix();
+    bowls.setMatrixAt(i, censerDummy.matrix);
+    embers.setMatrixAt(i, censerDummy.matrix);
+    const light = new THREE.PointLight(0xffe1b8, 120, 14, 2);
+    light.position.set(x, DOME_FLOOR_Y + 1.45, z);
+    light.castShadow = false;
+    light.name = `observation-censer-${i}`;
+    censerLights.push(light);
+  });
+  bowls.instanceMatrix.needsUpdate = true;
+  embers.instanceMatrix.needsUpdate = true;
+
+  group.add(pool, pool.target, vault, vault.target, bowls, embers, ...censerLights);
 
   let triangles = 0;
   group.traverse((obj) => {
@@ -232,5 +272,5 @@ export function buildObservationFloor(masonry?: THREE.Material): ObservationFloo
     mesh.userData.addition = "mistery-labs";
   });
 
-  return { group, triangles, lights: 2 };
+  return { group, triangles, lights: 2 + censerLights.length };
 }
