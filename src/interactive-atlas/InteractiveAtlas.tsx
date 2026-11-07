@@ -308,7 +308,7 @@ export default function InteractiveAtlas() {
         <details className="ia-dev" data-glb={glb}>
           <summary>
             <span>DEV · GLB</span>
-            <span className="ia-dev-current">{glb === "full" ? "Full Resolution" : "Production"}</span>
+            <span className="ia-dev-current">{glb === "full" ? "Full Resolution" : glb === "clean" ? "Clean v01" : "Production"}</span>
           </summary>
           <div className="ia-dev-body">
             <div role="group" aria-label="Cenotaph geometry">
@@ -318,11 +318,16 @@ export default function InteractiveAtlas() {
               <button type="button" data-on={glb === "full"} aria-pressed={glb === "full"} onClick={() => chooseGlb("full")}>
                 Full Resolution
               </button>
+              <button type="button" data-on={glb === "clean"} aria-pressed={glb === "clean"} onClick={() => chooseGlb("clean")}>
+                Clean v01
+              </button>
             </div>
             <p className="ia-dev-note">
               {glb === "full"
                 ? "Full-resolution export. Flat cap at 13.103 m sits above the historic tread and the observation floor at 12.937 m. The step is left visible."
-                : "Known-good mesh. Observation floor at 12.937 m."}
+                : glb === "clean"
+                  ? "Clean v01. One skin of the full-resolution mesh, with its own normals. Downward floors and the crown are lit from the side you can see. The downward cap at 13.103 m replaces the observation slab."
+                  : "Known-good mesh. Observation floor at 12.937 m."}
             </p>
           </div>
         </details>
@@ -334,6 +339,7 @@ export default function InteractiveAtlas() {
           <div className="ia-dev-body">
             <p className="ia-dev-note">Production GLB: {diag.production}{diag.productionTriangles != null ? ` · ${diag.productionTriangles.toLocaleString()} tris` : ""}</p>
             <p className="ia-dev-note">Full Resolution GLB: {diag.full}{diag.fullTriangles != null ? ` · ${diag.fullTriangles.toLocaleString()} tris` : ""}</p>
+            <p className="ia-dev-note">Clean v01 GLB: {diag.clean}{diag.cleanTriangles != null ? ` · ${diag.cleanTriangles.toLocaleString()} tris` : ""}</p>
             <p className="ia-dev-note">WebGL context: {diag.context}</p>
             <p className="ia-dev-note">
               {diag.webglVersion} · {diag.renderer}
@@ -347,7 +353,7 @@ export default function InteractiveAtlas() {
             </p>
             <p className="ia-dev-note">Shader log: {diag.shaderLog}</p>
             <p className="ia-dev-note">
-              {diag.initError || diag.productionError || diag.fullError || "No initialization error."}
+              {diag.initError || diag.productionError || diag.fullError || diag.cleanError || "No initialization error."}
             </p>
             <div role="group" aria-label="Lighting tier">
               {(Object.keys(tierLabel) as LightTier[]).map((tier) => (
