@@ -1472,13 +1472,13 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       cenotaph.apply(variant);
     },
     setGlb: async (glb: CenotaphGlb) => {
-      if (glb !== "production" && glb !== "full") return;
+      if (glb !== "production" && glb !== "full" && glb !== "clean") return;
       const mine = ++glbToken;
       const pose = walking ? walker.snapshot() : null;
       const view = walker.view;
       const reg = await cenotaph.setGlb(glb);
       if (mine !== glbToken || cenotaph.glb !== glb) return;
-      showProceduralFloor(glb !== "full");
+      showProceduralFloor(!(glb === "full" || (glb === "clean" && reg.cap)));
       publishFit(reg);
       if (pose && walking) {
         const moved = fallbackInsideMonument(pose.x, pose.z);

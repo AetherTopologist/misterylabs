@@ -186,8 +186,8 @@ export type AtlasUi = {
 
 export type CenotaphVariant = "a" | "b" | "c" | "m";
 
-/** Production is the known-good mesh. Full is the Blender export under comparison. */
-export type CenotaphGlb = "production" | "full";
+/** Production is the known-good mesh. Full is the doubled export. Clean is one skin of that export. */
+export type CenotaphGlb = "production" | "full" | "clean";
 
 export type AtlasApi = {
   returnHome: () => void;

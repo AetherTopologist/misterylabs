@@ -15,6 +15,7 @@ import { WALK_R } from "./dome-floor";
 
 const PRODUCTION = new URL("./cenotaph.glb", import.meta.url);
 const FULL = new URL("./Cenotaph_FullRes_PPLremovedOnly.glb", import.meta.url);
+const CLEAN = new URL("./Cenotaph_Clean_v01.glb", import.meta.url);
 
 const COMPS: Record<string, number> = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 };
 
@@ -312,5 +313,39 @@ describe("cenotaph seating adapter", () => {
     expect(inStairMouth(16, 0)).toBe(false);
     expect(inStairMouth(0, -28)).toBe(false);
     expect(production.gzip).toBeLessThan(full.gzip);
+  }, 60000);
+
+  it("seats Clean v01 in the same frame and walks its downward cap", () => {
+    const clean = parseGlb(CLEAN);
+    const full = parseGlb(FULL);
+    const cleanTris = triangles(clean.root);
+    expect(cleanTris.count).toBe(41375);
+    expect(cleanTris.meshes).toBe(4);
+    expect(clean.bytes).toBeLessThan(2_000_000);
+
+    const seatedClean = seatWorld(clean.root);
+    const seatedFull = seatWorld(full.root);
+    expect(seatedClean.seat.fit).toBeNull();
+    expect(seatedClean.seat.holderY).toBe(0);
+    const cleanBox = new THREE.Box3().setFromObject(seatedClean.holder);
+    const fullBox = new THREE.Box3().setFromObject(seatedFull.holder);
+    expect(cleanBox.min.x).toBeCloseTo(fullBox.min.x, 1);
+    expect(cleanBox.max.x).toBeCloseTo(fullBox.max.x, 1);
+    expect(cleanBox.min.z).toBeCloseTo(fullBox.min.z, 1);
+    expect(cleanBox.max.z).toBeCloseTo(fullBox.max.z, 1);
+    expect(cleanBox.max.y).toBeCloseTo(fullBox.max.y, 1);
+    expect(hitY(seatedClean.holder, 0, 2, 108, 1)).toBeCloseTo(6.275, 2);
+    expect(hitY(seatedClean.holder, 0, 10, 21, 1)).toBeCloseTo(TREAD_Y, 2);
+
+    expect(surveyCap(seatedClean.holder).cells).toBe(0);
+    const grid = surveyCap(seatedClean.holder, 0.5, true);
+    expect(grid.cells).toBeGreaterThan(100);
+    expect(grid.yMin).toBeCloseTo(CAP_Y, 2);
+    expect(grid.yMax).toBeCloseTo(CAP_Y, 2);
+    setMonumentCap(grid);
+    expect(sampleGround(0, 8)).toBeCloseTo(CAP_Y, 2);
+    expect(sampleGround(0, 60)).toBeCloseTo(6.275, 2);
+    expect(sampleGround(0, -28)).toBeCloseTo(10.938, 2);
+    setMonumentCap(null);
   }, 60000);
 });

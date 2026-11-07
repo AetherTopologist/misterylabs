@@ -5,10 +5,13 @@ export type LightTier = "pr38" | "minimal" | "budget" | "emissive" | "neutral";
 export type CenotaphDiagnostics = {
   production: GlbPhase;
   full: GlbPhase;
+  clean: GlbPhase;
   productionError: string | null;
   fullError: string | null;
+  cleanError: string | null;
   productionTriangles: number | null;
   fullTriangles: number | null;
+  cleanTriangles: number | null;
   context: ContextPhase;
   renderer: string;
   webglVersion: string;
@@ -27,10 +30,13 @@ export type CenotaphDiagnostics = {
 const state: CenotaphDiagnostics = {
   production: "idle",
   full: "idle",
+  clean: "idle",
   productionError: null,
   fullError: null,
+  cleanError: null,
   productionTriangles: null,
   fullTriangles: null,
+  cleanTriangles: null,
   context: "active",
   renderer: "unavailable",
   webglVersion: "unavailable",
@@ -86,8 +92,10 @@ export function diagnosticsReport(device = "unavailable") {
     line("maxVaryingVectors", d.maxVaryingVectors),
     line("production", d.production),
     line("full", d.full),
+    line("clean", d.clean),
     line("productionTriangles", d.productionTriangles),
     line("fullTriangles", d.fullTriangles),
+    line("cleanTriangles", d.cleanTriangles),
     line("tier", d.tier),
     line("realLights", d.activeRealLights),
     line("archSlots", d.activeArchSlots),
@@ -95,5 +103,6 @@ export function diagnosticsReport(device = "unavailable") {
     line("initError", d.initError),
     line("productionError", d.productionError),
     line("fullError", d.fullError),
+    line("cleanError", d.cleanError),
   ].join("\n");
 }

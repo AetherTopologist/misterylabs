@@ -15,14 +15,15 @@ import {
   writeArchSlots,
   type ArchLamp,
 } from "./cenotaph-budget";
-import { getDiagnostics, patchDiagnostics, type LightTier } from "./cenotaph-diagnostics";
+import { getDiagnostics, patchDiagnostics, type GlbPhase, type LightTier } from "./cenotaph-diagnostics";
 
 export type CenotaphVariant = "a" | "b" | "c" | "m";
-export type CenotaphGlb = "production" | "full";
+export type CenotaphGlb = "production" | "full" | "clean";
 
 const GLB_URL: Record<CenotaphGlb, string> = {
   production: new URL("./cenotaph.glb", import.meta.url).href,
   full: new URL("./Cenotaph_FullRes_PPLremovedOnly.glb", import.meta.url).href,
+  clean: new URL("./Cenotaph_Clean_v01.glb", import.meta.url).href,
 };
 
 type Shared = {
@@ -30,6 +31,7 @@ type Shared = {
   uDetail: { value: number };
   uLift: { value: number };
   uContinuity: { value: number };
+  uBackFill: { value: number };
   uWash: { value: number };
   uDiag: { value: number };
   uShellC: { value: THREE.Vector3 };
@@ -49,12 +51,13 @@ function makeStone(octaves: number, shared: Shared, masonry: number, slots: Retu
     mat.polygonOffsetFactor = 1;
     mat.polygonOffsetUnits = 1;
   }
-  mat.customProgramCacheKey = () => `cenotaph-stone-v13-${octaves}`;
+  mat.customProgramCacheKey = () => `cenotaph-stone-v14-${octaves}`;
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uVariant = shared.uVariant;
     shader.uniforms.uDetail = shared.uDetail;
     shader.uniforms.uLift = shared.uLift;
     shader.uniforms.uContinuity = shared.uContinuity;
+    shader.uniforms.uBackFill = shared.uBackFill;
     shader.uniforms.uWash = shared.uWash;
     shader.uniforms.uDiag = shared.uDiag;
     shader.uniforms.uShellC = shared.uShellC;
@@ -82,6 +85,7 @@ uniform float uDetail;
 uniform float uLift;
 uniform float uMasonry;
 uniform float uContinuity;
+uniform float uBackFill;
 uniform float uWash;
 uniform float uDiag;
 uniform vec3 uShellC;
@@ -249,6 +253,11 @@ if (uVariant > 2.5) {
         `#include <lights_fragment_end>
 {
   vec3 wN = normalize(uContinuity > 0.5 ? cenStoneNormal(normalize(vWorldN)) : vWorldN);
+  // Clean v01 kept the downward skin of the floors and the crown. DoubleSide
+  // already flips the PBR normal on that back face. Match the fill and the
+  // architectural slots to the side we can see, or the floor is lit twice
+  // and the crown gets none. Production and full leave this at 1.
+  if (uBackFill < 0.5 && !gl_FrontFacing) wN = -wN;
   float belly = clamp(-wN.y, 0.0, 1.0);
   float wall = (1.0 - smoothstep(-0.15, 0.75, wN.y)) * clamp(1.2 - vWorldP.y / 78.0, 0.0, 1.0);
   if (uVariant > 2.5) {
@@ -293,6 +302,7 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
     uDetail: { value: 0 },
     uLift: { value: 1 },
     uContinuity: { value: 0 },
+    uBackFill: { value: 1 },
     uWash: { value: 0 },
     uDiag: { value: 0 },
     uShellC: { value: new THREE.Vector3(0, 60.928, 0) },
@@ -377,9 +387,10 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
 
   let current: CenotaphGlb = "production";
   let token = 0;
-  let seated: { center: THREE.Vector3; radius: number; outer: number } | null = null;
-  let pending: Promise<{ center: THREE.Vector3; radius: number; outer: number }> | null = null;
+  let seated: { center: THREE.Vector3; radius: number; outer: number; cap: boolean } | null = null;
+  let pending: Promise<{ center: THREE.Vector3; radius: number; outer: number; cap: boolean }> | null = null;
   let pendingWhich: CenotaphGlb | null = null;
+  let hasCap = false;
 
   function writeSlots(cam: THREE.Vector3) {
     const picked = selectArchSlots(archLamps, cam);
@@ -426,10 +437,8 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
   }
 
   function setGlb(which: CenotaphGlb) {
-    if (which !== "production" && which !== "full") {
-      return Promise.resolve(
-        seated ?? { center: new THREE.Vector3(0, holder.position.y, 0), radius: cenR, outer: cenR },
-      );
+    if (which !== "production" && which !== "full" && which !== "clean") {
+      return Promise.resolve(fallbackSeat());
     }
     if (pending && pendingWhich === which) return pending;
     if (!pending && which === current && seated) return Promise.resolve(seated);
@@ -447,27 +456,40 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
   const ready = setGlb("production").catch((err: unknown) => {
     const message = err instanceof Error ? err.message : String(err);
     patchDiagnostics({ initError: message });
-    return seated ?? { center: new THREE.Vector3(0, holder.position.y, 0), radius: cenR, outer: cenR };
+    return seated ?? { center: new THREE.Vector3(0, holder.position.y, 0), radius: cenR, outer: cenR, cap: hasCap };
   });
 
   function fallbackSeat() {
-    return seated ?? { center: new THREE.Vector3(0, holder.position.y, 0), radius: cenR, outer: cenR };
+    return seated ?? { center: new THREE.Vector3(0, holder.position.y, 0), radius: cenR, outer: cenR, cap: hasCap };
+  }
+
+  function glbNow(which: CenotaphGlb): GlbPhase {
+    const d = getDiagnostics();
+    if (which === "full") return d.full;
+    if (which === "clean") return d.clean;
+    return d.production;
+  }
+
+  function markGlb(which: CenotaphGlb, phase: GlbPhase, error: string | null, triangles?: number) {
+    if (which === "full") {
+      patchDiagnostics({ full: phase, fullError: error, ...(triangles != null ? { fullTriangles: triangles } : {}) });
+    } else if (which === "clean") {
+      patchDiagnostics({ clean: phase, cleanError: error, ...(triangles != null ? { cleanTriangles: triangles } : {}) });
+    } else {
+      patchDiagnostics({
+        production: phase,
+        productionError: error,
+        ...(triangles != null ? { productionTriangles: triangles } : {}),
+      });
+    }
   }
 
   async function mountGlb(which: CenotaphGlb) {
     const mine = ++token;
-    const prior = which === "full" ? getDiagnostics().full : getDiagnostics().production;
-    patchDiagnostics(
-      which === "full"
-        ? { full: "loading", fullError: null }
-        : { production: "loading", productionError: null },
-    );
+    const prior = glbNow(which);
+    markGlb(which, "loading", null);
     const abandon = () => {
-      const now = which === "full" ? getDiagnostics().full : getDiagnostics().production;
-      if (now === "loading") {
-        const restored = prior === "loading" ? "idle" : prior;
-        patchDiagnostics(which === "full" ? { full: restored } : { production: restored });
-      }
+      if (glbNow(which) === "loading") markGlb(which, prior === "loading" ? "idle" : prior, null);
       return fallbackSeat();
     };
     try {
@@ -496,11 +518,7 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
     } catch (err) {
       if (mine !== token) return abandon();
       const message = err instanceof Error ? err.message : String(err);
-      patchDiagnostics(
-        which === "full"
-          ? { full: "failed", fullError: message }
-          : { production: "failed", productionError: message },
-      );
+      markGlb(which, "failed", message);
       throw err;
     }
   }
@@ -514,7 +532,12 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
     holder.updateMatrixWorld(true);
     shared.uShellC.value.set(0, holder.position.y, 0);
     shared.uShellR.value = seat.fit && seat.fit.r > 1 ? seat.fit.r : 0;
+    // Full resolution is a doubled skin. Front-side and the passage cylinder
+    // exist for that file only. Clean v01 dropped the opposite faces. Its
+    // tunnel normals are already continuous, so the cylinder stays off.
+    // Floors and the crown are the downward skin: light the visible side.
     shared.uContinuity.value = which === "full" && shared.uShellR.value > 1 ? 1 : 0;
+    shared.uBackFill.value = which === "clean" ? 0 : 1;
     const side = which === "full" ? THREE.FrontSide : THREE.DoubleSide;
     archMat.side = side;
     neutral.side = side;
@@ -533,13 +556,9 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
       mesh.castShadow = false;
       mesh.receiveShadow = false;
     });
-    patchDiagnostics(
-      which === "full"
-        ? { full: "loaded", fullError: null, fullTriangles: triangles }
-        : { production: "loaded", productionError: null, productionTriangles: triangles },
-    );
-    // Cross-primitive weld in seated meters. Production does not enter.
-    smoothFullResolutionNormals(sources, which);
+    markGlb(which, "loaded", null, triangles);
+    // Cross-primitive weld in seated meters. Production and Clean v01 do not enter.
+    smoothFullResolutionNormals(sources, which === "full" ? "full" : "production");
     const ray = new THREE.Raycaster();
     const down = new THREE.Vector3(0, -1, 0);
     for (const figure of people) {
@@ -549,7 +568,9 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
       const hit = ray.intersectObject(holder, true).find((h) => h.point.y >= 0 && h.point.y < 48);
       if (hit) figure.position.set(hit.point.x, hit.point.y, hit.point.z);
     }
-    setMonumentCap(which === "full" ? surveyCap(root) : null);
+    const cap = which === "full" ? surveyCap(root) : which === "clean" ? surveyCap(root, 0.5, true) : null;
+    hasCap = Boolean(cap && cap.cells > 0);
+    setMonumentCap(hasCap ? cap : null);
   }
 
   function measure(seat: MonumentSeat) {
@@ -561,7 +582,7 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
       Math.hypot(box.max.x, box.max.z),
     );
     const radius = seat.fit && seat.fit.r > 1 ? seat.fit.r : cenR;
-    return { center: new THREE.Vector3(0, holder.position.y, 0), radius, outer };
+    return { center: new THREE.Vector3(0, holder.position.y, 0), radius, outer, cap: hasCap };
   }
 
   return {

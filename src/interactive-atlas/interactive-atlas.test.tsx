@@ -373,8 +373,10 @@ describe("cenotaph geometry selector", () => {
     panel.open = true;
     const production = screen.getByRole("button", { name: "Production" });
     const full = screen.getByRole("button", { name: "Full Resolution" });
+    const clean = screen.getByRole("button", { name: "Clean v01" });
     expect(production).toHaveAttribute("aria-pressed", "true");
     expect(full).toHaveAttribute("aria-pressed", "false");
+    expect(clean).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByText(/Observation floor at 12\.937 m/)).toBeInTheDocument();
     let release: (() => void) | null = null;
     api.setGlb.mockImplementation(
@@ -388,6 +390,10 @@ describe("cenotaph geometry selector", () => {
     expect(api.setMode).not.toHaveBeenCalled();
     expect(full).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText(/13\.103 m/)).toBeInTheDocument();
+    fireEvent.click(clean);
+    expect(api.setGlb).toHaveBeenCalledWith("clean");
+    expect(clean).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/downward cap at 13\.103 m/)).toBeInTheDocument();
     await act(async () => {
       release?.();
     });
@@ -408,6 +414,7 @@ describe("cenotaph geometry selector", () => {
     expect(screen.getByText(/Shader log: unavailable/)).toBeInTheDocument();
     expect(screen.getByText(/Production GLB:/)).toBeInTheDocument();
     expect(screen.getByText(/Full Resolution GLB:/)).toBeInTheDocument();
+    expect(screen.getByText(/Clean v01 GLB:/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copy Diagnostics" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Budget" })).toBeInTheDocument();
   });
