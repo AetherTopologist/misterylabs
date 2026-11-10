@@ -149,6 +149,7 @@ export default function InteractiveAtlas() {
   };
   const tierLabel: Record<LightTier, string> = {
     budget: "Budget",
+    "mobile-max": "Mobile Max",
     pr38: "Full lamps",
     minimal: "Minimal",
     emissive: "Emissive",
@@ -344,6 +345,10 @@ export default function InteractiveAtlas() {
             <p className="ia-dev-note">
               Real lights: {diag.activeRealLights == null ? "unavailable" : diag.activeRealLights} · tier {tierLabel[diag.tier]}
               {diag.tier === "budget" ? ` · ${diag.activeArchSlots ?? 0} slots` : ""}
+            </p>
+            <p className="ia-dev-note">
+              Estimated fragment vectors: {diag.uniformVectors == null ? "unavailable" : diag.uniformVectors}
+              {diag.maxFragmentUniforms != null ? ` · device limit ${diag.maxFragmentUniforms}` : ""}
             </p>
             {diag.tierNote ? <p className="ia-dev-note">{diag.tierNote}</p> : null}
             <p className="ia-dev-note">Shader log: {diag.shaderLog}</p>

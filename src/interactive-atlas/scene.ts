@@ -7,7 +7,7 @@ import type { AtlasApi, AtlasUi, CenotaphGlb, CenotaphVariant, DestinationId, Ex
 import { COLLECTIONS, HIDDEN_DESTINATIONS } from "./destinations";
 import { buildCenotaph } from "./cenotaph";
 import { buildObservationFloor } from "./dome-floor";
-import { archLightVisible, initialLightTier, lightingTierFits, type LightCensus, type LightTier } from "./cenotaph-budget";
+import { archLightVisible, initialLightTier, resolveLightTier, type LightCensus, type LightTier } from "./cenotaph-budget";
 import { getDiagnostics, patchDiagnostics } from "./cenotaph-diagnostics";
 import { fallbackInsideMonument } from "./ascent";
 import { CAP_Y } from "./cenotaph-seat";
@@ -271,6 +271,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   const tierName: Record<LightTier, string> = {
     pr38: "Full lamps",
     budget: "Budget",
+    "mobile-max": "Mobile Max",
     minimal: "Minimal",
     emissive: "Emissive",
     neutral: "Neutral",
@@ -489,18 +490,19 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     return census;
   };
   const publishTier = (requested: LightTier) => {
-    const fit = lightingTierFits(fragmentUniformLimit, censusFor(requested), tierName[requested]);
-    if (!fit.ok) {
-      patchDiagnostics({ requestedTier: requested, tierNote: fit.reason });
-      return;
-    }
+    const resolved = resolveLightTier(requested, fragmentUniformLimit, censusFor);
     const previous = lightTier;
-    lightTier = requested;
-    restoreTier = previous === requested ? null : previous;
+    lightTier = resolved.tier;
+    restoreTier = previous === resolved.tier ? null : previous;
     shaderFailed = false;
-    cenotaph.setLightTier(requested);
+    cenotaph.setLightTier(resolved.tier);
     cenotaph.noteRealLights(countVisibleLights());
-    patchDiagnostics({ requestedTier: requested, tierNote: null, shaderLog: "unavailable" });
+    patchDiagnostics({
+      requestedTier: requested,
+      tierNote: resolved.note,
+      shaderLog: "unavailable",
+      uniformVectors: resolved.vectors,
+    });
   };
   const showProceduralFloor = (on: boolean) => {
     observation.group.traverse((obj) => {
@@ -2012,10 +2014,12 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       cenotaph.setLightTier(back);
       cenotaph.noteRealLights(countVisibleLights());
       const log = getDiagnostics().shaderLog;
+      const restored = resolveLightTier(back, fragmentUniformLimit, censusFor);
       patchDiagnostics({
         requestedTier: failed,
         tierNote: `${tierName[failed]} failed to compile. Restored ${tierName[back]} so the monument stays visible.`,
         shaderLog: log,
+        uniformVectors: restored.vectors,
       });
     } else if (!shaderFailed) {
       restoreTier = null;

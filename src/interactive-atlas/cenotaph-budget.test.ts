@@ -11,9 +11,10 @@ import {
   visibleArchLights,
   writeArchSlots,
   makeSlotBlock,
+  MOBILE_MAX_REAL,
 } from "./cenotaph-budget";
 import { lightTierFromSearch, diagnosticsReport, patchDiagnostics, getDiagnostics, resetDiagnostics, subscribeDiagnostics } from "./cenotaph-diagnostics";
-import { fragmentUniformVectors, lightingTierFits, physicalDistanceAtten, type LightCensus } from "./cenotaph-budget";
+import { fragmentUniformVectors, lightingTierFits, physicalDistanceAtten, resolveLightTier, type LightCensus } from "./cenotaph-budget";
 
 afterEach(() => resetArchRegistry());
 
@@ -74,9 +75,12 @@ describe("cenotaph light budget", () => {
     expect(visibleArchLights()).toBe(names.length);
     applyArchTier("emissive");
     expect(visibleArchLights()).toBe(3);
+    applyArchTier("mobile-max");
+    expect(visibleArchLights()).toBe(names.filter((name) => MOBILE_MAX_REAL.has(name)).length);
     applyArchTier("minimal");
     expect(visibleArchLights()).toBe(0);
     expect(lightTierFromSearch("?lights=pr38")).toBe("pr38");
+    expect(lightTierFromSearch("?lights=mobile-max")).toBe("mobile-max");
     expect(lightTierFromSearch("")).toBe("budget");
   });
 
@@ -97,6 +101,14 @@ describe("cenotaph light budget", () => {
     const vaultPhysical = ((vault!.absolute ?? 0) * physicalDistanceAtten(8, vault!.distance)) / Math.PI;
     const vaultLinear = ((vault!.absolute ?? 0) * (1 - 8 / vault!.distance) ** 2) / Math.PI;
     expect(vaultPhysical).toBeLessThan(vaultLinear / 8);
+    expect(vault!.absolute).toBe(1400);
+    const pool = lamps.find((lamp) => lamp.name === "observation-pool");
+    const censer = lamps.find((lamp) => lamp.name === "observation-censer-0");
+    expect(pool?.absolute).toBe(180);
+    expect(censer?.absolute).toBe(10);
+    expect(lamps.find((lamp) => lamp.name === "south-hall")?.gain).toBeCloseTo(0.28, 5);
+    expect(lamps.find((lamp) => lamp.name === "north-hall")?.gain).toBeCloseTo(0.28, 5);
+    expect(ARCH_SLOTS).toBe(8);
   });
 });
 
@@ -104,11 +116,14 @@ const PHONE_LIMIT = 256;
 const FULL_LAMPS: LightCensus = { point: 39, spot: 12, directional: 2, hemisphere: 1, ambient: 1 };
 const BUDGET_LAMPS: LightCensus = { point: 22, spot: 0, directional: 2, hemisphere: 1, ambient: 1 };
 const EMISSIVE_LAMPS: LightCensus = { point: 23, spot: 2, directional: 2, hemisphere: 1, ambient: 1 };
+const MOBILE_LAMPS: LightCensus = { point: 38, spot: 4, directional: 2, hemisphere: 1, ambient: 1 };
 
-function tierAfter(active: "budget" | "emissive" | "pr38", requested: "budget" | "emissive" | "pr38", limit: number) {
-  const census = requested === "pr38" ? FULL_LAMPS : requested === "emissive" ? EMISSIVE_LAMPS : BUDGET_LAMPS;
-  const fit = lightingTierFits(limit, census, "Full lamps");
-  return fit.ok ? requested : active;
+function censusFor(tier: "pr38" | "mobile-max" | "emissive" | "budget" | "minimal" | "neutral"): LightCensus {
+  if (tier === "pr38") return FULL_LAMPS;
+  if (tier === "emissive") return EMISSIVE_LAMPS;
+  if (tier === "mobile-max") return MOBILE_LAMPS;
+  if (tier === "budget" || tier === "minimal" || tier === "neutral") return BUDGET_LAMPS;
+  return BUDGET_LAMPS;
 }
 
 describe("full lamps capability", () => {
@@ -125,24 +140,26 @@ describe("full lamps capability", () => {
     expect(lightingTierFits(4096, FULL_LAMPS).ok).toBe(true);
     expect(lightingTierFits(PHONE_LIMIT, BUDGET_LAMPS).ok).toBe(true);
     expect(lightingTierFits(PHONE_LIMIT, EMISSIVE_LAMPS).ok).toBe(true);
+    const mobileVectors = fragmentUniformVectors(MOBILE_LAMPS);
+    expect(mobileVectors).toBe(238);
+    expect(PHONE_LIMIT - mobileVectors).toBeGreaterThanOrEqual(16);
+    expect(lightingTierFits(PHONE_LIMIT, MOBILE_LAMPS, "Mobile Max").ok).toBe(true);
+    expect(MOBILE_MAX_REAL.has("observation-vault")).toBe(true);
+    expect(MOBILE_MAX_REAL.has("wall-grazer-east")).toBe(true);
+    expect(MOBILE_MAX_REAL.has("wall-grazer-0")).toBe(false);
+    expect(MOBILE_MAX_REAL.has("south-threshold")).toBe(false);
   });
 
-  it("keeps the working tier when full lamps is requested again", () => {
-    expect(tierAfter("budget", "pr38", PHONE_LIMIT)).toBe("budget");
-    expect(tierAfter("emissive", "pr38", PHONE_LIMIT)).toBe("emissive");
-    expect(tierAfter("emissive", "budget", PHONE_LIMIT)).toBe("budget");
-    expect(tierAfter("budget", "emissive", PHONE_LIMIT)).toBe("emissive");
-    let active: "budget" | "emissive" | "pr38" = "budget";
-    active = tierAfter(active, "pr38", PHONE_LIMIT);
-    active = tierAfter(active, "emissive", PHONE_LIMIT);
-    active = tierAfter(active, "pr38", PHONE_LIMIT);
-    expect(active).toBe("emissive");
-    active = tierAfter("budget", "pr38", 4096);
-    expect(active).toBe("pr38");
-    active = tierAfter(active, "emissive", 4096);
-    expect(active).toBe("emissive");
-    active = tierAfter(active, "pr38", 4096);
-    expect(active).toBe("pr38");
+  it("uses Mobile Max when Full Lamps does not fit, and keeps an explicit Budget", () => {
+    const phone = resolveLightTier("pr38", PHONE_LIMIT, censusFor);
+    expect(phone.tier).toBe("mobile-max");
+    expect(phone.vectors).toBe(238);
+    expect(phone.note).toContain("256");
+    expect(phone.note).toContain("Mobile Max");
+    expect(resolveLightTier("pr38", 4096, censusFor).tier).toBe("pr38");
+    expect(resolveLightTier("budget", PHONE_LIMIT, censusFor)).toMatchObject({ tier: "budget", note: null });
+    expect(resolveLightTier("emissive", PHONE_LIMIT, censusFor).tier).toBe("emissive");
+    expect(resolveLightTier("neutral", PHONE_LIMIT, censusFor).tier).toBe("neutral");
   });
 });
 
@@ -157,6 +174,7 @@ describe("cenotaph diagnostics report", () => {
       tier: "budget",
       activeRealLights: 27,
       activeArchSlots: 8,
+      uniformVectors: 170,
       context: "active",
       webglVersion: "WebGL 2",
       maxFragmentUniforms: 224,
@@ -167,6 +185,7 @@ describe("cenotaph diagnostics report", () => {
     expect(report).toContain("production: loaded");
     expect(report).toContain("floor: idle");
     expect(report).toContain("maxFragmentUniforms: 224");
+    expect(report).toContain("uniformVectors: 170");
     expect(getDiagnostics().shaderLog).toBe("unavailable");
     expect(report).not.toContain("shader ready");
   });

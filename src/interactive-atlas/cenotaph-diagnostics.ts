@@ -1,6 +1,6 @@
 export type GlbPhase = "idle" | "loading" | "loaded" | "failed";
 export type ContextPhase = "active" | "lost" | "restored";
-export type LightTier = "pr38" | "minimal" | "budget" | "emissive" | "neutral";
+export type LightTier = "pr38" | "minimal" | "budget" | "mobile-max" | "emissive" | "neutral";
 
 export type CenotaphDiagnostics = {
   production: GlbPhase;
@@ -23,6 +23,8 @@ export type CenotaphDiagnostics = {
   tierNote: string | null;
   activeRealLights: number | null;
   activeArchSlots: number | null;
+  /** Estimated fragment-uniform vectors for the active tier. */
+  uniformVectors: number | null;
   /** "unavailable" until a compile or link log is actually captured. */
   shaderLog: string;
   initError: string | null;
@@ -48,6 +50,7 @@ function initialDiagnostics(): CenotaphDiagnostics {
     tierNote: null,
     activeRealLights: null,
     activeArchSlots: null,
+    uniformVectors: null,
     shaderLog: "unavailable",
     initError: null,
   };
@@ -88,7 +91,7 @@ export function resetDiagnostics() {
 
 export function lightTierFromSearch(search: string): LightTier {
   const q = new URLSearchParams(search).get("lights");
-  if (q === "pr38" || q === "minimal" || q === "budget" || q === "emissive" || q === "neutral") return q;
+  if (q === "pr38" || q === "minimal" || q === "budget" || q === "mobile-max" || q === "emissive" || q === "neutral") return q;
   return "budget";
 }
 
@@ -118,6 +121,7 @@ export function diagnosticsReport(device = "unavailable") {
     line("tierNote", d.tierNote),
     line("realLights", d.activeRealLights),
     line("archSlots", d.activeArchSlots),
+    line("uniformVectors", d.uniformVectors),
     line("shaderLog", d.shaderLog),
     line("initError", d.initError),
     line("productionError", d.productionError),

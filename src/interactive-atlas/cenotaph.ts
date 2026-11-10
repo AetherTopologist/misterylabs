@@ -49,7 +49,7 @@ function makeStone(octaves: number, shared: Shared, masonry: number, slots: Retu
     mat.polygonOffsetFactor = 1;
     mat.polygonOffsetUnits = 1;
   }
-  mat.customProgramCacheKey = () => `cenotaph-stone-v15-${octaves}`;
+  mat.customProgramCacheKey = () => `cenotaph-stone-v16-${octaves}`;
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uVariant = shared.uVariant;
     shader.uniforms.uDetail = shared.uDetail;
@@ -283,15 +283,21 @@ if (uVariant > 2.5) {
     float up = (1.0 - smoothstep(6.0, 46.0, vWorldP.y)) * (1.0 - smoothstep(0.05, 0.72, wN.y));
     reflectedLight.directDiffuse += vec3(1.0, 0.74, 0.46) * onDrum * up * 0.42 * diffuseColor.rgb;
   }
+  // Production leaves uBackFill at 1, so wN stays the geometric normal.
+  // The disc and the crown are downward skins. A slot above that face then
+  // has N·L = 0 on the side we see. Flip slots only inside the shell.
+  // Belly, wash, and the passages (outside the shell) keep wN.
+  vec3 slotN = wN;
+  if (!gl_FrontFacing && vWorldP.y > 8.0 && length(vWorldP - uShellC) < uShellR + 0.8) slotN = -wN;
   reflectedLight.directDiffuse += (
-  archSlot(uSlotPos[0], uSlotColor[0], uSlotAim[0], wN) +
-  archSlot(uSlotPos[1], uSlotColor[1], uSlotAim[1], wN) +
-  archSlot(uSlotPos[2], uSlotColor[2], uSlotAim[2], wN) +
-  archSlot(uSlotPos[3], uSlotColor[3], uSlotAim[3], wN) +
-  archSlot(uSlotPos[4], uSlotColor[4], uSlotAim[4], wN) +
-  archSlot(uSlotPos[5], uSlotColor[5], uSlotAim[5], wN) +
-  archSlot(uSlotPos[6], uSlotColor[6], uSlotAim[6], wN) +
-  archSlot(uSlotPos[7], uSlotColor[7], uSlotAim[7], wN)
+  archSlot(uSlotPos[0], uSlotColor[0], uSlotAim[0], slotN) +
+  archSlot(uSlotPos[1], uSlotColor[1], uSlotAim[1], slotN) +
+  archSlot(uSlotPos[2], uSlotColor[2], uSlotAim[2], slotN) +
+  archSlot(uSlotPos[3], uSlotColor[3], uSlotAim[3], slotN) +
+  archSlot(uSlotPos[4], uSlotColor[4], uSlotAim[4], slotN) +
+  archSlot(uSlotPos[5], uSlotColor[5], uSlotAim[5], slotN) +
+  archSlot(uSlotPos[6], uSlotColor[6], uSlotAim[6], slotN) +
+  archSlot(uSlotPos[7], uSlotColor[7], uSlotAim[7], slotN)
   ) * diffuseColor.rgb;
 }
 `,
