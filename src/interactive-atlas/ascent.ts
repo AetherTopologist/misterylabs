@@ -41,7 +41,7 @@ import {
   onObservationFloor,
   shellUpperY,
 } from "./dome-floor";
-import { CAP_WALK_R, capAt, monumentCapActive } from "./monument-cap";
+import { CAP_WALK_R, monumentCapActive, onCapDisc } from "./monument-cap";
 import {
   NORTH_END_Z,
   NORTH_JOIN_Z,
@@ -174,8 +174,7 @@ export function inStairMouth(x: number, z: number, inset = 0) {
   if (inNorthMouth(x, z, inset)) return true;
   if (inTerrace(x, z, inset)) return true;
   // The full-resolution annulus. Empty on production, so this stays false.
-  if (capAt(x, z) <= 0) return false;
-  return Math.hypot(x, z) <= CAP_WALK_R - inset + 0.02;
+  return onCapDisc(x, z, inset);
 }
 
 function pieceHeight(z: number, rows: ReadonlyArray<readonly [number, number]>, fallback: number) {
@@ -216,6 +215,40 @@ export function atCenotaphDoor(x: number, z: number) {
 
 type Move = { x: number; z: number; vx: number; vz: number };
 
+/**
+ * The step left the northern opening. Ride the measured wall instead of
+ * jumping to the far side of the pinch. Sideways travel this frame stays
+ * within the length of the step.
+ */
+function slideNorth(ox: number, oz: number, x: number, z: number, vx: number, vz: number): Move {
+  const budget = Math.max(Math.hypot(x - ox, z - oz), 1e-3);
+  const placed = (t: number) => {
+    const nz = oz + (z - oz) * t;
+    const half = Math.max(0.45, northHalf(nz));
+    const nx = ox + (x - ox) * t;
+    const cx = Math.max(-half, Math.min(half, nx));
+    return { cx, nz, half };
+  };
+  const legal = (t: number) => {
+    const p = placed(t);
+    return Math.abs(p.cx - ox) <= budget + 1e-6 && inStairMouth(p.cx, p.nz);
+  };
+  if (!legal(0)) return { x: ox, z: oz, vx: 0, vz: 0 };
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 14; i++) {
+    const mid = (lo + hi) / 2;
+    if (legal(mid)) lo = mid;
+    else hi = mid;
+  }
+  const p = placed(lo);
+  if (Math.abs(p.cx) >= p.half - 0.04) {
+    if (p.cx > 0 && vx > 0) vx = 0;
+    if (p.cx < 0 && vx < 0) vx = 0;
+  }
+  return { x: p.cx, z: p.nz, vx, vz };
+}
+
 function considerInto(
   best: { d: number; x: number; z: number },
   ox: number,
@@ -235,9 +268,20 @@ function considerInto(
  * Keep the circular Cenotaph exclusion, with the south route and the
  * observation floor cut out of it. A point already on that route is unchanged.
  */
-export function constrainCenotaph(x: number, z: number, vx: number, vz: number, block = 130): Move {
+export function constrainCenotaph(
+  x: number,
+  z: number,
+  vx: number,
+  vz: number,
+  block = 130,
+  ox = x,
+  oz = z,
+): Move {
   const radial = Math.hypot(x, z);
   if (radial >= block - 1e-4 || inStairMouth(x, z)) return { x, z, vx, vz };
+  // Started in the northern opening and landed outside it. The nearest
+  // legal point jumps the throat and the outer arch.
+  if (inNorthMouth(ox, oz)) return slideNorth(ox, oz, x, z, vx, vz);
   const best = { d: Infinity, x, z };
   if (radial > 1e-4) considerInto(best, x, z, (x / radial) * block, (z / radial) * block);
   else considerInto(best, x, z, 0, block);
@@ -265,7 +309,8 @@ export function constrainCenotaph(x: number, z: number, vx: number, vz: number, 
     if (d > CAP_WALK_R && d > 1e-4) {
       const px = (x / d) * CAP_WALK_R;
       const pz = (z / d) * CAP_WALK_R;
-      if (capAt(px, pz) > 0) considerInto(best, x, z, px, pz);
+      // The rim cell itself often rounds empty. onCapDisc looks one cell in.
+      if (onCapDisc(px, pz)) considerInto(best, x, z, px, pz);
     }
   }
   if (northRouteOpen() && z < NORTH_JOIN_Z + 0.8) {

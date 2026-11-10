@@ -76,12 +76,12 @@ export const PATHS: Array<{ pts: Array<[number, number, number]>; samples: numbe
   { pts: [at(34, -8), at(44, -9), at(54, -10)], samples: 14, walk: 1.0, glow: 0.2 },
 ];
 
-export function projectOut(x: number, z: number, vx: number, vz: number) {
+export function projectOut(x: number, z: number, vx: number, vz: number, ox = x, oz = z) {
   if (Math.hypot(x, z) < 1e-3 && !onObservationFloor(x, z)) {
     x = 0;
     z = CEN_BLOCK;
   }
-  const cen = constrainCenotaph(x, z, vx, vz, CEN_BLOCK);
+  const cen = constrainCenotaph(x, z, vx, vz, CEN_BLOCK, ox, oz);
   x = cen.x;
   z = cen.z;
   vx = cen.vx;
