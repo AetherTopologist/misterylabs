@@ -27,8 +27,18 @@ import { monumentCapActive } from "./monument-cap";
  * The exterior ring, when it is open, continues past that porch.
  */
 
-/** Where the northern corridor leaves the cap disc. */
+/** Where the northern corridor leaves the cap disc on centerline. */
 export const NORTH_JOIN_Z = -19.45;
+/**
+ * South edge of the walkable opening. The floor tongue is flat to
+ * z = -20.7 across the stair, but cap collision is a circle of radius
+ * 19.5. That circle reaches the join only for |x| < 1.4. At the full
+ * hall half-width, 6.05, the circle is already gone by z = -18.54.
+ * The mouth starts at -18.35 so the opening overlaps the circle:
+ * r(6.05, -18.35) = 19.32. An off-center step is then still inside
+ * the mouth instead of being pushed back onto the rim.
+ */
+export const NORTH_MOUTH_Z = -18.35;
 /** Last verified standing on the outer landing. */
 export const NORTH_END_Z = -96.2;
 /** Cap surface along the northern tongue, before the step. */
@@ -106,7 +116,7 @@ export function northCameraHalf(z: number) {
 
 export function inNorthMouth(x: number, z: number, inset = 0) {
   if (!northRouteOpen()) return false;
-  if (z > NORTH_JOIN_Z || z < NORTH_END_Z) return false;
+  if (z > NORTH_MOUTH_Z || z < NORTH_END_Z) return false;
   const span = Math.max(0.45, northHalf(z) - inset);
   return Math.abs(x) <= span + 0.03;
 }

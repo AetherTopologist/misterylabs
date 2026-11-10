@@ -305,9 +305,11 @@ export function createWalker(scene: THREE.Scene): Walker {
         vx *= 1 - k;
         vz *= 1 - k;
       }
+      const ox = x;
+      const oz = z;
       x += vx * step;
       z += vz * step;
-      const solved = projectOut(x, z, vx, vz);
+      const solved = projectOut(x, z, vx, vz, ox, oz);
       const kept = keepGarden(solved.x, solved.z, solved.vx, solved.vz);
       x = kept.x;
       z = kept.z;

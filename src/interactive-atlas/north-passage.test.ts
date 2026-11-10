@@ -2,11 +2,11 @@ import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 import { fallbackInsideMonument, placeCenotaphCamera, stairHeight } from "./ascent";
 import { WALK_BACK, WALK_LOOK } from "./framing";
-import { setMonumentCap, type CapGrid } from "./monument-cap";
+import { flatDiscCap, setMonumentCap, type CapGrid } from "./monument-cap";
 import { createWalker } from "./mister-why";
-import { NORTH_ARCH_SOFFIT, NORTH_END_Z, NORTH_HALL_Y, northHalf, northHeight } from "./north-passage";
+import { NORTH_ARCH_SOFFIT, NORTH_END_Z, NORTH_HALL_Y, inNorthMouth, northHalf, northHeight } from "./north-passage";
 import { TERRACE_OUT } from "./terrace";
-import { sampleGround } from "./terrain";
+import { sampleGround, setObservationDisc } from "./terrain";
 import { projectOut } from "./world";
 import { WALK_R } from "./dome-floor";
 
@@ -122,5 +122,84 @@ describe("northern passage", () => {
     expect(south.z).toBeGreaterThan(118);
     expect(walker.group.position.y).toBeLessThan(2);
     setMonumentCap(null);
+  });
+
+  it("keeps an off-center step on the floor tongue and walks back from the rim", () => {
+    // The cap is a circle. The floor tongue is not. At x = 6 the circle
+    // ends near z = -18.55, while the stair mouth used to open only at
+    // z = -19.45, so this step was pushed back onto the rim.
+    setObservationDisc(13.103);
+    setMonumentCap(flatDiscCap(13.103));
+    expect(inNorthMouth(6, -19.2)).toBe(true);
+    expect(inNorthMouth(-5.5, -18.5)).toBe(true);
+    expect(sampleGround(6, -19.2)).toBeCloseTo(13.103, 2);
+    expect(sampleGround(6, -20.8)).toBeCloseTo(12.937, 2);
+    const crossed = projectOut(6, -19.2, 0, -6, 6, -18.5);
+    expect(crossed.z).toBeLessThan(-19.05);
+    expect(Math.abs(crossed.x - 6)).toBeLessThan(0.25);
+    expect(crossed.z).toBeLessThan(-18.5);
+
+    const dt = 1 / 60;
+    const walker = createWalker(new THREE.Scene());
+    walker.restore({ x: 6, z: 2, heading: Math.PI, camYaw: 0, back: WALK_BACK, lookLift: WALK_LOOK });
+    let prev = walker.pose();
+    let prevY = walker.group.position.y;
+    let stall = 0;
+    for (let i = 0; i < 900; i++) {
+      walker.update(dt, i * dt, { x: 0, y: 1, orbiting: false }, true);
+      const pose = walker.pose();
+      const y = walker.group.position.y;
+      const step = Math.hypot(pose.x - prev.x, pose.z - prev.z);
+      expect(step).toBeLessThan(0.65);
+      expect(Math.abs(y - prevY)).toBeLessThan(0.4);
+      expect(y).toBeCloseTo(sampleGround(pose.x, pose.z), 2);
+      if (pose.z > -110) {
+        expect(pose.z).toBeLessThan(prev.z + 0.02);
+        if (pose.z > prev.z - 0.01) stall++;
+        else stall = 0;
+        expect(stall).toBeLessThan(20);
+      }
+      prev = pose;
+      prevY = y;
+    }
+    const north = walker.pose();
+    expect(north.z).toBeLessThan(-110);
+    expect(north.z).toBeGreaterThanOrEqual(-TERRACE_OUT - 0.2);
+    expect(walker.group.position.y).toBeCloseTo(NORTH_HALL_Y, 2);
+
+    walker.restore({
+      x: north.x,
+      z: north.z,
+      heading: 0,
+      camYaw: Math.PI,
+      back: WALK_BACK,
+      lookLift: WALK_LOOK,
+    });
+    let dome = false;
+    prev = walker.pose();
+    prevY = walker.group.position.y;
+    for (let i = 0; i < 900; i++) {
+      walker.update(dt, i * dt, { x: 0, y: 1, orbiting: false }, true);
+      const pose = walker.pose();
+      const y = walker.group.position.y;
+      expect(Math.hypot(pose.x - prev.x, pose.z - prev.z)).toBeLessThan(0.65);
+      expect(Math.abs(y - prevY)).toBeLessThan(0.4);
+      expect(y).toBeCloseTo(sampleGround(pose.x, pose.z), 2);
+      if (pose.z > -16 && pose.z < 2 && y > 12.9) dome = true;
+      prev = pose;
+      prevY = y;
+      if (dome && pose.z > 0) break;
+    }
+    expect(dome).toBe(true);
+    expect(walker.pose().z).toBeGreaterThan(-1);
+
+    setMonumentCap(null);
+    setObservationDisc(null);
+    const shut = createWalker(new THREE.Scene());
+    shut.restore({ x: 6, z: 2, heading: Math.PI, camYaw: 0, back: WALK_BACK, lookLift: WALK_LOOK });
+    for (let i = 0; i < 240; i++) shut.update(dt, i * dt, { x: 0, y: 1, orbiting: false }, true);
+    expect(shut.pose().z).toBeGreaterThanOrEqual(-WALK_R - 0.05);
+    expect(inNorthMouth(0, -28)).toBe(false);
+    expect(sampleGround(0, -28)).toBe(0);
   });
 });
