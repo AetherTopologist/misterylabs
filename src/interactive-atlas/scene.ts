@@ -23,6 +23,7 @@ import { WALK_BACK, WALK_LOOK } from "./framing";
 import { createWalker } from "./mister-why";
 import { captureAtlasResume, takeAtlasResume } from "./resume";
 import { GROUND_R, LAYOUT, PATHS, PLACES } from "./world";
+import { setObservationDisc } from "./terrain";
 
 // Forest links are a future horizontal layer. They are not provenance,
 // and they are never drawn with the atlas walkways or roots.
@@ -1472,13 +1473,14 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       cenotaph.apply(variant);
     },
     setGlb: async (glb: CenotaphGlb) => {
-      if (glb !== "production" && glb !== "full" && glb !== "clean") return;
+      if (glb !== "production" && glb !== "floor") return;
       const mine = ++glbToken;
       const pose = walking ? walker.snapshot() : null;
       const view = walker.view;
       const reg = await cenotaph.setGlb(glb);
       if (mine !== glbToken || cenotaph.glb !== glb) return;
-      showProceduralFloor(!(glb === "full" || (glb === "clean" && reg.cap)));
+      setObservationDisc(reg.discY);
+      showProceduralFloor(reg.discY == null);
       publishFit(reg);
       if (pose && walking) {
         const moved = fallbackInsideMonument(pose.x, pose.z);

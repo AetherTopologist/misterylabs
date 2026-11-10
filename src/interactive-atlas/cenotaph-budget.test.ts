@@ -77,7 +77,7 @@ describe("cenotaph diagnostics report", () => {
   it("does not claim a shader log it does not have", () => {
     patchDiagnostics({
       production: "loaded",
-      full: "idle",
+      floor: "idle",
       shaderLog: "unavailable",
       tier: "budget",
       activeRealLights: 27,
@@ -90,7 +90,7 @@ describe("cenotaph diagnostics report", () => {
     expect(report).toContain("device: TestPhone");
     expect(report).toContain("shaderLog: unavailable");
     expect(report).toContain("production: loaded");
-    expect(report).toContain("full: idle");
+    expect(report).toContain("floor: idle");
     expect(report).toContain("maxFragmentUniforms: 224");
     expect(getDiagnostics().shaderLog).toBe("unavailable");
     expect(report).not.toContain("shader ready");

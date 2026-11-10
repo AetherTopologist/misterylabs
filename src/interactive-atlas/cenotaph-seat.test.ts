@@ -5,17 +5,16 @@ import fs from "node:fs";
 import zlib from "node:zlib";
 import * as THREE from "three";
 import { afterEach, describe, expect, it } from "vitest";
-import { constrainCenotaph, inStairMouth, stairHeight } from "./ascent";
-import { CAP_Y, TREAD_Y, capTriangles, seatMonument, surveyCap } from "./cenotaph-seat";
-import { CAP_WALK_R } from "./monument-cap";
+import { constrainCenotaph, inStairMouth } from "./ascent";
+import { CAP_Y, TREAD_Y, seatMonument, surveyCap } from "./cenotaph-seat";
+import { CAP_WALK_R, monumentCapActive } from "./monument-cap";
 import { createWalker } from "./mister-why";
-import { sampleGround, setMonumentCap } from "./terrain";
+import { sampleGround, setMonumentCap, setObservationDisc } from "./terrain";
 import { WALK_BACK, WALK_LOOK } from "./framing";
 import { WALK_R } from "./dome-floor";
 
 const PRODUCTION = new URL("./cenotaph.glb", import.meta.url);
-const FULL = new URL("./Cenotaph_FullRes_PPLremovedOnly.glb", import.meta.url);
-const CLEAN = new URL("./Cenotaph_Clean_v01.glb", import.meta.url);
+const FLOOR = new URL("./cenotaph-production-floor.glb", import.meta.url);
 
 const COMPS: Record<string, number> = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 };
 
@@ -136,6 +135,7 @@ function hitY(holder: THREE.Object3D, x: number, y: number, z: number, dir: numb
 
 afterEach(() => {
   setMonumentCap(null);
+  setObservationDisc(null);
 });
 
 describe("cenotaph seating adapter", () => {
@@ -241,111 +241,50 @@ describe("cenotaph seating adapter", () => {
     expect(seat.rootPosition.y).toBeCloseTo(-1, 5);
   });
 
-  it("seats both Cenotaph files together and keeps the 13.103 cap visible", () => {
+  it("seats Production + Floor in the same frame without opening the north route", () => {
     const production = parseGlb(PRODUCTION);
-    const full = parseGlb(FULL);
+    const floor = parseGlb(FLOOR);
     const prodTris = triangles(production.root);
-    const fullTris = triangles(full.root);
+    const floorTris = triangles(floor.root);
     expect(prodTris.count).toBe(59506);
     expect(prodTris.meshes).toBe(221);
-    expect(fullTris.count).toBe(82280);
-    expect(fullTris.meshes).toBe(6);
+    expect(floorTris.count).toBe(59572);
+    expect(floorTris.meshes).toBe(6);
     expect(production.gzip).toBeLessThan(950_000);
-    expect(full.gzip).toBeGreaterThan(1_200_000);
 
-    const fileCaps = capTriangles(full.root);
     const seatedProd = seatWorld(production.root);
-    const seatedFull = seatWorld(full.root);
-    for (const seated of [seatedProd, seatedFull]) {
-      expect(seated.seat.holderY).toBeGreaterThan(55);
-      expect(seated.seat.holderY).toBeLessThan(66);
-      expect(Math.abs(seated.seat.holderY - 15.04)).toBeGreaterThan(40);
-      expect(hitY(seated.holder, 0, 2, 108, 1)).toBeCloseTo(6.275, 2);
-      expect(hitY(seated.holder, 0, 10, 21, 1)).toBeCloseTo(TREAD_Y, 2);
-    }
+    const seatedFloor = seatWorld(floor.root);
     expect(seatedProd.seat.namedShell).toBe(true);
-    expect(seatedFull.seat.namedShell).toBe(false);
-    expect(Math.abs(seatedProd.seat.holderY - seatedFull.seat.holderY)).toBeLessThan(0.02);
+    expect(seatedFloor.seat.namedShell).toBe(false);
+    expect(seatedFloor.seat.fit).not.toBeNull();
+    expect(Math.abs(seatedProd.seat.holderY - seatedFloor.seat.holderY)).toBeLessThan(0.02);
+    expect(Math.abs(seatedProd.seat.holderY - 15.04)).toBeGreaterThan(40);
+    const prodBox = new THREE.Box3().setFromObject(seatedProd.holder);
+    const floorBox = new THREE.Box3().setFromObject(seatedFloor.holder);
+    expect(floorBox.min.x).toBeCloseTo(prodBox.min.x, 1);
+    expect(floorBox.max.x).toBeCloseTo(prodBox.max.x, 1);
+    expect(floorBox.min.z).toBeCloseTo(prodBox.min.z, 1);
+    expect(floorBox.max.z).toBeCloseTo(prodBox.max.z, 1);
+    expect(floorBox.max.y).toBeCloseTo(prodBox.max.y, 1);
+    expect(floorBox.min.y).toBeCloseTo(0, 2);
+    expect(hitY(seatedFloor.holder, 0, 2, 108, 1)).toBeCloseTo(6.275, 2);
+    expect(hitY(seatedFloor.holder, 0, 10, 21, 1)).toBeCloseTo(TREAD_Y, 2);
+    expect(hitY(seatedFloor.holder, 0, 20, 0, -1)).toBeCloseTo(CAP_Y, 2);
 
-    const prodCaps = capTriangles(seatedProd.holder);
-    const fullCaps = capTriangles(seatedFull.holder);
-    expect(prodCaps.triangles).toBe(0);
-    expect(fileCaps.triangles).toBe(300);
-    expect(fullCaps.triangles).toBe(300);
-    expect(fullCaps.interiorVertices).toBe(0);
-    expect(fullCaps.centralCentroids).toBe(76);
-    const prodGrid = surveyCap(seatedProd.holder);
-    const fullGrid = surveyCap(seatedFull.holder);
-    const nearCap = (grid: { heights: Float32Array }) => {
-      let n = 0;
-      for (const y of grid.heights) if (Number.isFinite(y) && Math.abs(y - CAP_Y) < 0.05) n++;
-      return n;
-    };
-    expect(prodGrid.cells).toBe(0);
-    expect(fullGrid.cells).toBeGreaterThan(100);
-    expect(nearCap(fullGrid)).toBe(fullGrid.cells);
-    expect(fullGrid.yMin).toBeGreaterThan(13.05);
-    expect(fullGrid.yMax).toBeLessThan(13.16);
-    expect(fullGrid.yMin).toBeCloseTo(CAP_Y, 2);
-
-    setMonumentCap(null);
-    expect(sampleGround(0, 8)).toBeCloseTo(stairHeight(0, 8), 5);
-    setMonumentCap(fullGrid);
-    expect(sampleGround(0, 8)).toBeCloseTo(CAP_Y, 2);
-    expect(sampleGround(16, 0)).toBeCloseTo(CAP_Y, 2);
-    expect(sampleGround(0, -16)).toBeCloseTo(CAP_Y, 2);
-    expect(sampleGround(0, 18)).toBeCloseTo(CAP_Y, 2);
-    expect(inStairMouth(16, 0)).toBe(true);
-    expect(inStairMouth(0, -16)).toBe(true);
-    expect(inStairMouth(0, -28)).toBe(true);
-    expect(sampleGround(0, -28)).toBeCloseTo(10.938, 2);
-    expect(sampleGround(0, 60)).toBeCloseTo(6.275, 2);
-    expect(sampleGround(0, 108)).toBeCloseTo(6.275, 2);
-    expect(sampleGround(0, 21)).toBeCloseTo(TREAD_Y, 2);
-    const rim = constrainCenotaph(22, -4, 1, 0);
-    expect(Math.hypot(rim.x, rim.z)).toBeLessThanOrEqual(CAP_WALK_R + 0.05);
-    expect(Math.hypot(rim.x, rim.z)).toBeGreaterThan(18);
-    expect(inStairMouth(rim.x, rim.z)).toBe(true);
-    setMonumentCap(null);
-    expect(sampleGround(0, 8)).toBeCloseTo(TREAD_Y, 5);
-    expect(sampleGround(16, 0)).toBe(0);
-    expect(sampleGround(0, -28)).toBe(0);
-    expect(inStairMouth(16, 0)).toBe(false);
-    expect(inStairMouth(0, -28)).toBe(false);
-    expect(production.gzip).toBeLessThan(full.gzip);
-  }, 60000);
-
-  it("seats Clean v01 in the same frame and walks its downward cap", () => {
-    const clean = parseGlb(CLEAN);
-    const full = parseGlb(FULL);
-    const cleanTris = triangles(clean.root);
-    expect(cleanTris.count).toBe(41375);
-    expect(cleanTris.meshes).toBe(4);
-    expect(clean.bytes).toBeLessThan(2_000_000);
-
-    const seatedClean = seatWorld(clean.root);
-    const seatedFull = seatWorld(full.root);
-    expect(seatedClean.seat.fit).toBeNull();
-    expect(seatedClean.seat.holderY).toBe(0);
-    const cleanBox = new THREE.Box3().setFromObject(seatedClean.holder);
-    const fullBox = new THREE.Box3().setFromObject(seatedFull.holder);
-    expect(cleanBox.min.x).toBeCloseTo(fullBox.min.x, 1);
-    expect(cleanBox.max.x).toBeCloseTo(fullBox.max.x, 1);
-    expect(cleanBox.min.z).toBeCloseTo(fullBox.min.z, 1);
-    expect(cleanBox.max.z).toBeCloseTo(fullBox.max.z, 1);
-    expect(cleanBox.max.y).toBeCloseTo(fullBox.max.y, 1);
-    expect(hitY(seatedClean.holder, 0, 2, 108, 1)).toBeCloseTo(6.275, 2);
-    expect(hitY(seatedClean.holder, 0, 10, 21, 1)).toBeCloseTo(TREAD_Y, 2);
-
-    expect(surveyCap(seatedClean.holder).cells).toBe(0);
-    const grid = surveyCap(seatedClean.holder, 0.5, true);
+    expect(surveyCap(seatedFloor.holder).cells).toBe(0);
+    const grid = surveyCap(seatedFloor.holder, 0.5, true);
     expect(grid.cells).toBeGreaterThan(100);
     expect(grid.yMin).toBeCloseTo(CAP_Y, 2);
     expect(grid.yMax).toBeCloseTo(CAP_Y, 2);
-    setMonumentCap(grid);
+    setObservationDisc((grid.yMin + grid.yMax) / 2);
+    expect(monumentCapActive()).toBe(false);
     expect(sampleGround(0, 8)).toBeCloseTo(CAP_Y, 2);
+    expect(sampleGround(0, 16)).toBeCloseTo(CAP_Y, 2);
+    expect(sampleGround(0, 21)).toBeCloseTo(TREAD_Y, 2);
     expect(sampleGround(0, 60)).toBeCloseTo(6.275, 2);
-    expect(sampleGround(0, -28)).toBeCloseTo(10.938, 2);
-    setMonumentCap(null);
+    expect(sampleGround(0, -28)).toBe(0);
+    expect(inStairMouth(0, -28)).toBe(false);
+    setObservationDisc(null);
+    expect(sampleGround(0, 8)).toBeCloseTo(TREAD_Y, 2);
   }, 60000);
 });

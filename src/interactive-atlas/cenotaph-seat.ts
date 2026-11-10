@@ -168,8 +168,8 @@ export function seatMonument(root: THREE.Object3D): MonumentSeat {
 }
 
 /** Up-facing mesh of the flat cap. Not a ceiling, and not the historic ramp.
- * Clean v01 kept only the downward skin of that cap, so that file may pass
- * `allowDownwardCap`. Production and Full Resolution do not. */
+ * Production + Floor kept only the downward skin of the observation disc,
+ * so that file may pass `allowDownwardCap`. Production Original does not. */
 export function surveyCap(root: THREE.Object3D, step = 0.5, allowDownwardCap = false): CapGrid {
   root.updateMatrixWorld(true);
   const x0 = -22;
@@ -225,7 +225,7 @@ export function surveyCap(root: THREE.Object3D, step = 0.5, allowDownwardCap = f
       const cz = (a.z + b.z + c.z) / 3;
       const base = stairHeight(cx, cz);
       const flatCap = Math.abs(cy - CAP_Y) < 0.012 && Math.hypot(cx, cz) <= 21.5;
-      // A downward face is only the cleaned cap, never a stair soffit.
+      // A downward face is only the observation disc, never a stair soffit.
       if (downwardCap && !flatCap) continue;
       // Stair lips a few centimeters off the piecewise profile are not the cap.
       const overTread =

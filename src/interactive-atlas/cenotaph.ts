@@ -1,7 +1,6 @@
 import * as THREE from "three";
-import { seatMonument, surveyCap, type MonumentSeat } from "./cenotaph-seat";
+import { seatMonument, surveyCap, CAP_Y, type MonumentSeat } from "./cenotaph-seat";
 import { setMonumentCap } from "./terrain";
-import { smoothFullResolutionNormals } from "./stone-continuity";
 import { buildCenotaphLamps } from "./cenotaph-lamps";
 import {
   allArchLamps,
@@ -18,12 +17,11 @@ import {
 import { getDiagnostics, patchDiagnostics, type GlbPhase, type LightTier } from "./cenotaph-diagnostics";
 
 export type CenotaphVariant = "a" | "b" | "c" | "m";
-export type CenotaphGlb = "production" | "full" | "clean";
+export type CenotaphGlb = "production" | "floor";
 
 const GLB_URL: Record<CenotaphGlb, string> = {
   production: new URL("./cenotaph.glb", import.meta.url).href,
-  full: new URL("./Cenotaph_FullRes_PPLremovedOnly.glb", import.meta.url).href,
-  clean: new URL("./Cenotaph_Clean_v01.glb", import.meta.url).href,
+  floor: new URL("./cenotaph-production-floor.glb", import.meta.url).href,
 };
 
 type Shared = {
@@ -387,10 +385,10 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
 
   let current: CenotaphGlb = "production";
   let token = 0;
-  let seated: { center: THREE.Vector3; radius: number; outer: number; cap: boolean } | null = null;
-  let pending: Promise<{ center: THREE.Vector3; radius: number; outer: number; cap: boolean }> | null = null;
+  let seated: { center: THREE.Vector3; radius: number; outer: number; discY: number | null } | null = null;
+  let pending: Promise<{ center: THREE.Vector3; radius: number; outer: number; discY: number | null }> | null = null;
   let pendingWhich: CenotaphGlb | null = null;
-  let hasCap = false;
+  let discY: number | null = null;
 
   function writeSlots(cam: THREE.Vector3) {
     const picked = selectArchSlots(archLamps, cam);
@@ -437,7 +435,7 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
   }
 
   function setGlb(which: CenotaphGlb) {
-    if (which !== "production" && which !== "full" && which !== "clean") {
+    if (which !== "production" && which !== "floor") {
       return Promise.resolve(fallbackSeat());
     }
     if (pending && pendingWhich === which) return pending;
@@ -456,25 +454,21 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
   const ready = setGlb("production").catch((err: unknown) => {
     const message = err instanceof Error ? err.message : String(err);
     patchDiagnostics({ initError: message });
-    return seated ?? { center: new THREE.Vector3(0, holder.position.y, 0), radius: cenR, outer: cenR, cap: hasCap };
+    return seated ?? { center: new THREE.Vector3(0, holder.position.y, 0), radius: cenR, outer: cenR, discY };
   });
 
   function fallbackSeat() {
-    return seated ?? { center: new THREE.Vector3(0, holder.position.y, 0), radius: cenR, outer: cenR, cap: hasCap };
+    return seated ?? { center: new THREE.Vector3(0, holder.position.y, 0), radius: cenR, outer: cenR, discY };
   }
 
   function glbNow(which: CenotaphGlb): GlbPhase {
     const d = getDiagnostics();
-    if (which === "full") return d.full;
-    if (which === "clean") return d.clean;
-    return d.production;
+    return which === "floor" ? d.floor : d.production;
   }
 
   function markGlb(which: CenotaphGlb, phase: GlbPhase, error: string | null, triangles?: number) {
-    if (which === "full") {
-      patchDiagnostics({ full: phase, fullError: error, ...(triangles != null ? { fullTriangles: triangles } : {}) });
-    } else if (which === "clean") {
-      patchDiagnostics({ clean: phase, cleanError: error, ...(triangles != null ? { cleanTriangles: triangles } : {}) });
+    if (which === "floor") {
+      patchDiagnostics({ floor: phase, floorError: error, ...(triangles != null ? { floorTriangles: triangles } : {}) });
     } else {
       patchDiagnostics({
         production: phase,
@@ -532,33 +526,26 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
     holder.updateMatrixWorld(true);
     shared.uShellC.value.set(0, holder.position.y, 0);
     shared.uShellR.value = seat.fit && seat.fit.r > 1 ? seat.fit.r : 0;
-    // Full resolution is a doubled skin. Front-side and the passage cylinder
-    // exist for that file only. Clean v01 dropped the opposite faces. Its
-    // tunnel normals are already continuous, so the cylinder stays off.
-    // Floors and the crown are the downward skin: light the visible side.
-    shared.uContinuity.value = which === "full" && shared.uShellR.value > 1 ? 1 : 0;
-    shared.uBackFill.value = which === "clean" ? 0 : 1;
-    const side = which === "full" ? THREE.FrontSide : THREE.DoubleSide;
-    archMat.side = side;
-    neutral.side = side;
+    // Both files use the production stone path. The cylinder, the shell rewrite,
+    // and the back-face fill stay off.
+    shared.uContinuity.value = 0;
+    shared.uBackFill.value = 1;
+    archMat.side = THREE.DoubleSide;
+    neutral.side = THREE.DoubleSide;
     const shell = new Set<THREE.Object3D>(seat.shellMeshes);
     shellSet = shell;
-    const sources: { geometry: THREE.BufferGeometry; matrixWorld: THREE.Matrix4 }[] = [];
     let triangles = 0;
     root.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
       if (!mesh.isMesh) return;
       const geo = mesh.geometry;
       triangles += geo.index ? geo.index.count / 3 : geo.getAttribute("position").count / 3;
-      if (which === "full") sources.push({ geometry: geo, matrixWorld: mesh.matrixWorld });
-      else if (!geo.getAttribute("normal")) geo.computeVertexNormals();
+      if (!geo.getAttribute("normal")) geo.computeVertexNormals();
       mesh.material = lightTier === "neutral" || diagnostic ? neutral : shell.has(mesh) ? sphereMat : archMat;
       mesh.castShadow = false;
       mesh.receiveShadow = false;
     });
     markGlb(which, "loaded", null, triangles);
-    // Cross-primitive weld in seated meters. Production and Clean v01 do not enter.
-    smoothFullResolutionNormals(sources, which === "full" ? "full" : "production");
     const ray = new THREE.Raycaster();
     const down = new THREE.Vector3(0, -1, 0);
     for (const figure of people) {
@@ -568,9 +555,13 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
       const hit = ray.intersectObject(holder, true).find((h) => h.point.y >= 0 && h.point.y < 48);
       if (hit) figure.position.set(hit.point.x, hit.point.y, hit.point.z);
     }
-    const cap = which === "full" ? surveyCap(root) : which === "clean" ? surveyCap(root, 0.5, true) : null;
-    hasCap = Boolean(cap && cap.cells > 0);
-    setMonumentCap(hasCap ? cap : null);
+    setMonumentCap(null);
+    discY = null;
+    if (which === "floor") {
+      const grid = surveyCap(root, 0.5, true);
+      const mid = (grid.yMin + grid.yMax) / 2;
+      if (grid.cells > 50 && Math.abs(mid - CAP_Y) < 0.02) discY = mid;
+    }
   }
 
   function measure(seat: MonumentSeat) {
@@ -582,7 +573,7 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
       Math.hypot(box.max.x, box.max.z),
     );
     const radius = seat.fit && seat.fit.r > 1 ? seat.fit.r : cenR;
-    return { center: new THREE.Vector3(0, holder.position.y, 0), radius, outer, cap: hasCap };
+    return { center: new THREE.Vector3(0, holder.position.y, 0), radius, outer, discY };
   }
 
   return {
