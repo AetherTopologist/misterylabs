@@ -321,7 +321,7 @@ export default function InteractiveAtlas() {
             </div>
             <p className="ia-dev-note">
               {glb === "floor"
-                ? "Same Production mesh. The observation disc is in the file at 13.103 m and replaces the procedural slab. The south stair stays at 12.937 m."
+                ? "Same Production mesh. The observation disc is in the file at 13.103 m and replaces the procedural slab. The measured north passage and exterior rim are walkable. The south stair stays at 12.937 m."
                 : "Known-good mesh. Observation floor at 12.937 m."}
             </p>
           </div>
