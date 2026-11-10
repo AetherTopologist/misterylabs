@@ -216,6 +216,41 @@ export function atCenotaphDoor(x: number, z: number) {
 
 type Move = { x: number; z: number; vx: number; vz: number };
 
+/**
+ * The integrated step left the northern opening. Ride the measured wall
+ * instead of jumping to the far side of the pinch: sideways motion this
+ * frame stays within the length of the step.
+ */
+function slideNorth(ox: number, oz: number, x: number, z: number, vx: number, vz: number): Move {
+  const seg = Math.hypot(x - ox, z - oz);
+  const budget = Math.max(seg, 1e-3);
+  const placed = (t: number) => {
+    const nz = oz + (z - oz) * t;
+    const half = Math.max(0.45, northHalf(nz));
+    const nx = ox + (x - ox) * t;
+    const cx = Math.max(-half, Math.min(half, nx));
+    return { cx, nz, half };
+  };
+  const legal = (t: number) => {
+    const p = placed(t);
+    return Math.abs(p.cx - ox) <= budget + 1e-6 && inStairMouth(p.cx, p.nz);
+  };
+  if (!legal(0)) return { x: ox, z: oz, vx: 0, vz: 0 };
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 14; i++) {
+    const mid = (lo + hi) / 2;
+    if (legal(mid)) lo = mid;
+    else hi = mid;
+  }
+  const p = placed(lo);
+  if (Math.abs(p.cx) >= p.half - 0.04) {
+    if (p.cx > 0 && vx > 0) vx = 0;
+    if (p.cx < 0 && vx < 0) vx = 0;
+  }
+  return { x: p.cx, z: p.nz, vx, vz };
+}
+
 function considerInto(
   best: { d: number; x: number; z: number },
   ox: number,
@@ -235,9 +270,21 @@ function considerInto(
  * Keep the circular Cenotaph exclusion, with the south route and the
  * observation floor cut out of it. A point already on that route is unchanged.
  */
-export function constrainCenotaph(x: number, z: number, vx: number, vz: number, block = 130): Move {
+export function constrainCenotaph(
+  x: number,
+  z: number,
+  vx: number,
+  vz: number,
+  block = 130,
+  ox = x,
+  oz = z,
+): Move {
   const radial = Math.hypot(x, z);
   if (radial >= block - 1e-4 || inStairMouth(x, z)) return { x, z, vx, vz };
+  // A step that was inside the northern opening and landed outside it
+  // has to stay on this frame's segment. The nearest-point snap jumps
+  // the throat and the outer arch.
+  if (inNorthMouth(ox, oz)) return slideNorth(ox, oz, x, z, vx, vz);
   const best = { d: Infinity, x, z };
   if (radial > 1e-4) considerInto(best, x, z, (x / radial) * block, (z / radial) * block);
   else considerInto(best, x, z, 0, block);
