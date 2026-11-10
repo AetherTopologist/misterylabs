@@ -33,6 +33,7 @@ import { EXHIBITS } from "./destinations";
 import InteractiveAtlas from "./InteractiveAtlas";
 import { FairMap } from "./walk-ui";
 import { PLACES } from "./world";
+import { getDiagnostics, patchDiagnostics, resetDiagnostics } from "./cenotaph-diagnostics";
 
 beforeAll(() => {
   HTMLCanvasElement.prototype.getContext = function (type: string) {
@@ -410,5 +411,38 @@ describe("cenotaph geometry selector", () => {
     expect(screen.getByText(/Production \+ Floor GLB:/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copy Diagnostics" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Budget" })).toBeInTheDocument();
+  });
+
+  it("refreshes tier, light count, and shader log without another click", async () => {
+    resetDiagnostics();
+    await mount();
+    const summary = screen.getByText("DEV · DIAGNOSTICS");
+    const panel = summary.closest("details") as HTMLDetailsElement;
+    panel.open = true;
+    await act(async () => {
+      patchDiagnostics({ tier: "budget", activeRealLights: 26, activeArchSlots: 8, shaderLog: "unavailable", tierNote: null });
+    });
+    expect(screen.getByText("Real lights: 26 · tier Budget · 8 slots")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Budget" })).toHaveAttribute("aria-pressed", "true");
+    await act(async () => {
+      patchDiagnostics({ tier: "emissive", activeRealLights: 29, activeArchSlots: 0 });
+    });
+    expect(screen.getByText("Real lights: 29 · tier Emissive")).toBeInTheDocument();
+    expect(screen.queryByText("Real lights: 26 · tier Budget · 8 slots")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Emissive" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Budget" })).toHaveAttribute("aria-pressed", "false");
+    await act(async () => {
+      patchDiagnostics({
+        tierNote: "Full lamps needs about 281 fragment vectors and this device has 256. Staying on the current tier so the monument stays visible.",
+      });
+    });
+    expect(screen.getByText(/Full lamps needs about 281 fragment vectors/)).toBeInTheDocument();
+    expect(screen.getByText("Shader log: unavailable")).toBeInTheDocument();
+    await act(async () => {
+      patchDiagnostics({ shaderLog: "link failed" });
+    });
+    expect(screen.getByText("Shader log: link failed")).toBeInTheDocument();
+    expect(getDiagnostics().tier).toBe("emissive");
+    resetDiagnostics();
   });
 });

@@ -210,8 +210,10 @@ export function writeArchSlots(lamps: ArchLamp[], presetSpot: number, presetColo
     _color.setHex(lamp.colorHex ?? presetColor);
     into.pos[i].set(lamp.x, lamp.y, lamp.z, lamp.distance);
     if (lamp.kind === "spot") {
-      _dir.set(lamp.tx - lamp.x, lamp.ty - lamp.y, lamp.tz - lamp.z);
-      if (_dir.lengthSq() < 1e-8) _dir.set(0, 1, 0);
+      // Three.js stores spot direction as light position minus target.
+      // The fragment then dots that with the surface-to-light vector.
+      _dir.set(lamp.x - lamp.tx, lamp.y - lamp.ty, lamp.z - lamp.tz);
+      if (_dir.lengthSq() < 1e-8) _dir.set(0, -1, 0);
       else _dir.normalize();
       const cone = Math.cos(lamp.angle);
       const pen = Math.cos(lamp.angle * (1 - lamp.penumbra));
@@ -228,16 +230,81 @@ export function clearArchSlots(into: SlotBlock) {
   writeArchSlots([], 0, 0, into);
 }
 
+export function archLightVisible(name: string, tier: LightTier) {
+  if (tier === "pr38") return true;
+  if (tier === "emissive") return EMISSIVE_REAL.has(name);
+  return false;
+}
+
 export function applyArchTier(tier: LightTier) {
-  for (const light of registry) {
-    if (tier === "pr38") light.visible = true;
-    else if (tier === "emissive") light.visible = EMISSIVE_REAL.has(light.name);
-    else light.visible = false;
-  }
+  for (const light of registry) light.visible = archLightVisible(light.name, tier);
 }
 
 export function visibleArchLights() {
   return registry.filter((light) => light.visible).length;
+}
+
+/**
+ * Distance term shared with the stone shader's arch slots.
+ * Candela in, physical decay out: 1/d^2 times the Frostbite window Three.js uses.
+ * The 0.05 m floor keeps a near-field product inside mediump (65504).
+ */
+export function physicalDistanceAtten(dist: number, cutoff: number) {
+  if (!(cutoff > 0) || !(dist < cutoff)) return 0;
+  const d2 = Math.max(dist * dist, 0.05);
+  const ratio = dist / cutoff;
+  const r2 = ratio * ratio;
+  const window = Math.min(1, Math.max(0, 1 - r2 * r2));
+  return Math.min(1 / d2, 20) * window * window;
+}
+
+export type LightCensus = {
+  point: number;
+  spot: number;
+  directional: number;
+  hemisphere: number;
+  ambient: number;
+};
+
+/**
+ * Fragment-uniform vectors a lit MeshStandardMaterial pays for.
+ * Light structs follow Three's packing (vec3 occupies a vec4; spot is padded up
+ * because ANGLE often does not pack the cone floats with the color).
+ * The stone shader always carries eight slots plus its own uniforms, on top of
+ * the stock material, so the reported device limit is not the whole budget.
+ * Headroom is the driver slop that put 55 lights over a 256-vector Adreno.
+ */
+const POINT_VECTORS = 3;
+const SPOT_VECTORS = 5;
+const DIRECTIONAL_VECTORS = 2;
+const HEMISPHERE_VECTORS = 3;
+const STONE_VECTORS = 32;
+const MATERIAL_VECTORS = 48;
+const UNIFORM_HEADROOM = 16;
+
+export function fragmentUniformVectors(census: LightCensus) {
+  return (
+    census.point * POINT_VECTORS +
+    census.spot * SPOT_VECTORS +
+    census.directional * DIRECTIONAL_VECTORS +
+    census.hemisphere * HEMISPHERE_VECTORS +
+    (census.ambient > 0 ? 1 : 0) +
+    STONE_VECTORS +
+    MATERIAL_VECTORS +
+    UNIFORM_HEADROOM
+  );
+}
+
+export function lightingTierFits(maxFragmentUniforms: number | null, census: LightCensus, label = "This lighting") {
+  const vectors = fragmentUniformVectors(census);
+  if (maxFragmentUniforms == null || vectors <= maxFragmentUniforms) {
+    return { ok: true, vectors, reason: null as string | null };
+  }
+  return {
+    ok: false,
+    vectors,
+    reason: `${label} needs about ${vectors} fragment vectors and this device has ${maxFragmentUniforms}. Staying on the current tier so the monument stays visible.`,
+  };
 }
 
 export function initialLightTier(): LightTier {

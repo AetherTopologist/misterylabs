@@ -345,6 +345,7 @@ export default function InteractiveAtlas() {
               Real lights: {diag.activeRealLights == null ? "unavailable" : diag.activeRealLights} · tier {tierLabel[diag.tier]}
               {diag.tier === "budget" ? ` · ${diag.activeArchSlots ?? 0} slots` : ""}
             </p>
+            {diag.tierNote ? <p className="ia-dev-note">{diag.tierNote}</p> : null}
             <p className="ia-dev-note">Shader log: {diag.shaderLog}</p>
             <p className="ia-dev-note">
               {diag.initError || diag.productionError || diag.floorError || "No initialization error."}

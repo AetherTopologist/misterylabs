@@ -49,7 +49,7 @@ function makeStone(octaves: number, shared: Shared, masonry: number, slots: Retu
     mat.polygonOffsetFactor = 1;
     mat.polygonOffsetUnits = 1;
   }
-  mat.customProgramCacheKey = () => `cenotaph-stone-v14-${octaves}`;
+  mat.customProgramCacheKey = () => `cenotaph-stone-v15-${octaves}`;
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uVariant = shared.uVariant;
     shader.uniforms.uDetail = shared.uDetail;
@@ -92,19 +92,33 @@ uniform vec4 uSlotPos[8];
 uniform vec4 uSlotColor[8];
 uniform vec4 uSlotAim[8];
 vec3 archSlot(vec4 pos, vec4 col, vec4 aim, vec3 wN) {
+  vec3 irradiance = vec3(0.0);
   float cutoff = pos.w;
-  if (cutoff <= 0.0) return vec3(0.0);
-  vec3 toLight = pos.xyz - vWorldP;
-  float dist = length(toLight);
-  vec3 ldir = toLight / max(dist, 1.0e-3);
-  float atten = clamp(1.0 - dist / cutoff, 0.0, 1.0);
-  atten *= atten;
-  if (col.w > 0.0) {
-    float ang = dot(ldir, normalize(aim.xyz));
-    atten *= smoothstep(col.w, aim.w, ang);
+  if (cutoff > 0.0) {
+    vec3 toLight = pos.xyz - vWorldP;
+    float dist = length(toLight);
+    vec3 ldir = toLight / max(dist, 1.0e-3);
+    float atten = 1.0;
+    float aimLen2 = dot(aim.xyz, aim.xyz);
+    if (col.w > 0.0 && aimLen2 > 1.0e-6) {
+      float ang = dot(ldir, aim.xyz * inversesqrt(aimLen2));
+      atten = smoothstep(col.w, aim.w, ang);
+    }
+    if (atten > 0.0) {
+      // Same decay as a Three.js physical light (decay 2, Frostbite window).
+      // Linear (1 - d/cutoff)^2 turned candela into a white sheet on the floor.
+      // d^2 is floored so a fragment on the fixture cannot overflow mediump.
+      float d2 = max(dist * dist, 0.05);
+      float falloff = min(1.0 / d2, 20.0);
+      float ratio = dist / cutoff;
+      float r2 = ratio * ratio;
+      float window = clamp(1.0 - r2 * r2, 0.0, 1.0);
+      falloff *= window * window;
+      float ndl = max(dot(wN, ldir), 0.0);
+      irradiance = col.rgb * (atten * falloff) * ndl;
+    }
   }
-  float ndl = max(dot(wN, ldir), 0.0);
-  return col.rgb * atten * ndl * RECIPROCAL_PI;
+  return irradiance * RECIPROCAL_PI;
 }
 float cHash(vec3 p){
   p = fract(p * 0.1031);

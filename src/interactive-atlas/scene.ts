@@ -7,8 +7,8 @@ import type { AtlasApi, AtlasUi, CenotaphGlb, CenotaphVariant, DestinationId, Ex
 import { COLLECTIONS, HIDDEN_DESTINATIONS } from "./destinations";
 import { buildCenotaph } from "./cenotaph";
 import { buildObservationFloor } from "./dome-floor";
-import { initialLightTier, type LightTier } from "./cenotaph-budget";
-import { patchDiagnostics } from "./cenotaph-diagnostics";
+import { archLightVisible, initialLightTier, lightingTierFits, type LightCensus, type LightTier } from "./cenotaph-budget";
+import { getDiagnostics, patchDiagnostics } from "./cenotaph-diagnostics";
 import { fallbackInsideMonument } from "./ascent";
 import { CAP_Y } from "./cenotaph-seat";
 import { CAP_WALK_R } from "./monument-cap";
@@ -265,15 +265,25 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   renderer.setPixelRatio(shotBuffer ? 1 : Math.min(window.devicePixelRatio || 1, coarse ? 1.15 : 1.5));
   const gl = renderer.getContext();
   const gpu = gl.getExtension("WEBGL_debug_renderer_info");
+  const fragmentUniformLimit = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS) as number;
+  let shaderFailed = false;
+  let restoreTier: LightTier | null = null;
+  const tierName: Record<LightTier, string> = {
+    pr38: "Full lamps",
+    budget: "Budget",
+    minimal: "Minimal",
+    emissive: "Emissive",
+    neutral: "Neutral",
+  };
   patchDiagnostics({
     webglVersion: gl instanceof WebGL2RenderingContext ? "WebGL 2" : "WebGL 1",
     renderer: String(gpu ? gl.getParameter(gpu.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)),
-    maxFragmentUniforms: gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS),
+    maxFragmentUniforms: fragmentUniformLimit,
     maxVertexUniforms: gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS),
     maxTextureUnits: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
     maxVaryingVectors: gl.getParameter(gl.MAX_VARYING_VECTORS),
     context: "active",
-    tier: initialLightTier(),
+    tier: "budget",
     shaderLog: "unavailable",
   });
   canvas.addEventListener("webglcontextlost", (event) => {
@@ -284,6 +294,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     patchDiagnostics({ context: "restored" });
   });
   renderer.debug.onShaderError = (glErr, program, vertexShader, fragmentShader) => {
+    shaderFailed = true;
     const log = [glErr.getProgramInfoLog(program), glErr.getShaderInfoLog(fragmentShader), glErr.getShaderInfoLog(vertexShader)]
       .map((part) => (part || "").trim())
       .filter(Boolean)
@@ -452,7 +463,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   scene.add(cenotaph.group);
   const observation = buildObservationFloor(cenotaph.masonry);
   scene.add(observation.group);
-  let lightTier: LightTier = initialLightTier();
+  let lightTier: LightTier = "budget";
   const countVisibleLights = () => {
     let count = 0;
     scene.traverse((obj) => {
@@ -461,12 +472,36 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     });
     return count;
   };
-  const publishTier = (tier: LightTier) => {
-    lightTier = tier;
-    cenotaph.setLightTier(tier);
-    cenotaph.noteRealLights(countVisibleLights());
+  const censusFor = (tier: LightTier): LightCensus => {
+    const census: LightCensus = { point: 0, spot: 0, directional: 0, hemisphere: 0, ambient: 0 };
+    scene.traverse((obj) => {
+      const light = obj as THREE.Light;
+      if (!light.isLight) return;
+      const arch = Boolean(light.userData.archLight);
+      const visible = arch ? archLightVisible(light.name, tier) : light.visible;
+      if (!visible) return;
+      if ((light as THREE.SpotLight).isSpotLight) census.spot += 1;
+      else if ((light as THREE.PointLight).isPointLight) census.point += 1;
+      else if ((light as THREE.DirectionalLight).isDirectionalLight) census.directional += 1;
+      else if ((light as THREE.HemisphereLight).isHemisphereLight) census.hemisphere += 1;
+      else if ((light as THREE.AmbientLight).isAmbientLight) census.ambient += 1;
+    });
+    return census;
   };
-  publishTier(lightTier);
+  const publishTier = (requested: LightTier) => {
+    const fit = lightingTierFits(fragmentUniformLimit, censusFor(requested), tierName[requested]);
+    if (!fit.ok) {
+      patchDiagnostics({ requestedTier: requested, tierNote: fit.reason });
+      return;
+    }
+    const previous = lightTier;
+    lightTier = requested;
+    restoreTier = previous === requested ? null : previous;
+    shaderFailed = false;
+    cenotaph.setLightTier(requested);
+    cenotaph.noteRealLights(countVisibleLights());
+    patchDiagnostics({ requestedTier: requested, tierNote: null, shaderLog: "unavailable" });
+  };
   const showProceduralFloor = (on: boolean) => {
     observation.group.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
@@ -1893,6 +1928,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     snapAnchor = resumed.selected && resumed.selected !== "cenotaph" ? resumed.selected : null;
     placeCamera();
   }
+  publishTier(initialLightTier());
   cenotaph.noteRealLights(countVisibleLights());
   renderer.render(scene, camera);
 
@@ -1964,6 +2000,24 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       }
     } else {
       renderer.render(scene, camera);
+    }
+
+    if (shaderFailed && restoreTier && restoreTier !== lightTier) {
+      const back = restoreTier;
+      const failed = lightTier;
+      restoreTier = null;
+      shaderFailed = false;
+      lightTier = back;
+      cenotaph.setLightTier(back);
+      cenotaph.noteRealLights(countVisibleLights());
+      const log = getDiagnostics().shaderLog;
+      patchDiagnostics({
+        requestedTier: failed,
+        tierNote: `${tierName[failed]} failed to compile. Restored ${tierName[back]} so the monument stays visible.`,
+        shaderLog: log,
+      });
+    } else if (!shaderFailed) {
+      restoreTier = null;
     }
 
     if (gradeTick === 1 && !shotBuffer) enableGrade();
