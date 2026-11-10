@@ -12,7 +12,8 @@ import {
   writeArchSlots,
   makeSlotBlock,
 } from "./cenotaph-budget";
-import { lightTierFromSearch, diagnosticsReport, patchDiagnostics, getDiagnostics } from "./cenotaph-diagnostics";
+import { lightTierFromSearch, diagnosticsReport, patchDiagnostics, getDiagnostics, resetDiagnostics, subscribeDiagnostics } from "./cenotaph-diagnostics";
+import { fragmentUniformVectors, lightingTierFits, physicalDistanceAtten, type LightCensus } from "./cenotaph-budget";
 
 afterEach(() => resetArchRegistry());
 
@@ -51,6 +52,13 @@ describe("cenotaph light budget", () => {
     writeArchSlots([pool!], 2200, 0xffffff, block);
     expect(block.color[0].w).toBeCloseTo(Math.cos(1.15), 5);
     expect(block.pos[1].w).toBe(0);
+    const vault = lamps.find((lamp) => lamp.name === "observation-vault");
+    expect(vault).toBeTruthy();
+    writeArchSlots([vault!], 2200, 0xfff1d6, block);
+    expect(block.aim[0].y).toBeLessThan(0);
+    const floorToLight = new THREE.Vector3(vault!.x, vault!.y - 13.1, vault!.z).normalize();
+    const aim = new THREE.Vector3(block.aim[0].x, block.aim[0].y, block.aim[0].z);
+    expect(floorToLight.dot(aim)).toBeLessThan(Math.cos(vault!.angle));
   });
 
   it("hides architectural three.js lights on the budget tier and keeps three on emissive", () => {
@@ -71,9 +79,76 @@ describe("cenotaph light budget", () => {
     expect(lightTierFromSearch("?lights=pr38")).toBe("pr38");
     expect(lightTierFromSearch("")).toBe("budget");
   });
+
+  it("keeps hall and vault energy on the physical curve instead of a linear sheet", () => {
+    const lamps = allArchLamps();
+    const hall = lamps.find((lamp) => lamp.name === "south-hall");
+    expect(hall).toBeTruthy();
+    const dist = hall!.y - 6.275;
+    const cd = 2200 * hall!.gain;
+    const physical = (cd * physicalDistanceAtten(dist, hall!.distance)) / Math.PI;
+    const linear = (cd * (1 - dist / hall!.distance) ** 2) / Math.PI;
+    expect(physical).toBeGreaterThan(1);
+    expect(physical).toBeLessThan(12);
+    expect(linear).toBeGreaterThan(80);
+    expect(physical).toBeLessThan(linear / 8);
+    const vault = lamps.find((lamp) => lamp.name === "observation-vault");
+    expect(vault).toBeTruthy();
+    const vaultPhysical = ((vault!.absolute ?? 0) * physicalDistanceAtten(8, vault!.distance)) / Math.PI;
+    const vaultLinear = ((vault!.absolute ?? 0) * (1 - 8 / vault!.distance) ** 2) / Math.PI;
+    expect(vaultPhysical).toBeLessThan(vaultLinear / 8);
+  });
+});
+
+const PHONE_LIMIT = 256;
+const FULL_LAMPS: LightCensus = { point: 39, spot: 12, directional: 2, hemisphere: 1, ambient: 1 };
+const BUDGET_LAMPS: LightCensus = { point: 22, spot: 0, directional: 2, hemisphere: 1, ambient: 1 };
+const EMISSIVE_LAMPS: LightCensus = { point: 23, spot: 2, directional: 2, hemisphere: 1, ambient: 1 };
+
+function tierAfter(active: "budget" | "emissive" | "pr38", requested: "budget" | "emissive" | "pr38", limit: number) {
+  const census = requested === "pr38" ? FULL_LAMPS : requested === "emissive" ? EMISSIVE_LAMPS : BUDGET_LAMPS;
+  const fit = lightingTierFits(limit, census, "Full lamps");
+  return fit.ok ? requested : active;
+}
+
+describe("full lamps capability", () => {
+  it("refuses the Adreno 750 uniform budget and still allows a desktop limit", () => {
+    expect(fragmentUniformVectors(FULL_LAMPS)).toBeGreaterThan(PHONE_LIMIT);
+    expect(fragmentUniformVectors(BUDGET_LAMPS)).toBeLessThanOrEqual(PHONE_LIMIT);
+    expect(fragmentUniformVectors(EMISSIVE_LAMPS)).toBeLessThanOrEqual(PHONE_LIMIT);
+    const refused = lightingTierFits(PHONE_LIMIT, FULL_LAMPS, "Full lamps");
+    expect(refused.ok).toBe(false);
+    expect(refused.reason).toContain("256");
+    expect(refused.reason).toContain("fragment vectors");
+    expect(refused.reason).not.toContain("shader");
+    expect(lightingTierFits(1024, FULL_LAMPS).ok).toBe(true);
+    expect(lightingTierFits(4096, FULL_LAMPS).ok).toBe(true);
+    expect(lightingTierFits(PHONE_LIMIT, BUDGET_LAMPS).ok).toBe(true);
+    expect(lightingTierFits(PHONE_LIMIT, EMISSIVE_LAMPS).ok).toBe(true);
+  });
+
+  it("keeps the working tier when full lamps is requested again", () => {
+    expect(tierAfter("budget", "pr38", PHONE_LIMIT)).toBe("budget");
+    expect(tierAfter("emissive", "pr38", PHONE_LIMIT)).toBe("emissive");
+    expect(tierAfter("emissive", "budget", PHONE_LIMIT)).toBe("budget");
+    expect(tierAfter("budget", "emissive", PHONE_LIMIT)).toBe("emissive");
+    let active: "budget" | "emissive" | "pr38" = "budget";
+    active = tierAfter(active, "pr38", PHONE_LIMIT);
+    active = tierAfter(active, "emissive", PHONE_LIMIT);
+    active = tierAfter(active, "pr38", PHONE_LIMIT);
+    expect(active).toBe("emissive");
+    active = tierAfter("budget", "pr38", 4096);
+    expect(active).toBe("pr38");
+    active = tierAfter(active, "emissive", 4096);
+    expect(active).toBe("emissive");
+    active = tierAfter(active, "pr38", 4096);
+    expect(active).toBe("pr38");
+  });
 });
 
 describe("cenotaph diagnostics report", () => {
+  afterEach(() => resetDiagnostics());
+
   it("does not claim a shader log it does not have", () => {
     patchDiagnostics({
       production: "loaded",
@@ -94,5 +169,31 @@ describe("cenotaph diagnostics report", () => {
     expect(report).toContain("maxFragmentUniforms: 224");
     expect(getDiagnostics().shaderLog).toBe("unavailable");
     expect(report).not.toContain("shader ready");
+  });
+
+  it("publishes a new snapshot for each tier and shader change", () => {
+    resetDiagnostics();
+    const seen: string[] = [];
+    const stop = subscribeDiagnostics(() => {
+      const snap = getDiagnostics();
+      seen.push(`${snap.tier}:${snap.activeRealLights}:${snap.shaderLog}`);
+    });
+    const first = getDiagnostics();
+    patchDiagnostics({ tier: "emissive", activeRealLights: 29, activeArchSlots: 0 });
+    const second = getDiagnostics();
+    patchDiagnostics({ tier: "neutral", activeRealLights: 26, activeArchSlots: 0 });
+    const third = getDiagnostics();
+    patchDiagnostics({ shaderLog: "link failed" });
+    const fourth = getDiagnostics();
+    expect(second).not.toBe(first);
+    expect(third).not.toBe(second);
+    expect(fourth).not.toBe(third);
+    expect(fourth.tier).toBe("neutral");
+    expect(fourth.shaderLog).toBe("link failed");
+    expect(fourth.activeRealLights).toBe(26);
+    expect(seen).toEqual(["emissive:29:unavailable", "neutral:26:unavailable", "neutral:26:link failed"]);
+    patchDiagnostics({ tier: "neutral", shaderLog: "link failed" });
+    expect(getDiagnostics()).toBe(fourth);
+    stop();
   });
 });
