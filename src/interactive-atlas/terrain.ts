@@ -1,6 +1,6 @@
 import { GROUND_R } from "./world";
 import { WALK_CLEARANCE } from "./framing";
-import { capAt } from "./monument-cap";
+import { capHeight } from "./monument-cap";
 import { stairHeight } from "./ascent";
 import { onObservationFloor } from "./dome-floor";
 
@@ -85,7 +85,7 @@ export function sampleGround(x: number, z: number) {
   if (rail > 0) height = Math.max(height, rail);
   const stair = stairHeight(x, z);
   if (stair > 0) height = Math.max(height, stair);
-  const cap = capAt(x, z);
+  const cap = capHeight(x, z);
   if (cap > 0) height = Math.max(height, cap);
   if (observationDiscY != null && onObservationFloor(x, z)) height = Math.max(height, observationDiscY);
   return height;

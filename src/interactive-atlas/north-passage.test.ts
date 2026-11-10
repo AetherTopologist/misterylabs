@@ -1,12 +1,12 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
-import { fallbackInsideMonument, placeCenotaphCamera, stairHeight } from "./ascent";
+import { fallbackInsideMonument, placeCenotaphCamera, stairHeight, constrainCenotaph } from "./ascent";
 import { WALK_BACK, WALK_LOOK } from "./framing";
-import { setMonumentCap, type CapGrid } from "./monument-cap";
+import { flatDiscCap, setMonumentCap, type CapGrid } from "./monument-cap";
 import { createWalker } from "./mister-why";
-import { NORTH_ARCH_SOFFIT, NORTH_END_Z, NORTH_HALL_Y, northHalf, northHeight } from "./north-passage";
+import { NORTH_ARCH_SOFFIT, NORTH_END_Z, NORTH_HALL_Y, inNorthMouth, northHalf, northHeight } from "./north-passage";
 import { TERRACE_OUT } from "./terrace";
-import { sampleGround } from "./terrain";
+import { sampleGround, setObservationDisc } from "./terrain";
 import { projectOut } from "./world";
 import { WALK_R } from "./dome-floor";
 
@@ -122,5 +122,90 @@ describe("northern passage", () => {
     expect(south.z).toBeGreaterThan(118);
     expect(walker.group.position.y).toBeLessThan(2);
     setMonumentCap(null);
+  });
+
+  it("walks the floor tongue out to the rim and back without a teleport", () => {
+    // The cap is a circle. The mesh tongue is not. A step just outside that
+    // circle at (7, -18.6) used to miss the rim cell and snap to r = 13.35,
+    // six metres back into the dome. The throat used to jump sideways.
+    setObservationDisc(13.103);
+    setMonumentCap(flatDiscCap(13.103));
+    expect(inNorthMouth(6, -18.5)).toBe(true);
+    expect(inNorthMouth(6.05, -18.4)).toBe(true);
+    expect(sampleGround(6, -19.2)).toBeCloseTo(13.103, 2);
+    expect(sampleGround(6, -20.8)).toBeCloseTo(12.937, 2);
+
+    const flung = constrainCenotaph(7, -18.6, 0, -8, 130, 7, -18.2);
+    expect(Math.hypot(flung.x, flung.z)).toBeGreaterThan(18);
+    expect(Math.hypot(flung.x - 7, flung.z - (-18.2))).toBeLessThan(0.7);
+
+    const throat = projectOut(4, -27.2, 0, -8, 4, -26.2);
+    // The pinch used to jump this step to x ≈ 2.05. Ride the wall instead.
+    expect(throat.x).toBeGreaterThan(2.9);
+    expect(throat.x).toBeLessThan(3.2);
+    expect(throat.z).toBeLessThan(-26.5);
+    expect(throat.z).toBeGreaterThan(-27.2);
+
+    const dt = 1 / 60;
+    const ahead = { x: 0, y: 1, orbiting: false };
+    for (const x0 of [0, 4, 7]) {
+      const walker = createWalker(new THREE.Scene());
+      walker.restore({ x: x0, z: 2, heading: Math.PI, camYaw: 0, back: WALK_BACK, lookLift: WALK_LOOK });
+      let prev = walker.pose();
+      let prevY = walker.group.position.y;
+      for (let i = 0; i < 900; i++) {
+        walker.update(dt, i * dt, ahead, true);
+        const pose = walker.pose();
+        const y = walker.group.position.y;
+        expect(Math.hypot(pose.x - prev.x, pose.z - prev.z)).toBeLessThan(0.7);
+        expect(Math.abs(y - prevY)).toBeLessThan(0.4);
+        expect(y).toBeCloseTo(sampleGround(pose.x, pose.z), 2);
+        prev = pose;
+        prevY = y;
+        if (pose.z < -110) break;
+      }
+      const north = walker.pose();
+      expect(north.z).toBeLessThan(-110);
+      expect(north.z).toBeGreaterThanOrEqual(-TERRACE_OUT - 0.2);
+      expect(walker.group.position.y).toBeCloseTo(NORTH_HALL_Y, 2);
+
+      walker.restore({
+        x: north.x,
+        z: north.z,
+        heading: 0,
+        camYaw: Math.PI,
+        back: WALK_BACK,
+        lookLift: WALK_LOOK,
+      });
+      let dome = false;
+      prev = walker.pose();
+      prevY = walker.group.position.y;
+      for (let i = 0; i < 900; i++) {
+        walker.update(dt, i * dt, ahead, true);
+        const pose = walker.pose();
+        const y = walker.group.position.y;
+        expect(Math.hypot(pose.x - prev.x, pose.z - prev.z)).toBeLessThan(0.7);
+        expect(Math.abs(y - prevY)).toBeLessThan(0.4);
+        expect(y).toBeCloseTo(sampleGround(pose.x, pose.z), 2);
+        if (pose.z > -16 && pose.z < 2 && y > 12.9) dome = true;
+        prev = pose;
+        prevY = y;
+        if (dome && pose.z > -1) break;
+      }
+      expect(dome).toBe(true);
+      expect(walker.pose().z).toBeGreaterThan(-1);
+    }
+
+    setMonumentCap(null);
+    setObservationDisc(null);
+    expect(inNorthMouth(0, -28)).toBe(false);
+    expect(sampleGround(0, -28)).toBe(0);
+    expect(sampleGround(0, 21)).toBeCloseTo(12.937, 2);
+    expect(sampleGround(0, 60)).toBeCloseTo(6.275, 2);
+    const shut = createWalker(new THREE.Scene());
+    shut.restore({ x: 7, z: 2, heading: Math.PI, camYaw: 0, back: WALK_BACK, lookLift: WALK_LOOK });
+    for (let i = 0; i < 240; i++) shut.update(dt, i * dt, ahead, true);
+    expect(shut.pose().z).toBeGreaterThanOrEqual(-WALK_R - 0.05);
+    expect(Math.hypot(shut.pose().x, shut.pose().z)).toBeLessThanOrEqual(WALK_R + 0.05);
   });
 });

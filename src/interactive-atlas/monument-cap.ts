@@ -50,3 +50,29 @@ export function capAt(x: number, z: number) {
   const y = cap.heights[iz * cap.cols + ix];
   return Number.isFinite(y) ? y : 0;
 }
+
+/**
+ * Standing on the installed cap. The grid is 0.5 m, so a point inside the
+ * disc can round onto an empty cell just past the rim. One inward sample
+ * covers that cell and does not bridge a real hole in the middle of the floor.
+ */
+export function onCapDisc(x: number, z: number, inset = 0) {
+  if (!capGrid) return false;
+  const d = Math.hypot(x, z);
+  if (d > CAP_WALK_R - inset + 0.02) return false;
+  if (capAt(x, z) > 0) return true;
+  if (d < 1e-3) return false;
+  const k = Math.max(0, d - 0.4) / d;
+  return capAt(x * k, z * k) > 0;
+}
+
+/** Cap height, including the rim cells the 0.5 m grid rounds empty. */
+export function capHeight(x: number, z: number) {
+  const y = capAt(x, z);
+  if (y > 0) return y;
+  if (!onCapDisc(x, z)) return 0;
+  const d = Math.hypot(x, z);
+  if (d < 1e-3) return 0;
+  const k = Math.max(0, d - 0.4) / d;
+  return capAt(x * k, z * k);
+}
