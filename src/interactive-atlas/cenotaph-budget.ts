@@ -18,6 +18,48 @@ export type ArchLamp = CenotaphLamp & {
 
 const EMISSIVE_REAL = new Set(["wall-grazer-east", "south-hall", "observation-pool"]);
 
+/**
+ * Real lights kept when Full Lamps does not fit in 256 fragment vectors.
+ * Dropped: eight diagonal grazers (gain 0.66, five vectors each) and
+ * south-threshold (gain 0.09). East and west grazers, the passage pendants,
+ * the cheeks, the terrace bollards, and the dome accents stay at their
+ * existing intensity. Shader slots stay at eight and are not added on top
+ * of these real lights.
+ */
+export const MOBILE_MAX_REAL = new Set([
+  "wall-grazer-east",
+  "wall-grazer-west",
+  "south-arch",
+  "south-hall",
+  "north-hall",
+  "north-arch",
+  "south-cheek-east",
+  "south-cheek-west",
+  "terrace-east",
+  "terrace-southeast",
+  "terrace-southwest",
+  "terrace-west",
+  "terrace-northwest",
+  "terrace-northeast",
+  "observation-pool",
+  "observation-vault",
+  "observation-censer-0",
+  "observation-censer-1",
+  "observation-censer-2",
+  "observation-censer-3",
+]);
+
+/**
+ * Budget slot candela only. Real lights use gain, so Emissive and Full Lamps
+ * do not move. The pool sits ~10 m above the disc: 38 cd was ~0.13 before
+ * albedo once the visible side is lit, 180 cd is about 0.6. Censers are 1.45 m
+ * off the disc; 48 cd clips that patch, 10 cd stays a mark. The vault stays
+ * 1400 cd. Its beam aims up the crown, about 90 m away, and does not reach
+ * the passage under the lamp.
+ */
+const DOME_POOL_CD = 180;
+const DOME_CENSER_CD = 10;
+
 const registry: THREE.Light[] = [];
 
 export function resetArchRegistry() {
@@ -55,7 +97,7 @@ export function domeBudgetLamps(): ArchLamp[] {
       angle: 0,
       penumbra: 0,
       gain: 1,
-      absolute: 48,
+      absolute: DOME_CENSER_CD,
       colorHex: 0xffe1b8,
     };
   });
@@ -77,7 +119,7 @@ export function domeBudgetLamps(): ArchLamp[] {
       angle: 1.15,
       penumbra: 0.85,
       gain: 1,
-      absolute: 38,
+      absolute: DOME_POOL_CD,
       colorHex: 0xffe6c4,
     },
     {
@@ -232,6 +274,7 @@ export function clearArchSlots(into: SlotBlock) {
 
 export function archLightVisible(name: string, tier: LightTier) {
   if (tier === "pr38") return true;
+  if (tier === "mobile-max") return MOBILE_MAX_REAL.has(name);
   if (tier === "emissive") return EMISSIVE_REAL.has(name);
   return false;
 }
@@ -303,7 +346,45 @@ export function lightingTierFits(maxFragmentUniforms: number | null, census: Lig
   return {
     ok: false,
     vectors,
-    reason: `${label} needs about ${vectors} fragment vectors and this device has ${maxFragmentUniforms}. Staying on the current tier so the monument stays visible.`,
+    reason: `${label} needs about ${vectors} fragment vectors and this device has ${maxFragmentUniforms}.`,
+  };
+}
+
+/** Richest first. A request that does not fit steps down this list. It is never compiled. */
+export const LIGHT_TIER_ORDER: LightTier[] = ["pr38", "mobile-max", "emissive", "budget", "minimal", "neutral"];
+
+const TIER_LABEL: Record<LightTier, string> = {
+  pr38: "Full lamps",
+  "mobile-max": "Mobile Max",
+  emissive: "Emissive",
+  budget: "Budget",
+  minimal: "Minimal",
+  neutral: "Neutral",
+};
+
+export function resolveLightTier(
+  requested: LightTier,
+  maxFragmentUniforms: number | null,
+  censusFor: (tier: LightTier) => LightCensus,
+) {
+  const start = Math.max(0, LIGHT_TIER_ORDER.indexOf(requested));
+  const asked = lightingTierFits(maxFragmentUniforms, censusFor(requested), TIER_LABEL[requested]);
+  for (let i = start; i < LIGHT_TIER_ORDER.length; i++) {
+    const tier = LIGHT_TIER_ORDER[i];
+    const fit = lightingTierFits(maxFragmentUniforms, censusFor(tier), TIER_LABEL[tier]);
+    if (!fit.ok) continue;
+    const note =
+      tier === requested
+        ? null
+        : `${asked.reason} ${TIER_LABEL[tier]} is the richest tier that fits (${fit.vectors} vectors).`;
+    return { tier, vectors: fit.vectors, note };
+  }
+  const tier = "neutral" as const;
+  const fit = lightingTierFits(maxFragmentUniforms, censusFor(tier), TIER_LABEL[tier]);
+  return {
+    tier,
+    vectors: fit.vectors,
+    note: `${asked.reason} Neutral is the richest tier that fits (${fit.vectors} vectors).`,
   };
 }
 
