@@ -11,7 +11,7 @@ import { archLightVisible, initialLightTier, lightingTierFits, type LightCensus,
 import { getDiagnostics, patchDiagnostics } from "./cenotaph-diagnostics";
 import { fallbackInsideMonument } from "./ascent";
 import { CAP_Y } from "./cenotaph-seat";
-import { CAP_WALK_R } from "./monument-cap";
+import { CAP_WALK_R, flatDiscCap } from "./monument-cap";
 import { FOREST_LINKS } from "./forest";
 import { buildEightfoldCross } from "./eightfold-cross";
 import { buildHallOfFaces } from "./hall-of-faces";
@@ -23,7 +23,7 @@ import { WALK_BACK, WALK_LOOK } from "./framing";
 import { createWalker } from "./mister-why";
 import { captureAtlasResume, takeAtlasResume } from "./resume";
 import { GROUND_R, LAYOUT, PATHS, PLACES } from "./world";
-import { setObservationDisc } from "./terrain";
+import { setMonumentCap, setObservationDisc } from "./terrain";
 
 // Forest links are a future horizontal layer. They are not provenance,
 // and they are never drawn with the atlas walkways or roots.
@@ -1515,6 +1515,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       const reg = await cenotaph.setGlb(glb);
       if (mine !== glbToken || cenotaph.glb !== glb) return;
       setObservationDisc(reg.discY);
+      setMonumentCap(reg.discY != null ? flatDiscCap(reg.discY) : null);
       showProceduralFloor(reg.discY == null);
       publishFit(reg);
       if (pose && walking) {
