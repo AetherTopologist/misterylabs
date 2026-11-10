@@ -2,8 +2,16 @@ import { GROUND_R } from "./world";
 import { WALK_CLEARANCE } from "./framing";
 import { capAt } from "./monument-cap";
 import { stairHeight } from "./ascent";
+import { onObservationFloor } from "./dome-floor";
 
 export { setMonumentCap } from "./monument-cap";
+
+/** Height of the GLB observation disc, or null while the procedural slab is the floor. */
+let observationDiscY: number | null = null;
+
+export function setObservationDisc(y: number | null) {
+  observationDiscY = y != null && y > 0 ? y : null;
+}
 
 /**
  * One garden court on the avenue north of the House of Unfolding.
@@ -79,6 +87,7 @@ export function sampleGround(x: number, z: number) {
   if (stair > 0) height = Math.max(height, stair);
   const cap = capAt(x, z);
   if (cap > 0) height = Math.max(height, cap);
+  if (observationDiscY != null && onObservationFloor(x, z)) height = Math.max(height, observationDiscY);
   return height;
 }
 

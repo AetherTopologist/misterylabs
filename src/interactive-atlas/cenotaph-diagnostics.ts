@@ -4,14 +4,11 @@ export type LightTier = "pr38" | "minimal" | "budget" | "emissive" | "neutral";
 
 export type CenotaphDiagnostics = {
   production: GlbPhase;
-  full: GlbPhase;
-  clean: GlbPhase;
+  floor: GlbPhase;
   productionError: string | null;
-  fullError: string | null;
-  cleanError: string | null;
+  floorError: string | null;
   productionTriangles: number | null;
-  fullTriangles: number | null;
-  cleanTriangles: number | null;
+  floorTriangles: number | null;
   context: ContextPhase;
   renderer: string;
   webglVersion: string;
@@ -29,14 +26,11 @@ export type CenotaphDiagnostics = {
 
 const state: CenotaphDiagnostics = {
   production: "idle",
-  full: "idle",
-  clean: "idle",
+  floor: "idle",
   productionError: null,
-  fullError: null,
-  cleanError: null,
+  floorError: null,
   productionTriangles: null,
-  fullTriangles: null,
-  cleanTriangles: null,
+  floorTriangles: null,
   context: "active",
   renderer: "unavailable",
   webglVersion: "unavailable",
@@ -91,18 +85,15 @@ export function diagnosticsReport(device = "unavailable") {
     line("maxTextureUnits", d.maxTextureUnits),
     line("maxVaryingVectors", d.maxVaryingVectors),
     line("production", d.production),
-    line("full", d.full),
-    line("clean", d.clean),
+    line("floor", d.floor),
     line("productionTriangles", d.productionTriangles),
-    line("fullTriangles", d.fullTriangles),
-    line("cleanTriangles", d.cleanTriangles),
+    line("floorTriangles", d.floorTriangles),
     line("tier", d.tier),
     line("realLights", d.activeRealLights),
     line("archSlots", d.activeArchSlots),
     line("shaderLog", d.shaderLog),
     line("initError", d.initError),
     line("productionError", d.productionError),
-    line("fullError", d.fullError),
-    line("cleanError", d.cleanError),
+    line("floorError", d.floorError),
   ].join("\n");
 }

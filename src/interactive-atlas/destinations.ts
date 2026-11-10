@@ -186,8 +186,8 @@ export type AtlasUi = {
 
 export type CenotaphVariant = "a" | "b" | "c" | "m";
 
-/** Production is the known-good mesh. Full is the doubled export. Clean is one skin of that export. */
-export type CenotaphGlb = "production" | "full" | "clean";
+/** Production is the known-good mesh. Floor is that mesh plus the observation disc. */
+export type CenotaphGlb = "production" | "floor";
 
 export type AtlasApi = {
   returnHome: () => void;
