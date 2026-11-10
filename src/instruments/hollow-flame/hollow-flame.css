@@ -1,0 +1,193 @@
+.prometheus-instrument {
+  --color-ink: #090807;
+  --color-raised: #120e0c;
+  --color-surface: #1c1612;
+  --color-line: #3a2f28;
+  --color-paper: #f3eadc;
+  --color-dust: #a89884;
+  --color-ember: #e8893a;
+  --color-frost: #9ec9d4;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  min-height: 100dvh;
+}
+.prometheus-instrument input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2.75rem;
+  background: transparent;
+  margin: 0;
+}
+.prometheus-instrument input[type="range"]:focus { outline: none; }
+.prometheus-instrument input[type="range"]:focus-visible {
+  outline: 2px solid var(--color-ember);
+  outline-offset: 2px;
+}
+.prometheus-instrument input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  background: var(--color-line);
+}
+.prometheus-instrument input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: -0.6rem;
+  border-radius: 999px;
+  background: var(--color-ember);
+  border: 2px solid var(--color-ink);
+}
+.prometheus-instrument input[type="range"]::-moz-range-track {
+  height: 2px;
+  background: var(--color-line);
+  border: none;
+}
+.prometheus-instrument input[type="range"]::-moz-range-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: var(--color-ember);
+  border: 2px solid var(--color-ink);
+}
+.prometheus-instrument [data-accent="frost"] input[type="range"]::-webkit-slider-thumb { background: var(--color-frost); }
+.prometheus-instrument [data-accent="frost"] input[type="range"]::-moz-range-thumb { background: var(--color-frost); }
+.prometheus-instrument [data-accent="paper"] input[type="range"]::-webkit-slider-thumb { background: var(--color-paper); }
+.prometheus-instrument [data-accent="paper"] input[type="range"]::-moz-range-thumb { background: var(--color-paper); }
+.prometheus-instrument .stage {
+  height: calc(100dvh - 4.5rem - 5.4rem - env(safe-area-inset-bottom));
+  min-height: 0;
+  transition: height 260ms ease;
+}
+.prometheus-instrument .ride-frame {
+  position: relative;
+}
+.prometheus-instrument .cockpit {
+  position: relative;
+  z-index: 6;
+  background: color-mix(in srgb, var(--color-ink) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-line);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.prometheus-instrument .cockpit-scroll {
+  max-height: calc(100dvh - 42dvh - 4.5rem - 5.6rem - env(safe-area-inset-bottom));
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.prometheus-instrument .prometheus-ember {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: radial-gradient(circle at 40% 40%, #fff1d0, #e8893a 46%, #7a2e10 80%);
+  box-shadow: 0 0 10px #e8893a;
+  flex: none;
+}
+.prometheus-instrument .portal-card {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-ember) 25%, transparent);
+}
+.prometheus-instrument .portal-face {
+  background:
+    radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--color-ember) 55%, transparent), transparent 58%),
+    linear-gradient(160deg, #1a120c, #090807 70%);
+}
+.prometheus-instrument .gateway-court {
+  min-height: 16rem;
+}
+.prometheus-instrument .gateway-flame {
+  transform-origin: 212px 150px;
+}
+.prometheus-instrument .meter {
+  height: 0.375rem;
+  background: var(--color-raised);
+  overflow: hidden;
+}
+.prometheus-instrument .meter > span {
+  display: block;
+  height: 100%;
+  transition: width 180ms ease;
+}
+
+@media (max-width: 63.99rem) {
+  .prometheus-instrument .bench {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .prometheus-instrument .stage {
+    border-left: 0;
+    border-right: 0;
+  }
+  .prometheus-instrument .ride-frame[data-dock="open"] .stage {
+    position: sticky;
+    top: 3.55rem;
+    z-index: 5;
+    height: 42dvh;
+    min-height: 12.5rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .prometheus-instrument .stage {
+    height: calc(100dvh - 12rem);
+    min-height: 32rem;
+    position: sticky;
+    top: 4.25rem;
+  }
+  .prometheus-instrument .bench {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 22.5rem;
+    align-items: start;
+    gap: 1rem;
+  }
+  .prometheus-instrument .ride-frame {
+    display: contents;
+  }
+  .prometheus-instrument .cockpit {
+    position: sticky;
+    top: 4.25rem;
+    align-self: start;
+    z-index: auto;
+    background: var(--color-surface);
+    backdrop-filter: none;
+    border: 1px solid var(--color-line);
+    padding-bottom: 0;
+    max-height: calc(100dvh - 5.5rem);
+    overflow: auto;
+  }
+  .prometheus-instrument .cockpit-scroll {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .prometheus-instrument .prometheus-ember {
+    animation: ember-breathe 3.6s ease-in-out infinite;
+  }
+  .prometheus-instrument .gateway-flame {
+    animation: flame-lean 4.8s ease-in-out infinite;
+  }
+  .prometheus-instrument .gateway-walk {
+    animation: approach 8s ease-in-out infinite;
+  }
+}
+
+@keyframes ember-breathe {
+  0%, 100% { opacity: 0.82; }
+  50% { opacity: 1; }
+}
+@keyframes flame-lean {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(2px); }
+}
+@keyframes approach {
+  0% { transform: translateY(-46px); opacity: 0.4; }
+  40% { transform: translateY(-8px); opacity: 1; }
+  100% { transform: translateY(8px); opacity: 0.2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prometheus-instrument .meter > span { transition: none; }
+  .prometheus-instrument .stage { transition: none; }
+}

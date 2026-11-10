@@ -48,6 +48,8 @@ export const PLACES: Record<ExhibitId, Place> = {
   // Due south of the house. Square Throat stays on the west court.
   // The spur arrives from +z, so the cross faces the walk.
   "hypercross": { x: -62 * LAYOUT, y: 2.2, z: -34 * LAYOUT, block: 4.8, reach: 16 },
+  // East of the front-court centerline. The south stair and x = 0 stay open.
+  prometheus: { x: 7, y: 0, z: 170, block: 3.2, reach: 14 },
 };
 
 const at = (x: number, z: number): [number, number, number] => [x * LAYOUT, 0, z * LAYOUT];

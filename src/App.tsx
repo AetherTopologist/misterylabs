@@ -38,6 +38,7 @@ const HydrogenPage          = lazy(() => import("./pages/observatory/Hydrogen.ts
 const PhotonJourneyPage     = lazy(() => import("./pages/observatory/PhotonJourney.tsx"));
 const HydrogenBaselinePage  = lazy(() => import("./pages/observatory/HydrogenBaseline.tsx"));
 const FieldResonancePage    = lazy(() => import("./pages/observatory/FieldResonance.tsx"));
+const HollowFlamePage       = lazy(() => import("./pages/observatory/HollowFlame.tsx"));
 const InteractiveAtlasPage  = lazy(() => import("./interactive-atlas/InteractiveAtlas.tsx"));
 
 function DemoLoading() {
@@ -111,6 +112,7 @@ const App = () => (
           <Route path="/observatory/photon-journey"     element={<DemoWrapper><PhotonJourneyPage /></DemoWrapper>} />
           <Route path="/observatory/hydrogen-baseline"   element={<DemoWrapper><HydrogenBaselinePage /></DemoWrapper>} />
           <Route path="/observatory/field-resonance"    element={<DemoWrapper><FieldResonancePage /></DemoWrapper>} />
+          <Route path="/observatory/hollow-flame"       element={<DemoWrapper><HollowFlamePage /></DemoWrapper>} />
           {/* Unadvertised maintainer surface — no auth gate, not in public nav */}
           <Route path="/mission" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />

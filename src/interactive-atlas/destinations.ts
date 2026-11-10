@@ -22,7 +22,8 @@ export type ExhibitId =
   | "ambiguous-dancer"
   | "inside-out"
   | "cubic-worm"
-  | "hypercross";
+  | "hypercross"
+  | "prometheus";
 
 export type DestinationId = ExhibitId | "cenotaph";
 
@@ -140,6 +141,15 @@ export const EXHIBITS: Record<ExhibitId, Destination> = {
     hall: "The Eightfold Cross",
     question: "What does a cube become when space gains another direction?",
     href: "/observatory/higher-dimensional/hypercross",
+    released: true,
+    placed: true,
+  },
+  prometheus: {
+    id: "prometheus",
+    kind: "exhibit",
+    name: "Prometheus",
+    question: "When does a self-sustaining reaction become an organized system?",
+    href: "/observatory/hollow-flame",
     released: true,
     placed: true,
   },

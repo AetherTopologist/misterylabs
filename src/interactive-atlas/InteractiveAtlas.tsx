@@ -271,12 +271,13 @@ export default function InteractiveAtlas() {
                     exhibit.id === "ambiguous-dancer" ||
                     exhibit.id === "inside-out" ||
                     exhibit.id === "cubic-worm" ||
-                    exhibit.id === "hypercross"
+                    exhibit.id === "hypercross" ||
+                    exhibit.id === "prometheus"
                   )
                     apiRef.current?.remember();
                 }}
               >
-                Enter exhibit
+                {exhibit.id === "prometheus" ? "Enter the Hollow Flame" : "Enter exhibit"}
               </Link>
             ) : (
               <p className="ia-note">This instrument is not released.</p>

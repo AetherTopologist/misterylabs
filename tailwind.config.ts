@@ -100,6 +100,12 @@ export default {
         fg: "#e6e1d4",
         line: "#2e312a",
         copper: "#c9843f",
+        ink: "#090807",
+        raised: "#120e0c",
+        paper: "#f3eadc",
+        dust: "#a89884",
+        ember: "#e8893a",
+        frost: "#9ec9d4",
         fr: {
           ink: "#0c1014",
           panel: "#151b21",
