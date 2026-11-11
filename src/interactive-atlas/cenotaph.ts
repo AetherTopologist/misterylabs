@@ -403,7 +403,7 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
 
   apply(initialVariant());
 
-  let current: CenotaphGlb = "production";
+  let current: CenotaphGlb = "floor";
   let token = 0;
   let seated: { center: THREE.Vector3; radius: number; outer: number; discY: number | null } | null = null;
   let pending: Promise<{ center: THREE.Vector3; radius: number; outer: number; discY: number | null }> | null = null;
@@ -471,7 +471,9 @@ export function buildCenotaph(coarse: boolean, _cenY: number, cenR: number) {
     return job;
   }
 
-  const ready = setGlb("production").catch((err: unknown) => {
+  // Visitors stay on Production + Floor. Production (Original) remains loadable
+  // for the study hook and the seating tests; it is not a visitor choice.
+  const ready = setGlb("floor").catch((err: unknown) => {
     const message = err instanceof Error ? err.message : String(err);
     patchDiagnostics({ initError: message });
     return seated ?? { center: new THREE.Vector3(0, holder.position.y, 0), radius: cenR, outer: cenR, discY };

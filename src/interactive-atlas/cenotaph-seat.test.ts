@@ -303,4 +303,13 @@ describe("cenotaph seating adapter", () => {
     setObservationDisc(null);
     expect(sampleGround(0, 8)).toBeCloseTo(TREAD_Y, 2);
   }, 60000);
+
+  it("boots visitors on Production + Floor and installs that cap", () => {
+    const cen = fs.readFileSync(new URL("./cenotaph.ts", import.meta.url), "utf8");
+    const scene = fs.readFileSync(new URL("./scene.ts", import.meta.url), "utf8");
+    expect(cen).toContain('setGlb("floor")');
+    expect(cen).not.toContain('setGlb("production")');
+    expect(scene).toContain("setMonumentCap(reg.discY != null ? flatDiscCap(reg.discY) : null)");
+    expect(scene).toContain("showProceduralFloor(reg.discY == null)");
+  });
 });

@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasMode, type AtlasUi, type CenotaphGlb, type CenotaphVariant, type WalkCamera, type WalkerPose } from "./destinations";
+import { CENOTAPH, EXHIBITS, type AtlasApi, type AtlasMode, type AtlasUi, type CenotaphVariant, type WalkCamera, type WalkerPose } from "./destinations";
 import { atCenotaphDoor } from "./ascent";
 import { diagnosticsReport, getDiagnostics, subscribeDiagnostics } from "./cenotaph-diagnostics";
 import type { LightTier } from "./cenotaph-budget";
@@ -36,7 +36,7 @@ function same(a: AtlasUi, b: AtlasUi) {
     a.inside === b.inside &&
     a.mode === b.mode &&
     (a.camera ?? "follow") === (b.camera ?? "follow") &&
-    (a.glb ?? "production") === (b.glb ?? "production") &&
+    (a.glb ?? "floor") === (b.glb ?? "floor") &&
     walkerSame(a.walker, b.walker) &&
     Math.abs(a.scale - b.scale) < 0.012 &&
     Math.abs(a.proximity - b.proximity) < 0.02
@@ -62,8 +62,9 @@ export default function InteractiveAtlas() {
   const [ui, setUi] = useState<AtlasUi>(INITIAL);
   const [failed, setFailed] = useState(() => (typeof document === "undefined" ? false : !canWebGL()));
   const [mapOpen, setMapOpen] = useState(false);
-  const [pendingGlb, setPendingGlb] = useState<CenotaphGlb | null>(null);
+  const [lightOpen, setLightOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const lightRef = useRef<HTMLDivElement>(null);
   const diag = useSyncExternalStore(subscribeDiagnostics, getDiagnostics, getDiagnostics);
   const [params, setSearchParams] = useSearchParams();
   const variantRef = useRef<CenotaphVariant>(studyVariant());
@@ -82,6 +83,24 @@ export default function InteractiveAtlas() {
       document.body.style.overflow = previous;
     };
   }, []);
+
+  useEffect(() => {
+    if (!lightOpen) return;
+    const onDown = (event: PointerEvent) => {
+      const root = lightRef.current;
+      if (!root || root.contains(event.target as Node)) return;
+      setLightOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setLightOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [lightOpen]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -126,14 +145,6 @@ export default function InteractiveAtlas() {
   const setMode = (mode: AtlasMode) => apiRef.current?.setMode(mode);
   const setCamera = (camera: WalkCamera) => apiRef.current?.setCamera(camera);
   const walkCamera = ui.camera ?? "follow";
-  const glb = pendingGlb ?? ui.glb ?? "production";
-  const chooseGlb = (next: CenotaphGlb) => {
-    if (next === glb) return;
-    setPendingGlb(next);
-    void Promise.resolve(apiRef.current?.setGlb(next)).finally(() => {
-      setPendingGlb((current) => (current === next ? null : current));
-    });
-  };
   const chooseTier = (tier: LightTier) => {
     apiRef.current?.setLightTier(tier);
     setCopied(false);
@@ -154,6 +165,14 @@ export default function InteractiveAtlas() {
     minimal: "Minimal",
     emissive: "Emissive",
     neutral: "Neutral",
+  };
+  const tierMark: Record<LightTier, string> = {
+    budget: "B",
+    "mobile-max": "M",
+    pr38: "F",
+    minimal: "L",
+    emissive: "E",
+    neutral: "N",
   };
 
   return (
@@ -232,74 +251,131 @@ export default function InteractiveAtlas() {
         </div>
       ) : null}
 
-      <div className="ia-dock">
-        {ui.inside ? (
-          <div className="ia-plate">
-            <p className="ia-kicker">{CENOTAPH.name}</p>
-            <p className="ia-question">Home</p>
-            <p className="ia-note">The object is now the boundary.</p>
-            <button type="button" className="ia-enter" onClick={() => apiRef.current?.returnOutside()}>
-              Return outside
-            </button>
-          </div>
-        ) : atDoor ? (
-          <div className="ia-plate">
-            <p className="ia-kicker">{CENOTAPH.name}</p>
-            <p className="ia-question">Enter the Cenotaph</p>
-            <p className="ia-note">The chamber is beyond this door.</p>
-          </div>
-        ) : showFull && landmark ? (
-          <div className="ia-plate">
-            <p className="ia-kicker">{CENOTAPH.name}</p>
-            <p className="ia-question">Home</p>
-            <button type="button" className="ia-enter" onClick={() => apiRef.current?.crossBoundary()}>
-              Cross the boundary
-            </button>
-          </div>
-        ) : showFull && exhibit ? (
-          <div className="ia-plate">
-            <p className="ia-kicker">{exhibit.name}</p>
-            {exhibit.hall ? <p className="ia-hall">{exhibit.hall}</p> : null}
-            <p className="ia-question">{exhibit.question}</p>
-            {exhibit.released && exhibit.href ? (
-              <Link
-                to={`${exhibit.href}?from=interactive-atlas`}
-                className="ia-enter"
-                onClick={() => {
-                  if (
-                    exhibit.id === "hollow-genius" ||
-                    exhibit.id === "ambiguous-dancer" ||
-                    exhibit.id === "inside-out" ||
-                    exhibit.id === "cubic-worm" ||
-                    exhibit.id === "hypercross" ||
-                    exhibit.id === "prometheus" ||
-                    exhibit.id === "prime"
-                  )
-                    apiRef.current?.remember();
-                }}
-              >
-                {exhibit.id === "prometheus"
-                  ? "Enter the Hollow Flame"
-                  : exhibit.id === "prime"
-                    ? "Enter the Last Distance"
-                    : "Enter exhibit"}
-              </Link>
-            ) : (
-              <p className="ia-note">This instrument is not released.</p>
-            )}
-          </div>
-        ) : showName && landmark ? (
-          <p className="ia-kicker ia-plate">{CENOTAPH.name}</p>
-        ) : showName && exhibit ? (
-          <p className="ia-kicker ia-plate">{exhibit.name}</p>
-        ) : null}
-        {ui.atHome ? null : (
-          <div>
-            <button type="button" className="ia-home" onClick={() => apiRef.current?.returnHome()}>
-              Home
-            </button>
-          </div>
-        )}
+      <div className="ia-bottom">
+        <div className="ia-light" data-open={lightOpen} ref={lightRef}>
+          <button
+            type="button"
+            className="ia-light-mark"
+            aria-expanded={lightOpen}
+            aria-controls="ia-light-panel"
+            aria-label={`Lighting: ${tierLabel[diag.tier]}`}
+            onClick={() => {
+              setLightOpen((open) => !open);
+              setCopied(false);
+            }}
+          >
+            {tierMark[diag.tier]}
+          </button>
+          {lightOpen ? (
+            <div id="ia-light-panel" className="ia-light-panel" role="region" aria-label={`Lighting: ${tierLabel[diag.tier]}`} data-ia-scroll="">
+              <div className="ia-light-head">
+                <p>{tierLabel[diag.tier]}</p>
+                <button type="button" onClick={() => setLightOpen(false)}>
+                  Close
+                </button>
+              </div>
+              <div role="group" aria-label="Lighting tier">
+                {(Object.keys(tierLabel) as LightTier[]).map((tier) => (
+                  <button key={tier} type="button" data-on={diag.tier === tier} aria-pressed={diag.tier === tier} onClick={() => chooseTier(tier)}>
+                    {tierLabel[tier]}
+                  </button>
+                ))}
+              </div>
+              <p className="ia-dev-note">Production GLB: {diag.production}{diag.productionTriangles != null ? ` · ${diag.productionTriangles.toLocaleString()} tris` : ""}</p>
+              <p className="ia-dev-note">Production + Floor GLB: {diag.floor}{diag.floorTriangles != null ? ` · ${diag.floorTriangles.toLocaleString()} tris` : ""}</p>
+              <p className="ia-dev-note">WebGL context: {diag.context}</p>
+              <p className="ia-dev-note">
+                {diag.webglVersion} · {diag.renderer}
+              </p>
+              <p className="ia-dev-note">
+                Uniforms: frag {diag.maxFragmentUniforms ?? "unavailable"} · vert {diag.maxVertexUniforms ?? "unavailable"} · tex {diag.maxTextureUnits ?? "unavailable"} · vary {diag.maxVaryingVectors ?? "unavailable"}
+              </p>
+              <p className="ia-dev-note">
+                Real lights: {diag.activeRealLights == null ? "unavailable" : diag.activeRealLights} · tier {tierLabel[diag.tier]}
+                {diag.tier === "budget" ? ` · ${diag.activeArchSlots ?? 0} slots` : ""}
+              </p>
+              <p className="ia-dev-note">
+                Estimated fragment vectors: {diag.uniformVectors == null ? "unavailable" : diag.uniformVectors}
+                {diag.maxFragmentUniforms != null ? ` · device limit ${diag.maxFragmentUniforms}` : ""}
+              </p>
+              {diag.tierNote ? <p className="ia-dev-note">{diag.tierNote}</p> : null}
+              <p className="ia-dev-note">Shader log: {diag.shaderLog}</p>
+              <p className="ia-dev-note">{diag.initError || diag.productionError || diag.floorError || "No initialization error."}</p>
+              <button type="button" onClick={copyDiag}>
+                {copied ? "Copied" : "Copy Diagnostics"}
+              </button>
+            </div>
+          ) : null}
+        </div>
+        <div className="ia-dock">
+          {ui.inside ? (
+            <div className="ia-plate">
+              <p className="ia-kicker">{CENOTAPH.name}</p>
+              <p className="ia-question">Home</p>
+              <p className="ia-note">The object is now the boundary.</p>
+              <button type="button" className="ia-enter" onClick={() => apiRef.current?.returnOutside()}>
+                Return outside
+              </button>
+            </div>
+          ) : atDoor ? (
+            <div className="ia-plate">
+              <p className="ia-kicker">{CENOTAPH.name}</p>
+              <p className="ia-question">Enter the Cenotaph</p>
+              <p className="ia-note">The chamber is beyond this door.</p>
+            </div>
+          ) : showFull && landmark ? (
+            <div className="ia-plate">
+              <p className="ia-kicker">{CENOTAPH.name}</p>
+              <p className="ia-question">Home</p>
+              <button type="button" className="ia-enter" onClick={() => apiRef.current?.crossBoundary()}>
+                Cross the boundary
+              </button>
+            </div>
+          ) : showFull && exhibit ? (
+            <div className="ia-plate">
+              <p className="ia-kicker">{exhibit.name}</p>
+              {exhibit.hall ? <p className="ia-hall">{exhibit.hall}</p> : null}
+              <p className="ia-question">{exhibit.question}</p>
+              {exhibit.released && exhibit.href ? (
+                <Link
+                  to={`${exhibit.href}?from=interactive-atlas`}
+                  className="ia-enter"
+                  onClick={() => {
+                    if (
+                      exhibit.id === "hollow-genius" ||
+                      exhibit.id === "ambiguous-dancer" ||
+                      exhibit.id === "inside-out" ||
+                      exhibit.id === "cubic-worm" ||
+                      exhibit.id === "hypercross" ||
+                      exhibit.id === "prometheus" ||
+                      exhibit.id === "prime"
+                    )
+                      apiRef.current?.remember();
+                  }}
+                >
+                  {exhibit.id === "prometheus"
+                    ? "Enter the Hollow Flame"
+                    : exhibit.id === "prime"
+                      ? "Enter the Last Distance"
+                      : "Enter exhibit"}
+                </Link>
+              ) : (
+                <p className="ia-note">This instrument is not released.</p>
+              )}
+            </div>
+          ) : showName && landmark ? (
+            <p className="ia-kicker ia-plate">{CENOTAPH.name}</p>
+          ) : showName && exhibit ? (
+            <p className="ia-kicker ia-plate">{exhibit.name}</p>
+          ) : null}
+          {ui.atHome ? null : (
+            <div>
+              <button type="button" className="ia-home" onClick={() => apiRef.current?.returnHome()}>
+                Home
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {failed ? (
@@ -311,69 +387,6 @@ export default function InteractiveAtlas() {
           </Link>
         </div>
       ) : null}
-      <div className="ia-dev-stack">
-        <details className="ia-dev" data-glb={glb}>
-          <summary>
-            <span>DEV · GLB</span>
-            <span className="ia-dev-current">{glb === "floor" ? "Production + Floor" : "Production (Original)"}</span>
-          </summary>
-          <div className="ia-dev-body">
-            <div role="group" aria-label="Cenotaph geometry">
-              <button type="button" data-on={glb === "production"} aria-pressed={glb === "production"} onClick={() => chooseGlb("production")}>
-                Production (Original)
-              </button>
-              <button type="button" data-on={glb === "floor"} aria-pressed={glb === "floor"} onClick={() => chooseGlb("floor")}>
-                Production + Floor
-              </button>
-            </div>
-            <p className="ia-dev-note">
-              {glb === "floor"
-                ? "Same Production mesh. The observation disc is in the file at 13.103 m and replaces the procedural slab. The measured north passage and exterior rim are walkable. The south stair stays at 12.937 m."
-                : "Known-good mesh. Observation floor at 12.937 m."}
-            </p>
-          </div>
-        </details>
-        <details className="ia-dev ia-diag">
-          <summary>
-            <span>DEV · DIAGNOSTICS</span>
-            <span className="ia-dev-current">{tierLabel[diag.tier]}</span>
-          </summary>
-          <div className="ia-dev-body">
-            <p className="ia-dev-note">Production GLB: {diag.production}{diag.productionTriangles != null ? ` · ${diag.productionTriangles.toLocaleString()} tris` : ""}</p>
-            <p className="ia-dev-note">Production + Floor GLB: {diag.floor}{diag.floorTriangles != null ? ` · ${diag.floorTriangles.toLocaleString()} tris` : ""}</p>
-            <p className="ia-dev-note">WebGL context: {diag.context}</p>
-            <p className="ia-dev-note">
-              {diag.webglVersion} · {diag.renderer}
-            </p>
-            <p className="ia-dev-note">
-              Uniforms: frag {diag.maxFragmentUniforms ?? "unavailable"} · vert {diag.maxVertexUniforms ?? "unavailable"} · tex {diag.maxTextureUnits ?? "unavailable"} · vary {diag.maxVaryingVectors ?? "unavailable"}
-            </p>
-            <p className="ia-dev-note">
-              Real lights: {diag.activeRealLights == null ? "unavailable" : diag.activeRealLights} · tier {tierLabel[diag.tier]}
-              {diag.tier === "budget" ? ` · ${diag.activeArchSlots ?? 0} slots` : ""}
-            </p>
-            <p className="ia-dev-note">
-              Estimated fragment vectors: {diag.uniformVectors == null ? "unavailable" : diag.uniformVectors}
-              {diag.maxFragmentUniforms != null ? ` · device limit ${diag.maxFragmentUniforms}` : ""}
-            </p>
-            {diag.tierNote ? <p className="ia-dev-note">{diag.tierNote}</p> : null}
-            <p className="ia-dev-note">Shader log: {diag.shaderLog}</p>
-            <p className="ia-dev-note">
-              {diag.initError || diag.productionError || diag.floorError || "No initialization error."}
-            </p>
-            <div role="group" aria-label="Lighting tier">
-              {(Object.keys(tierLabel) as LightTier[]).map((tier) => (
-                <button key={tier} type="button" data-on={diag.tier === tier} aria-pressed={diag.tier === tier} onClick={() => chooseTier(tier)}>
-                  {tierLabel[tier]}
-                </button>
-              ))}
-            </div>
-            <button type="button" onClick={copyDiag}>
-              {copied ? "Copied" : "Copy Diagnostics"}
-            </button>
-          </div>
-        </details>
-      </div>
     </main>
   );
 }

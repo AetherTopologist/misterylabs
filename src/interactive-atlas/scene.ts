@@ -548,7 +548,12 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
       if (hook) hook.fit = reg;
     }
   };
-  void cenotaph.ready.then(publishFit);
+  void cenotaph.ready.then((reg) => {
+    publishFit(reg);
+    setObservationDisc(reg.discY);
+    setMonumentCap(reg.discY != null ? flatDiscCap(reg.discY) : null);
+    showProceduralFloor(reg.discY == null);
+  });
 
   const glowTex = glowTexture();
   const spriteMat = new THREE.SpriteMaterial({
@@ -1423,6 +1428,8 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
   };
 
   const onWheel = (e: WheelEvent) => {
+    const target = e.target;
+    if (target instanceof Element && target.closest("[data-ia-scroll]")) return;
     e.preventDefault();
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 480 : 1;
     const dy = e.deltaY * unit;
