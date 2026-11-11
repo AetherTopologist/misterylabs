@@ -200,14 +200,14 @@ export type AtlasUi = {
   mode: AtlasMode;
   /** Present while walking. Absent in older callers; Follow is the default. */
   camera?: WalkCamera;
-  /** Cenotaph mesh. Absent in older callers; Production is the default. */
+  /** Cenotaph mesh. Visitors load Production + Floor. Absent until the scene reports it. */
   glb?: CenotaphGlb;
   walker: WalkerPose | null;
 };
 
 export type CenotaphVariant = "a" | "b" | "c" | "m";
 
-/** Production is the known-good mesh. Floor is that mesh plus the observation disc. */
+/** Production is the known-good mesh without the disc. Floor is the visitor mesh: that geometry plus the observation disc, northern route, and rim. */
 export type CenotaphGlb = "production" | "floor";
 
 export type AtlasApi = {

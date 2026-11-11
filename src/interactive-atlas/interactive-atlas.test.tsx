@@ -382,67 +382,51 @@ describe("cenotaph door plate", () => {
   });
 });
 
-describe("cenotaph geometry selector", () => {
+describe("cenotaph visitor hud", () => {
   beforeEach(() => {
     api.setGlb.mockClear();
     api.setMode.mockClear();
+    api.setLightTier.mockClear();
+    remember.mockClear();
     pushUi = null;
+    resetDiagnostics();
   });
 
-  it("stays on the public atlas in fly and walk, and defaults to production", async () => {
+  it("does not offer a geometry selector and keeps lighting collapsed", async () => {
     await mount();
-    const summary = screen.getByText("DEV · GLB");
-    const panel = summary.closest("details") as HTMLDetailsElement;
-    expect(panel.open).toBe(false);
-    expect(panel).toHaveTextContent("Production (Original)");
-    panel.open = true;
-    const production = screen.getByRole("button", { name: "Production (Original)" });
-    const floor = screen.getByRole("button", { name: "Production + Floor" });
-    expect(production).toHaveAttribute("aria-pressed", "true");
-    expect(floor).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByText(/Observation floor at 12\.937 m/)).toBeInTheDocument();
-    let release: (() => void) | null = null;
-    api.setGlb.mockImplementation(
-      () =>
-        new Promise<void>((resolve) => {
-          release = resolve;
-        }),
-    );
-    fireEvent.click(floor);
-    expect(api.setGlb).toHaveBeenCalledWith("floor");
-    expect(api.setMode).not.toHaveBeenCalled();
-    expect(floor).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByText(/disc is in the file at 13\.103 m/)).toBeInTheDocument();
-    await act(async () => {
-      release?.();
-    });
-
-    await act(async () => {
-      pushUi!(atHall(0.2));
-    });
-    expect(screen.getByText("DEV · GLB")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Walk" })).toHaveAttribute("data-on", "true");
+    expect(screen.queryByText("DEV · GLB")).not.toBeInTheDocument();
+    expect(screen.queryByText("DEV · DIAGNOSTICS")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Production (Original)" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Shader log/)).not.toBeInTheDocument();
+    const light = screen.getByRole("button", { name: "Lighting: Budget" });
+    expect(light).toHaveAttribute("aria-expanded", "false");
+    expect(light).toHaveTextContent("B");
+    expect(light.className).toContain("ia-light-mark");
+    expect(api.setGlb).not.toHaveBeenCalled();
   });
 
-  it("keeps a collapsed diagnostics panel that does not claim a shader log", async () => {
+  it("opens the tier menu and diagnostics, then collapses on close or outside tap", async () => {
     await mount();
-    const summary = screen.getByText("DEV · DIAGNOSTICS");
-    const panel = summary.closest("details") as HTMLDetailsElement;
-    expect(panel.open).toBe(false);
-    panel.open = true;
+    fireEvent.click(screen.getByRole("button", { name: "Lighting: Budget" }));
+    expect(screen.getByRole("button", { name: "Lighting: Budget" })).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByText(/Shader log: unavailable/)).toBeInTheDocument();
-    expect(screen.getByText(/Production GLB:/)).toBeInTheDocument();
-    expect(screen.getByText(/Production \+ Floor GLB:/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Mobile Max" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Full lamps" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Neutral" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copy Diagnostics" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Budget" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Budget" }));
+    expect(api.setLightTier).toHaveBeenCalledWith("budget");
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(screen.queryByText(/Shader log/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Lighting: Budget" }));
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByText(/Shader log/)).not.toBeInTheDocument();
   });
 
   it("refreshes tier, light count, and shader log without another click", async () => {
     resetDiagnostics();
     await mount();
-    const summary = screen.getByText("DEV · DIAGNOSTICS");
-    const panel = summary.closest("details") as HTMLDetailsElement;
-    panel.open = true;
+    fireEvent.click(screen.getByRole("button", { name: "Lighting: Budget" }));
     await act(async () => {
       patchDiagnostics({ tier: "budget", activeRealLights: 26, activeArchSlots: 8, shaderLog: "unavailable", tierNote: null });
     });
@@ -455,6 +439,7 @@ describe("cenotaph geometry selector", () => {
     expect(screen.queryByText("Real lights: 26 · tier Budget · 8 slots")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Emissive" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: "Budget" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "Lighting: Emissive" })).toHaveTextContent("E");
     await act(async () => {
       patchDiagnostics({
         tierNote: "Full lamps needs about 281 fragment vectors and this device has 256. Staying on the current tier so the monument stays visible.",
@@ -468,5 +453,25 @@ describe("cenotaph geometry selector", () => {
     expect(screen.getByText("Shader log: link failed")).toBeInTheDocument();
     expect(getDiagnostics().tier).toBe("emissive");
     resetDiagnostics();
+  });
+
+  it("keeps the exhibit entrance tappable beside the lighting control while walking", async () => {
+    await mount();
+    await act(async () => {
+      pushUi!(atHall(0.8));
+    });
+    const enter = screen.getByRole("link", { name: "Enter exhibit" });
+    const light = screen.getByRole("button", { name: "Lighting: Budget" });
+    const stick = screen.getByRole("application", { name: /Walk/ });
+    expect(light.closest(".ia-light")?.contains(enter)).toBe(false);
+    expect(enter.closest(".ia-plate")?.className).toContain("ia-plate");
+    expect(stick).toBeInTheDocument();
+    fireEvent.click(light);
+    expect(screen.getByRole("region", { name: "Lighting: Budget" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("region", { name: "Lighting: Budget" })).not.toBeInTheDocument();
+    fireEvent.click(enter);
+    expect(remember).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Walk" })).toHaveAttribute("data-on", "true");
   });
 });
