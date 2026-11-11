@@ -461,6 +461,16 @@ const DEMO_CARDS: Array<{
     status: "v1.0 Illustrative",
   },
   {
+    href: "/observatory/prime",
+    label: "PRIME",
+    sub: "The Last Distance · Touch",
+    desc: "One gap, from the blessing hand to the repulsion wall. Contact forces, deformation, corpuscles, and perception stay in separate sentences.",
+    accent: "text-cyan-400/70",
+    border: "border-cyan-500/20 hover:border-cyan-500/40",
+    maturity: "Experimental",
+    status: "Vertical slice",
+  },
+  {
     href: "/observatory/field-resonance",
     label: "Field Resonance",
     sub: "Can a field pattern move without a trajectory?",
