@@ -20,6 +20,7 @@ import { buildPavilionOfTurningShadows } from "./pavilion-of-turning-shadows";
 import { buildSquareThroat } from "./square-throat-pavilion";
 import { buildFairGarden } from "./garden";
 import { buildPrometheusFlame } from "./prometheus-flame";
+import { buildPrimeHand } from "./prime-hand";
 import { WALK_BACK, WALK_LOOK } from "./framing";
 import { createWalker } from "./mister-why";
 import { captureAtlasResume, takeAtlasResume } from "./resume";
@@ -897,12 +898,22 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     scene.add(prometheus.group);
   }
 
+  // PRIME — a pinch of marble on the west court. Not the flame, and not the stair.
+  const prime = buildPrimeHand();
+  {
+    const p = SITES.prime;
+    addPad(p.x, p.z, 2.6);
+    markSite("prime", 2.4);
+    prime.group.position.set(p.x, 0, p.z);
+    scene.add(prime.group);
+  }
+
   const garden = buildFairGarden();
   scene.add(garden.group);
 
   for (const id of Object.keys(SITES) as ExhibitId[]) {
     const p = SITES[id];
-    const poolRadius = id === "prometheus" ? 3.2 : id === "triad" || id === "bell" ? 10 : 8;
+    const poolRadius = id === "prometheus" || id === "prime" ? 3.2 : id === "triad" || id === "bell" ? 10 : 8;
     const pool = new THREE.Mesh(new THREE.CircleGeometry(poolRadius, 28), basicGlow(0xc4a574, 0.28));
     pool.rotation.x = -Math.PI / 2;
     pool.position.set(p.x, 0.07, p.z);
@@ -1993,6 +2004,7 @@ export function mountObservatory(canvas: HTMLCanvasElement, onChange: (ui: Atlas
     throat.tick(time, camera.position, reduced);
     cross.tick(time, camera.position, reduced);
     prometheus.tick(time, reduced);
+    prime.tick(time, reduced);
     garden.cull(camera.position);
 
     for (const h of highlights) {

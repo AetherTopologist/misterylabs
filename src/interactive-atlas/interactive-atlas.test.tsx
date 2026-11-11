@@ -329,7 +329,31 @@ describe("hollow genius exhibit plate", () => {
     expect(container).toHaveTextContent("Hypercross");
     expect(container).toHaveTextContent("Hydrogen");
     expect(container).toHaveTextContent("Photon Journey");
+    expect(container).toHaveTextContent("PRIME");
     expect(container.querySelectorAll("circle").length).toBeGreaterThan(6);
+  });
+
+  it("names the last distance and remembers the walk before entering", async () => {
+    await mount();
+    await act(async () => {
+      pushUi!({
+        scale: 0.42,
+        selected: "prime",
+        proximity: 0.8,
+        atHome: false,
+        inside: false,
+        mode: "walk",
+        walker: { x: PLACES.prime.x, z: PLACES.prime.z + 8, heading: 0 },
+      });
+    });
+    expect(screen.getByText("PRIME")).toBeInTheDocument();
+    expect(screen.getByText("The Last Distance")).toBeInTheDocument();
+    expect(screen.getByText(EXHIBITS.prime.question!)).toBeInTheDocument();
+    const enter = screen.getByRole("link", { name: "Enter the Last Distance" });
+    expect(enter.getAttribute("href")).toContain("/observatory/prime");
+    expect(enter.getAttribute("href")).toContain("from=interactive-atlas");
+    fireEvent.click(enter);
+    expect(remember).toHaveBeenCalledTimes(1);
   });
 });
 

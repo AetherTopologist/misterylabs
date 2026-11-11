@@ -23,7 +23,8 @@ export type ExhibitId =
   | "inside-out"
   | "cubic-worm"
   | "hypercross"
-  | "prometheus";
+  | "prometheus"
+  | "prime";
 
 export type DestinationId = ExhibitId | "cenotaph";
 
@@ -150,6 +151,16 @@ export const EXHIBITS: Record<ExhibitId, Destination> = {
     name: "Prometheus",
     question: "When does a self-sustaining reaction become an organized system?",
     href: "/observatory/hollow-flame",
+    released: true,
+    placed: true,
+  },
+  prime: {
+    id: "prime",
+    kind: "exhibit",
+    name: "PRIME",
+    hall: "The Last Distance",
+    question: "What is left between two fingertips that have not yet touched?",
+    href: "/observatory/prime",
     released: true,
     placed: true,
   },

@@ -50,6 +50,8 @@ export const PLACES: Record<ExhibitId, Place> = {
   "hypercross": { x: -62 * LAYOUT, y: 2.2, z: -34 * LAYOUT, block: 4.8, reach: 16 },
   // East of the front-court centerline. The south stair and x = 0 stay open.
   prometheus: { x: 7, y: 0, z: 170, block: 3.2, reach: 14 },
+  // West of that same court. Prometheus keeps the east. The centerline stays clear.
+  prime: { x: -11, y: 0, z: 176, block: 3.4, reach: 16 },
 };
 
 const at = (x: number, z: number): [number, number, number] => [x * LAYOUT, 0, z * LAYOUT];
@@ -76,6 +78,8 @@ export const PATHS: Array<{ pts: Array<[number, number, number]>; samples: numbe
   { pts: [at(34, -8), at(22, -28), at(8, -42)], samples: 18, walk: 1.0, glow: 0.22 },
   { pts: [at(22, -28), at(-4, -36), at(-26, -56)], samples: 20, walk: 1.0, glow: 0.22 },
   { pts: [at(34, -8), at(44, -9), at(54, -10)], samples: 14, walk: 1.0, glow: 0.2 },
+  // Short spur off the front-court centerline. It does not cross x = 0 onto Prometheus.
+  { pts: [[0, 0, 186], [-11, 0, 176]], samples: 8, walk: 1.0, glow: 0.2 },
 ];
 
 export function projectOut(x: number, z: number, vx: number, vz: number, ox = x, oz = z) {
