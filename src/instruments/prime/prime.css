@@ -107,27 +107,31 @@
   position: sticky;
   top: 58px;
   z-index: 5;
-  min-height: 42vh;
+  display: grid;
+  place-items: center;
   overflow: hidden;
   border: 1px solid var(--line);
-  background:
-    radial-gradient(circle at 58% 42%, rgba(228, 194, 122, 0.16), transparent 28%),
-    linear-gradient(180deg, #12161c 0%, #07080c 100%);
+  background: #07080c;
 }
 
-.prime-hand-wrap svg {
-  display: block;
+.prime-sculpture {
+  position: relative;
+  width: min(100%, calc(54vh * 1111 / 1415));
+  aspect-ratio: 1111 / 1415;
+}
+
+.prime-sculpture img {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 42vh;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
 }
 
-.prime-seam {
-  transform: translateX(var(--seam));
-}
-
-.prime-spark {
-  transform-origin: 262px 168px;
-  animation: prime-pulse 2.8s ease-in-out infinite;
+.prime-thumb {
+  /* IP joint of the thumb, as a fraction of the seed image. */
+  transform-origin: 82.268% 49.894%;
 }
 
 .prime-readout {
@@ -423,8 +427,8 @@
     min-height: 68vh;
   }
 
-  .prime-hand-wrap svg {
-    height: min(72vh, 760px);
+  .prime-sculpture {
+    width: min(100%, calc(72vh * 1111 / 1415));
   }
 
   .prime-readout {
@@ -451,21 +455,5 @@
 
   .prime-receptors {
     grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .prime-spark {
-    animation: none;
-  }
-}
-
-@keyframes prime-pulse {
-  0%,
-  100% {
-    opacity: 0.75;
-  }
-  50% {
-    opacity: 1;
   }
 }

@@ -17,6 +17,8 @@ import {
   type ReceptorId,
 } from "./model";
 import "./prime.css";
+import baseUrl from "./hand/base.webp";
+import thumbUrl from "./hand/thumb.webp";
 
 type Tab = "corpuscles" | "zeno" | "bounds";
 
@@ -26,55 +28,29 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "bounds", label: "Bounds" },
 ];
 
-function Hand({ seam }: { seam: number }) {
-  // Shuni mudra: index, ring, and little finger stay extended. The middle finger meets the thumb.
-  const extended = "M96 340 C92 250 84 160 80 78 M142 332 C140 220 138 120 136 42 M248 328 C254 210 260 110 264 36";
-  const middle = "M188 332 C230 270 270 228 304 196";
-  const thumb = "M210 410 C286 404 338 346 320 266 C310 214 296 204 286 210";
+/** Degrees, CSS clockwise. Negative opens the gap. Zero is the seed, near contact. */
+const THUMB_OPEN = -5;
+const MACRO_T = journeyTFor(0.015);
+
+function Hand({ t }: { t: number }) {
+  const along = Math.min(1, Math.max(0, (t - MACRO_T) / (1 - MACRO_T)));
+  const angle = THUMB_OPEN * (1 - along);
   return (
-    <svg viewBox="0 0 420 560" role="img" aria-label="Shuni mudra in teal marble. Thumb and middle finger almost meet. Index, ring, and little finger stay extended.">
-      <defs>
-        <linearGradient id="prime-stone" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#0e3c44" />
-          <stop offset="0.5" stopColor="#1f8f98" />
-          <stop offset="1" stopColor="#08262c" />
-        </linearGradient>
-        <radialGradient id="prime-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0" stopColor="#fff6d4" />
-          <stop offset="0.45" stopColor="#e4c27a" stopOpacity="0.85" />
-          <stop offset="1" stopColor="#e4c27a" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <ellipse cx="196" cy="508" rx="108" ry="14" fill="#14110e" />
-      <path
-        d="M118 300 C78 340 86 450 150 486 C214 522 292 470 286 390 C280 330 250 300 230 292 C210 360 150 360 128 300 C140 250 150 250 168 292"
-        fill="url(#prime-stone)"
-        stroke="#e4c27a"
-        strokeOpacity="0.55"
-        strokeWidth="1.5"
+    <div
+      className="prime-sculpture"
+      role="img"
+      aria-label="Shuni mudra in teal marble. Thumb and middle finger almost meet. Index, ring, and little finger stay extended."
+    >
+      <img src={baseUrl} alt="" />
+      <img
+        className="prime-thumb"
+        data-testid="prime-thumb"
+        data-angle={angle.toFixed(2)}
+        src={thumbUrl}
+        alt=""
+        style={{ transform: `rotate(${angle}deg)` }}
       />
-      <g fill="none" stroke="#1a8f98" strokeWidth="26" strokeLinecap="round">
-        <path d={extended} />
-      </g>
-      <g fill="none" stroke="#e4c27a" strokeWidth="1.15" strokeLinecap="round" opacity="0.75">
-        <path d={extended} />
-        <path d="M150 360 C170 420 210 450 250 430" />
-      </g>
-      <g fill="none" stroke="#1a8f98" strokeWidth="26" strokeLinecap="round" transform={`translate(${seam} 0)`}>
-        <path d={middle} />
-      </g>
-      <g fill="none" stroke="#e4c27a" strokeWidth="1.15" strokeLinecap="round" opacity="0.8" transform={`translate(${seam} 0)`}>
-        <path d={middle} />
-      </g>
-      <g fill="none" stroke="#1a8f98" strokeWidth="28" strokeLinecap="round">
-        <path d={thumb} />
-      </g>
-      <g fill="none" stroke="#e4c27a" strokeWidth="1.15" strokeLinecap="round" opacity="0.8">
-        <path d={thumb} />
-      </g>
-      <circle cx={304 + seam} cy="196" r="18" fill="url(#prime-glow)" />
-      <circle className="prime-spark" cx={304 + seam} cy="196" r="4.5" fill="#fff8e4" />
-    </svg>
+    </div>
   );
 }
 
@@ -107,7 +83,6 @@ export function PrimeRide({ fromWorld }: { fromWorld: boolean }) {
   const rate = firingRate(receptor, pressure, frequency, loaded);
   const leader = dominantReceptor(pressure, frequency, loaded);
   const zeno = useMemo(() => zenoPartition(gap, steps), [gap, steps]);
-  const seam = (1 - t) * 18;
   const card = RECEPTOR_CARDS.find((item) => item.id === receptor)!;
 
   function feel(next: ReceptorId) {
@@ -153,7 +128,7 @@ export function PrimeRide({ fromWorld }: { fromWorld: boolean }) {
 
       <section id="ride" className="prime-stage" aria-label="Continuous descent of the gap">
         <div className="prime-hand-wrap">
-          <Hand seam={seam} />
+          <Hand t={t} />
         </div>
         <div className="prime-readout">
           <p className="prime-kicker">{frame.kicker}</p>
