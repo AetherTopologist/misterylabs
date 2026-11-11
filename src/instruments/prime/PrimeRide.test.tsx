@@ -17,7 +17,9 @@ describe("PRIME ride", () => {
     expect(screen.getByTestId("prime-gap")).toHaveTextContent("1.50 cm");
     expect(document.querySelectorAll(".prime-raster i")).toHaveLength(0);
     expect(screen.getByRole("img", { name: /middle finger/i })).toBeInTheDocument();
+    expect(screen.getByTestId("prime-thumb").getAttribute("data-angle")).toBe("-5.00");
     fireEvent.change(screen.getByRole("slider", { name: "Descend the gap" }), { target: { value: "1000" } });
+    expect(screen.getByTestId("prime-thumb").getAttribute("data-angle")).toBe("0.00");
     expect(screen.getByTestId("prime-gap").textContent).not.toBe("1.50 cm");
     expect(screen.getByRole("heading", { name: "The repulsion wall" })).toBeInTheDocument();
   });
