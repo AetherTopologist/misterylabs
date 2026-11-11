@@ -27,9 +27,12 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 function Hand({ seam }: { seam: number }) {
-  const fingers = "M128 340 C124 250 112 160 108 78 M162 332 C160 220 158 120 156 42 M196 328 C202 210 208 110 212 36";
+  // Shuni mudra: index, ring, and little finger stay extended. The middle finger meets the thumb.
+  const extended = "M96 340 C92 250 84 160 80 78 M142 332 C140 220 138 120 136 42 M248 328 C254 210 260 110 264 36";
+  const middle = "M188 332 C230 270 270 228 304 196";
+  const thumb = "M210 410 C286 404 338 346 320 266 C310 214 296 204 286 210";
   return (
-    <svg viewBox="0 0 420 560" role="img" aria-label="Teal marble hand, thumb and index almost meeting">
+    <svg viewBox="0 0 420 560" role="img" aria-label="Shuni mudra in teal marble. Thumb and middle finger almost meet. Index, ring, and little finger stay extended.">
       <defs>
         <linearGradient id="prime-stone" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#0e3c44" />
@@ -50,36 +53,35 @@ function Hand({ seam }: { seam: number }) {
         strokeOpacity="0.55"
         strokeWidth="1.5"
       />
-      <g fill="none" stroke="#14656e" strokeWidth="26" strokeLinecap="round">
-        <path d={fingers} />
+      <g fill="none" stroke="#1a8f98" strokeWidth="26" strokeLinecap="round">
+        <path d={extended} />
       </g>
       <g fill="none" stroke="#e4c27a" strokeWidth="1.15" strokeLinecap="round" opacity="0.75">
-        <path d={fingers} />
+        <path d={extended} />
         <path d="M150 360 C170 420 210 450 250 430" />
       </g>
-      <g fill="none" stroke="#14656e" strokeWidth="26" strokeLinecap="round" transform={`translate(${seam} 0)`}>
-        <path d="M214 330 C246 270 286 230 304 198" />
+      <g fill="none" stroke="#1a8f98" strokeWidth="26" strokeLinecap="round" transform={`translate(${seam} 0)`}>
+        <path d={middle} />
       </g>
       <g fill="none" stroke="#e4c27a" strokeWidth="1.15" strokeLinecap="round" opacity="0.8" transform={`translate(${seam} 0)`}>
-        <path d="M214 330 C246 270 286 230 304 198" />
+        <path d={middle} />
       </g>
-      <g fill="none" stroke="#14656e" strokeWidth="28" strokeLinecap="round">
-        <path d="M230 410 C292 400 336 348 318 268 C308 220 292 206 286 214" />
+      <g fill="none" stroke="#1a8f98" strokeWidth="28" strokeLinecap="round">
+        <path d={thumb} />
       </g>
       <g fill="none" stroke="#e4c27a" strokeWidth="1.15" strokeLinecap="round" opacity="0.8">
-        <path d="M230 410 C292 400 336 348 318 268 C308 220 292 206 286 214" />
+        <path d={thumb} />
       </g>
-      <circle cx={304 + seam} cy="198" r="22" fill="url(#prime-glow)" />
-      <circle className="prime-spark" cx={304 + seam} cy="198" r="4.5" fill="#fff8e4" />
+      <circle cx={304 + seam} cy="196" r="18" fill="url(#prime-glow)" />
+      <circle className="prime-spark" cx={304 + seam} cy="196" r="4.5" fill="#fff8e4" />
     </svg>
   );
 }
 
 function Raster({ rate }: { rate: number }) {
-  const count = Math.max(1, Math.round(rate / 8));
-  const bars = Math.min(36, count);
+  const bars = rate <= 0 ? 0 : Math.min(36, Math.max(1, Math.round(rate / 8)));
   return (
-    <div className="prime-raster" aria-hidden="true">
+    <div className="prime-raster" aria-hidden="true" data-spikes={bars}>
       {Array.from({ length: bars }, (_, i) => (
         <i key={i} style={{ height: `${8 + ((i * 17) % 28)}px` }} />
       ))}

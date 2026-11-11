@@ -64,6 +64,18 @@ describe("corpuscle teaching curves", () => {
 });
 
 describe("Zeno sandbox", () => {
+  it("does not print a positive remainder as zero", () => {
+    const wall = MILESTONES[9].meters;
+    const remainder = zenoPartition(wall, 10).remainder;
+    expect(remainder).toBeGreaterThan(0);
+    const label = formatGap(remainder);
+    expect(label).not.toBe("0 pm");
+    expect(Number.parseFloat(label)).toBeGreaterThan(0);
+    const finer = formatGap(zenoPartition(wall, 24).remainder);
+    expect(finer).not.toBe("0 pm");
+    expect(Number.parseFloat(finer)).toBeGreaterThan(0);
+  });
+
   it("halves the remainder and never travels past the finite gap", () => {
     const gap = LAST_DISTANCE_M;
     const early = zenoPartition(gap, 1);

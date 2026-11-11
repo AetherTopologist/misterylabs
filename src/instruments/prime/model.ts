@@ -280,6 +280,7 @@ export function formatGap(meters: number) {
   if (Math.abs(meters - MACRO_GAP_M) / MACRO_GAP_M < 1e-6) return "1.50 cm";
   if (Math.abs(meters - LAST_DISTANCE_M) / LAST_DISTANCE_M < 1e-6) return "238 μm";
   const abs = Math.abs(meters);
+  if (abs === 0) return "0 m";
   const trim = (value: number, digits: number) => {
     const text = value.toFixed(digits);
     return text.replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
@@ -289,7 +290,14 @@ export function formatGap(meters: number) {
   if (abs >= 1e-3) return `${trim(abs * 1e3, 2)} mm`;
   if (abs >= 1e-6) return `${trim(abs * 1e6, 0)} μm`;
   if (abs >= 1e-9) return `${trim(abs * 1e9, 2)} nm`;
-  return `${trim(abs * 1e12, 0)} pm`;
+  if (abs >= 1e-12) {
+    const pm = abs * 1e12;
+    if (pm >= 10) return `${trim(pm, 0)} pm`;
+    if (pm >= 0.01) return `${trim(pm, 2)} pm`;
+  }
+  const exp = Math.floor(Math.log10(abs));
+  const mant = abs / 10 ** exp;
+  return `${mant.toFixed(2)}e${exp} m`;
 }
 
 export function hapticPattern(id: ReceptorId): number | number[] {

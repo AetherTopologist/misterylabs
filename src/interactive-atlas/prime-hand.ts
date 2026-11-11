@@ -1,7 +1,8 @@
 import * as THREE from "three";
 
 /**
- * West-court marker for PRIME. A pinch, not a second Cenotaph.
+ * West-court marker for PRIME. Shuni mudra: the middle finger meets the thumb.
+ * Index, ring, and little finger stay extended. Not a second Cenotaph.
  * No extra real light: the atlas budget stays with the monument.
  */
 export function buildPrimeHand() {
@@ -26,16 +27,18 @@ export function buildPrimeHand() {
   const palm = new THREE.Mesh(new THREE.BoxGeometry(0.62, 1.05, 0.24), stone);
   palm.position.set(0, 1.05, 0);
 
-  const raised = new THREE.Group();
-  for (let i = 0; i < 3; i++) {
+  const extended = new THREE.Group();
+  extended.name = "shuni-extended";
+  [-0.2, 0.02, 0.18].forEach((x) => {
     const finger = new THREE.Mesh(new THREE.CapsuleGeometry(0.055, 0.62, 2, 5), stone);
-    finger.position.set(-0.18 + i * 0.16, 1.9, 0);
-    raised.add(finger);
-  }
+    finger.position.set(x, 1.9, 0);
+    extended.add(finger);
+  });
 
-  const index = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.5, 2, 5), stone);
-  index.position.set(0.32, 1.72, 0.04);
-  index.rotation.z = -0.62;
+  const middle = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.5, 2, 5), stone);
+  middle.name = "shuni-middle";
+  middle.position.set(0.08, 1.62, 0.05);
+  middle.rotation.z = -0.7;
 
   const thumb = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.34, 2, 5), stone);
   thumb.position.set(0.5, 1.28, 0.06);
@@ -44,7 +47,7 @@ export function buildPrimeHand() {
   const spark = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), gold);
   spark.position.set(0.46, 1.52, 0.1);
 
-  group.add(plinth, palm, raised, index, thumb, spark);
+  group.add(plinth, palm, extended, middle, thumb, spark);
 
   return {
     group,

@@ -15,6 +15,8 @@ describe("PRIME ride", () => {
   it("opens on the 1.50 cm approach and descends in one control", () => {
     mount();
     expect(screen.getByTestId("prime-gap")).toHaveTextContent("1.50 cm");
+    expect(document.querySelectorAll(".prime-raster i")).toHaveLength(0);
+    expect(screen.getByRole("img", { name: /middle finger/i })).toBeInTheDocument();
     fireEvent.change(screen.getByRole("slider", { name: "Descend the gap" }), { target: { value: "1000" } });
     expect(screen.getByTestId("prime-gap").textContent).not.toBe("1.50 cm");
     expect(screen.getByRole("heading", { name: "The repulsion wall" })).toBeInTheDocument();
